@@ -91,7 +91,10 @@ class Repo:
 
     def load_recipe(self, name_or_path: str) -> Recipe:
         """Load a recipe with `_global.yaml` overrides/holds/policy merged in (recipe values win)."""
-        recipe = load_model(self.recipe_path(name_or_path), Recipe)
+        path = self.recipe_path(name_or_path)
+        recipe = load_model(path, Recipe)
+        if recipe.name != path.stem:  # skips/, vex/, state/ and patches/ are keyed by the name
+            raise ValueError(f"{path.name}: `name: {recipe.name}` must match the file name ({path.stem})")
         g = self.global_config()
         recipe.overrides = _merge_rules(g.overrides, recipe.overrides)
         recipe.holds = _merge_rules(g.holds, recipe.holds)

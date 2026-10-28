@@ -789,7 +789,7 @@
         },
         "format": {
           "default": "{{skip_args}}",
-          "description": "Template; `{{regex}}` = joined skip regex, `{{skip_args}}` = framework args",
+          "description": "Template; `{{skip_regex}}` = joined skip regex, `{{skip_args}}` = framework args",
           "title": "Format",
           "type": "string"
         }

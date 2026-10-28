@@ -229,7 +229,7 @@ class Regen(_Model):
 
 class SkipVia(_Model):
     env: str | None = Field(None, description="Put the rendered skip args into this env var instead of `{{skip_args}}`")
-    format: str = Field("{{skip_args}}", description="Template; `{{regex}}` = joined skip regex, `{{skip_args}}` = framework args")
+    format: str = Field("{{skip_args}}", description="Template; `{{skip_regex}}` = joined skip regex, `{{skip_args}}` = framework args")
 
 
 class Services(_Model):
@@ -359,7 +359,8 @@ class SkipEntry(_Model):
 
 class SkipFile(_Model):
     skips: list[SkipEntry] = Field(default_factory=list)
-    quarantine: list[SkipEntry] = Field(default_factory=list, description="Run, report, but never fail the build (generic/go only)")
+    quarantine: list[SkipEntry] = Field(default_factory=list, description="Run, report, but don't fail when every failing test is "
+                                        "quarantined; needs JUnit output (`tests.junit`)")
 
 
 # --- vex --------------------------------------------------------------------

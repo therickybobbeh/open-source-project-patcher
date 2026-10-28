@@ -7,9 +7,14 @@
 # file). Trivy's release channels were compromised in March 2026 (GHSA-69fq-xp46-6x23): never
 # switch these to "latest" or unpinned downloads.
 #
-# Run (Docker socket needed for builds, Copa and tests that use Testcontainers/compose):
+# Run (Docker socket needed for builds, Copa and tests that use Testcontainers/compose; mount the repo
+# at the same path so the host daemon resolves bind mounts):
 #   docker run --rm --network host -v /var/run/docker.sock:/var/run/docker.sock \
-#     -v "$PWD:/work" -w /work ghcr.io/<owner>/patcher run recipes/dex.yaml
+#     -v "$PWD:$PWD" -w "$PWD" ghcr.io/<owner>/patcher run dex --out out --workdir "$PWD/.work"
+#
+# Base images (FROM lines) are kept current by Dependabot; the ARG-pinned tools below by tool-pins.yml.
+
+FROM ghcr.io/astral-sh/uv:0.13.0@sha256:cdc6093146eb3ff6a40107b38f008b789e050e77ad87865e381d9917da55a168 AS uv
 
 FROM python:3.12-slim-bookworm@sha256:6dd8b6dab6b3adc7812bab69eca5dbdc1a5cc690ad28306d234ffb4ef8ac9753
 
@@ -37,8 +42,7 @@ ARG YQ_SHA256_ARM64=189088da0c6429ec5178dfaab1a114805f6cab0b61b165ab236efedf1d57
 
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 
-# TARGETARCH is only set by BuildKit; fall back to dpkg for the legacy builder / podman
-
+# (TARGETARCH is only set by BuildKit; the RUNs below fall back to dpkg for the legacy builder / podman.)
 # Build/test prerequisites shared by the upstream projects:
 #  gcc/clang (cgo, -race, jemalloc), protobuf-compiler, tcl/tclx (redis runtest), bats (docker-maven),
 #  gnupg/git (argo-cd tests), sudo (argo-cd hack/install.sh), unzip/zip (strimzi), docker CLI + plugins.
@@ -100,12 +104,20 @@ RUN git config --system --add safe.directory '*'
 RUN useradd -m -u 1001 -s /bin/bash tester \
  && echo 'tester ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/tester && chmod 0440 /etc/sudoers.d/tester
 
-# dependencies are hash-locked (`uv export --no-dev --no-emit-project -o requirements.lock`)
-COPY requirements.lock /opt/patcher/
-RUN pip install --no-cache-dir --require-hashes -r /opt/patcher/requirements.lock
-COPY pyproject.toml /opt/patcher/
+# Third-party Python packages come from uv.lock (uv verifies its hashes; Dependabot keeps it current).
+# The project itself isn't installed (that would fetch an unpinned build backend): the CLI runs from
+# /opt/patcher/src through a small wrapper.
+COPY --from=uv /uv /usr/local/bin/uv
+COPY pyproject.toml uv.lock /opt/patcher/
+RUN cd /opt/patcher \
+ && UV_PROJECT_ENVIRONMENT=/opt/venv UV_PYTHON_DOWNLOADS=never uv sync --frozen --no-dev --no-install-project
 COPY src /opt/patcher/src
-RUN pip install --no-cache-dir --no-deps /opt/patcher && patcher --help >/dev/null
+# (no PYTHONPATH/venv on PATH: upstream builds and tests run from this process and must not see them)
+RUN printf '%s\n' '#!/bin/sh' \
+      'exec /opt/venv/bin/python -c "import sys; sys.path.insert(0, \"/opt/patcher/src\"); from patcher.cli import app; app(prog_name=\"patcher\")" "$@"' \
+      > /usr/local/bin/patcher \
+ && chmod 0755 /usr/local/bin/patcher \
+ && patcher --help >/dev/null
 
 WORKDIR /work
 ENTRYPOINT ["patcher"]

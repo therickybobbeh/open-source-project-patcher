@@ -1,0 +1,54 @@
+# Keeps the tool downloads pinned by version + sha256 in patcher/Dockerfile (mise, trivy, copa, cosign,
+# yq) current; Dependabot can't update ARG pins. Proposes each tool's newest stable release that is at
+# least 14 days old, with checksums read from that release's own checksum file, verifies them by
+# building the image, and opens a PR. Dependabot (.github/dependabot.yml) covers everything else.
+name: tool-pins
+
+on:
+  schedule:
+    - cron: "0 11 * * 1"   # Mondays 07:00 America/New_York in daylight time (06:00 in winter): cron is UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pins:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+      - id: pins
+        env:
+          GITHUB_TOKEN: ${{ github.token }}   # only to avoid API rate limits on the release lookups
+        run: |
+          uv run --project patcher --frozen patcher pins --write --min-age-days 14 > "$RUNNER_TEMP/pins.md"
+          cat "$RUNNER_TEMP/pins.md" >> "$GITHUB_STEP_SUMMARY"
+          if git diff --quiet -- patcher/Dockerfile; then echo "changed=false"; else echo "changed=true"; fi >> "$GITHUB_OUTPUT"
+      - if: steps.pins.outputs.changed == 'true'
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Build the image with the new pins (every download is sha256-checked)
+        if: steps.pins.outputs.changed == 'true'
+        run: |
+          docker buildx build --load -t patcher:pins patcher
+          docker run --rm --entrypoint sh patcher:pins -c 'trivy --version && copa --version && mise --version && cosign version && yq --version'
+      - id: app-token
+        if: steps.pins.outputs.changed == 'true'
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.PATCHER_APP_ID }}
+          private-key: ${{ secrets.PATCHER_APP_PRIVATE_KEY }}
+      - if: steps.pins.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          branch: deps/tool-pins
+          delete-branch: true
+          add-paths: patcher/Dockerfile
+          commit-message: "deps(tools): update pinned tool downloads"
+          title: "deps(tools): update pinned tool downloads in patcher/Dockerfile"
+          body-path: ${{ runner.temp }}/pins.md
+          labels: dependencies, automated
+          sign-commits: true

@@ -1,0 +1,52 @@
+# Dependabot keeps THIS repository's own dependencies current (the pipeline's actions, the patcher's
+# Python packages and its image base). It does not patch the upstream projects; that's what
+# patch.yml does. Tool downloads pinned by sha256 in patcher/Dockerfile are handled by tool-pins.yml.
+#
+# Policy (same as the hand-made pins): daily check at 07:00 ET, but a release is only proposed once it
+# is 14 days old (`cooldown`), so a compromised release has time to be caught (see GHSA-69fq-xp46-6x23).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directories: ["/", "/.github/actions/*"]   # workflows + the run-patcher composite action
+    schedule:
+      interval: daily
+      time: "07:00"
+      timezone: America/New_York
+    cooldown:
+      default-days: 14
+    groups:
+      actions:
+        patterns: ["*"]
+    labels: [dependencies, automated]
+    commit-message:
+      prefix: "deps(actions)"
+
+  - package-ecosystem: uv
+    directory: /patcher   # pyproject.toml + uv.lock (the image installs from uv.lock)
+    schedule:
+      interval: daily
+      time: "07:00"
+      timezone: America/New_York
+    cooldown:
+      default-days: 14
+    groups:
+      python:
+        patterns: ["*"]
+    labels: [dependencies, automated]
+    commit-message:
+      prefix: "deps(python)"
+
+  - package-ecosystem: docker
+    directory: /patcher   # patcher/Dockerfile: python base + uv stage, both digest-pinned
+    schedule:
+      interval: daily
+      time: "07:00"
+      timezone: America/New_York
+    cooldown:
+      default-days: 14
+    groups:
+      images:
+        patterns: ["*"]
+    labels: [dependencies, automated]
+    commit-message:
+      prefix: "deps(image)"

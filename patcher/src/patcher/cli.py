@@ -165,5 +165,22 @@ def refresh(
     _emit(pipeline.refresh(r, r.load_recipe(recipe), line, platforms.split(","), out.resolve()))
 
 
+@app.command()
+def pins(
+    write: bool = typer.Option(False, "--write", help="Rewrite the ARGs (default: only report)"),
+    min_age_days: int = typer.Option(14, help="Only releases at least this old (supply-chain cooldown)"),
+    dockerfile: Optional[Path] = typer.Option(None, help="Default: patcher/Dockerfile in the repo"),
+    repo: Optional[Path] = RepoOpt,
+) -> None:
+    """Propose updates for the version+sha256 tool pins in patcher/Dockerfile; prints a Markdown summary."""
+    from . import pins as pinmod
+
+    path = dockerfile or (_repo(repo).root / "patcher" / "Dockerfile")
+    updates = pinmod.check(path, min_age_days)
+    if write:
+        pinmod.apply(path, updates)
+    typer.echo(pinmod.summary(updates, min_age_days))
+
+
 if __name__ == "__main__":
     app()

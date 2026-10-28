@@ -29,6 +29,15 @@ OS-only refreshes.
 | Strimzi maven-builder | `strimzi-maven-builder` | strimzi/strimzi-kafka-operator | Dockerfile base (UBI) + rebuild | smoke `mvn -v` |
 | Maven (official image) | `maven` | carlossg/docker-maven (branch `main`) | Dockerfile bases (eclipse-temurin) | upstream bats suite |
 
+## Documentation
+
+| Doc | For |
+|---|---|
+| [docs/architecture.md](docs/architecture.md) | How it works: components, the end-to-end flow (diagram), trust boundaries, tags and revisions, how the pipeline itself stays current |
+| [docs/recipes.md](docs/recipes.md) | Reference for every recipe field, skip handling per test framework, `_global.yaml`, worked examples |
+| [docs/runbook.md](docs/runbook.md) | Setup, reviewing patch PRs, skips, VEX decisions, releases and verification, dependency hygiene, CLI reference |
+| [docs/troubleshooting.md](docs/troubleshooting.md) | Symptom → cause → fix for problems hit while bringing the pipeline up |
+
 ## Layout
 
 ```
@@ -42,39 +51,32 @@ generated/<project>/<tag>/  WRITTEN BY CI, reviewed via PR: deps.patch, bump-pla
 state/<project>.yaml        what was released (tag, revision, digests); written by the release flow
 patcher/                    the Python CLI + the portable patcher image (patcher/Dockerfile)
 schema/                     JSON schemas (`patcher schema`); recipes reference them for editor validation
+docs/                       architecture, recipe reference, runbook, troubleshooting
+.github/                    workflows, the run-patcher composite action, dependabot.yml
 ```
 
-## How a run works (`patcher run <recipe>`)
+## Quick start
 
-1. **resolve**: for each release line in the recipe, the newest upstream tag matching
-   `tagPattern` (or a pinned `tag`, or a `branch` head with the version read from a file).
-2. **checkout**: shallow clone at that tag; apply `patches/<project>/`.
-3. **toolchains**: mise installs the recipe's Go/Rust/Java/Maven/Node/pnpm versions, or tools
-   pinned in the upstream repo's own mise config (`repoMise: [rust, protoc, …]`; `true` = all of them).
-4. **scan**: `trivy fs` on the source and `trivy image` on the upstream image (the baseline).
-5. **plan**: for every fixable finding, the *smallest* fixed version above the installed one,
-   preferring the same major.minor, capped by the policy (`patch`/`minor`/`major`). Then
-   overrides are forced and holds are removed. Go `stdlib` findings become a Go toolchain
-   requirement (the build uses a fixed Go), not a go.mod change.
-6. **apply**, per ecosystem:
-   - `gomod`: `go get`; replace-pinned modules and replace groups via `go mod edit`; `go mod tidy`.
-   - `cargo`: `cargo update -p name@installed --precise`.
-   - `maven`: `versions:use-dep-version`, then `<dependencyManagement>` pins for transitive deps.
-   - `npm`/`pnpm`/`yarn`: overrides/resolutions, then the lockfile is regenerated.
-   - Re-scan and repeat (up to 3 rounds), because a bump can pull in other versions.
-   - Then `dockerfile` (base images to the newest patch tag, digest-pinned; Go builders raised to
-     the required Go) and `files` (version pins in scripts/Dockerfiles, with derived URL/sha256 edits).
-7. **regen** (optional per recipe), then a local **commit**. The upstream tag is moved to that
-   commit so version stamping still reports the upstream version.
-8. **test**: the recipe's command, with `skips/` translated into the framework's own filter.
-   If tests fail and some bumps were minor/major, the run retries once with patch-level bumps only.
-9. **build** with the upstream Dockerfile/build, plus smoke commands; **Copa** for leftover OS packages.
-10. **report**: before/after table, applied changes, what's still fixable and why (needs-human,
-    held, VEX, bundled binary, failed bump), tests and skipped tests, plus `deps.patch` and `bump-plan.json`.
+```bash
+# validate every recipe/skip/VEX/state file
+cd patcher && uv sync && cd ..
+patcher/.venv/bin/patcher validate
 
-## Recipes
+# run one project exactly like CI does: inside the patcher image (never pushes)
+docker build -t patcher:dev patcher
+docker run --rm --network host -v /var/run/docker.sock:/var/run/docker.sock \
+  -v "$PWD:$PWD" -w "$PWD" \
+  patcher:dev run dex --out out --workdir "$PWD/.work"
+# -> out/dex/v2/generated/report.md (the PR body), deps.patch, bump-plan.json
+```
 
-Minimal example (see `recipes/*.yaml` for real ones; `schema/recipe.schema.json` documents every field):
+- **Same-path mounts:** mount the repo and workdir at the same path. Builds, compose services and
+  Testcontainers go through the host's Docker daemon, which resolves bind mounts on the host.
+- **Host networking:** use `--network host`, so services and test containers are reachable on localhost.
+- **macOS:** put `--workdir` on a Docker named volume when a suite tests file permissions
+  (see [troubleshooting](docs/troubleshooting.md)).
+
+A minimal recipe (the full reference is in [docs/recipes.md](docs/recipes.md)):
 
 ```yaml
 name: dex
@@ -101,131 +103,34 @@ build:
     - { name: dex, upstream: ghcr.io/dexidp/dex, args: { VERSION: "{{tag}}" }, smoke: ["dex version"] }
 ```
 
-- **Policy**: `policy.default` (and `policy.ecosystems.<eco>`) caps how far a dependency may
-  move without a person. Fixes beyond the cap show up in the PR as `needs-human`. The global
-  default is `minor`; `go-toolchain` caps Go stdlib fixes.
-- **Overrides / holds** in `_global.yaml` apply to every recipe; a recipe entry with the same
-  `name` wins. `name` accepts `*` globs.
-- **Prepare / scan scope**: `prepare` runs after checkout, before the first scan (Strimzi builds
-  once so Trivy can resolve POMs from `~/.m2` with `scan.offline: true`, because Maven Central
-  rate-limits per-POM lookups). `scan.skipDirs` excludes unshipped trees (test fixtures, release
-  tooling), and `scan.source: false` skips the source scan for Dockerfile-only projects.
-- **Images**: `build.images[]` lists every image a recipe ships. Variants of one repository
-  get an `id` (e.g. Dex's distroless). `ownBinaries` lists the binaries built from this source, so
-  findings in anything else are reported as bundled artifacts. Image-only recipes can give each
-  image its own `tagPattern` and `platforms`.
-- **Templates** in commands and build args: `{{tag}}`, `{{version}}` (no `v`), `{{commit}}`,
-  `{{short_commit}}`, `{{image}}`, `{{platform}}`, `{{arch}}`, `{{skip_args}}`,
-  `{{skip_regex}}`, `{{skip_file}}`. Unknown names are errors.
-
-## Skipping upstream tests
-
-`skips/<project>.yaml`:
-
-```yaml
-skips:
-  - match: '^TestIndex$'           # framework-native selector
-    reason: hits a live external service
-    owner: platform-team
-    expires: 2027-04-30            # warns after expiry; fails the run skipGraceDays later
-quarantine: []                     # run them, report failures, don't fail (needs JUnit output)
-```
-
-How `match` is applied for each framework:
-
-| Framework | How `match` is applied |
-|---|---|
-| go | joined into `go test -skip` (`{{skip_args}}`) or an env var via `skipVia` |
-| nextest | `-E 'not (test(/match/) \| …)'`; or a raw `filter:` filterset |
-| surefire | written to `-Dsurefire.excludesFile` |
-| redis | written to `runtest --skipfile` |
-| jest | `--testPathIgnorePatterns` |
-| bats | not supported: bats can only select tests, so a non-empty list is refused |
-
-If the skip file has entries but the recipe's command never uses the skip placeholders, the run
-fails instead of silently ignoring the skips.
-
-Test environment:
-- Upstream builds and tests never see the pipeline's own `TRIVY_*`, `PATCHER_*` or `COPA_*`
-  variables. Trivy's own suite reads `TRIVY_*`.
-- `tests.runAs: nonroot` runs the test command as an unprivileged user (setup still runs as root).
-  Use it when a suite asserts permission errors, which root bypasses. Argo CD needs this.
-
-## Running locally
-
-```bash
-# CLI only (needs git, docker, trivy, and the toolchains the recipe needs on PATH)
-cd patcher && uv sync && cd ..
-patcher/.venv/bin/patcher validate
-patcher/.venv/bin/patcher run dex --skip-build       # out/dex/v2/generated/report.md
-
-# Exactly like CI: inside the patcher image
-docker build -t patcher:dev patcher
-docker run --rm --network host -v /var/run/docker.sock:/var/run/docker.sock \
-  -v "$PWD:$PWD" -w "$PWD" \
-  patcher:dev run dex --out out --workdir "$PWD/.work"
-```
-
-Mount the repo and workdir at the **same path** inside the container: builds, docker compose
-services and Testcontainers talk to the host's Docker daemon, which resolves bind-mount paths on
-the host.
-
-Use `--network host`: services from `tests.services` and containers that tests start (Testcontainers)
-publish ports on localhost. The image sets `TESTCONTAINERS_HOST_OVERRIDE=localhost` for that.
-
-On macOS (Docker Desktop), bind-mounted host folders don't enforce Linux permission bits, so
-upstream tests that assert "permission denied" fail there (Argo CD has a few). Put `--workdir` on
-a Docker named volume, or run on Linux; CI runners are fine.
-
-Other commands: `plan` (CI matrix), `collect` (copy `out/` into `generated/`),
-`release-build` / `publish` (release flow), `rescan` / `refresh` (Copa fast path), `schema`.
-
 ## CI (GitHub Actions)
 
 | Workflow | Trigger | What it does |
 |---|---|---|
 | `patch.yml` | nightly, dispatch, push to `recipes/` `skips/` `patches/` `vex/` `patcher/` | `plan` → per line `patch` (no secrets, no push) → `pr` opens/updates `patch/<recipe>/<line>`, as a draft when tests fail |
-| `release.yml` | push to `generated/**` (merged PR) | per-arch builds on native runners → merge → Copa → cosign sign + CycloneDX SBOM + OpenVEX attestations → SLSA provenance → PR updating `state/` |
-| `rescan.yml` | daily | re-scans published images and acts only on fixable findings that are new since the release (`state/` keeps the known ones): OS-only → Copa refresh to the next revision; language → dispatches `patch.yml` |
+| `release.yml` | push to `generated/**` (merged PR) | per-arch builds on native runners → merge → Copa → cosign sign + SBOM + OpenVEX attestations → SLSA provenance → `state/` PR |
+| `rescan.yml` | daily | re-scans published images; new OS-only findings → Copa refresh, new language findings → `patch.yml` |
 | `patcher-image.yml` | PRs, pushes to `patcher/`, weekly | unit tests, `validate`, schema/lock drift; publishes the signed multi-arch patcher image |
+| `tool-pins.yml` | Mondays 07:00 ET | updates the version+sha256 tool pins in `patcher/Dockerfile` (releases ≥ 14 days old) |
+| Dependabot | daily 07:00 ET | GitHub Actions, the patcher's Python packages and image bases (14-day cooldown) |
 
-Setup:
-
-1. Create a GitHub App with *Contents: read & write* and *Pull requests: read & write*, and
-   install it on this repo. Set the variable `PATCHER_APP_ID` and the secret
-   `PATCHER_APP_PRIVATE_KEY`. PRs opened with the default `GITHUB_TOKEN` wouldn't trigger PR checks.
-2. Images go to `ghcr.io/<owner>/<image>`; `PATCHER_REGISTRY` is set from the repo owner. GHCR
-   packages start private; change their visibility as needed.
-3. Arm64 builds use `ubuntu-24.04-arm` runners.
-4. Every action is pinned by commit SHA and every tool in `patcher/Dockerfile` by version + sha256.
-   Trivy's release channels were compromised in March 2026 (GHSA-69fq-xp46-6x23), so keep it that way.
-
-Tags: `<upstream tag>-patched.<revision>` is immutable. `<upstream tag>-patched` always points to
-the newest revision. Revisions never reuse a tag that already exists in the registry.
-
-## Adding a project
-
-1. Write `recipes/<name>.yaml`. Start with `source`, `ecosystems`, `tests` and `build`; copy the
-   closest existing recipe.
-2. `patcher validate`, then `patcher run <name> --skip-build`, then a full run, locally or via
-   `workflow_dispatch` of `patch.yml` with `recipe=<name>`.
-3. Add skips with reasons for tests that need infrastructure we don't have.
+Setup (GitHub App, code security settings, GHCR visibility) is in the [runbook](docs/runbook.md#one-time-setup).
 
 ## Known limits
 
-- Language fixes need a bump the upstream code still compiles with. Fixes beyond the policy cap,
-  or in modules frozen upstream (e.g. `github.com/docker/docker` v28 `+incompatible`), are listed
-  as needs-human. Record decisions in `vex/`.
-- Bundled third-party binaries (Argo CD's helm/kustomize/git-lfs, Dex's gomplate) are only as
-  fresh as their pinned version or base image.
-- Redis' vendored C dependencies are patched by moving to the newest Redis point release, not individually.
-- Kafka's own jars inside Strimzi's Kafka images come from the Apache release tarball; those images
-  aren't built by the `strimzi` recipe.
-- The Apollo GraphOS Operator is closed source and its image has no package database, so it gets
+- **Upstream must still compile:** language fixes need a bump the upstream code still compiles with.
+  Fixes beyond the policy cap, or in modules frozen upstream (e.g. `github.com/docker/docker` v28
+  `+incompatible`), are listed as needs-human. Record decisions in `vex/`.
+- **Bundled binaries:** third-party binaries in an image (Argo CD's helm/kustomize/git-lfs, Dex's
+  gomplate) are only as fresh as their pinned version or base image.
+- **Redis:** its vendored C dependencies are patched by moving to the newest Redis point release,
+  not individually.
+- **Strimzi Kafka images:** Kafka's own jars come from the Apache release tarball; those images aren't
+  built by the `strimzi` recipe.
+- **Apollo GraphOS Operator:** closed source, and its image has no package database, so it gets
   scanning and reporting only.
-- A failing test run is retried once with patch-level bumps only, which doubles test time for that
-  line (`--no-retry` turns it off). If both attempts fail with the same tests, suspect the
-  environment or a pre-existing upstream failure before the bumps.
+- **Test retries:** a failing test run is retried once with patch-level bumps only, which doubles
+  test time for that line (`--no-retry` turns it off).
 
 ## Verification status (2026-10-27)
 
@@ -247,4 +152,3 @@ current on that date. Nothing has run in GitHub Actions yet.
 | external-secrets v2.14.0 | patch stage only | no fixable findings at this release; `make test` and build not run locally |
 
 The Copa fast path (`rescan` → `refresh`) was also verified against a local registry.
-

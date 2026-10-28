@@ -30,11 +30,7 @@ jobs:
           uv run --project patcher --frozen patcher schema --out schema
           git diff --exit-code schema || { echo "run: patcher schema --out schema"; exit 1; }
       - name: Lock file matches pyproject
-        run: |
-          cd patcher
-          uv lock --check
-          uv export --frozen --no-dev --no-emit-project --format requirements-txt -o /tmp/req.lock >/dev/null
-          diff <(grep -v '^#' requirements.lock) <(grep -v '^#' /tmp/req.lock)
+        run: cd patcher && uv lock --check
 
   image:
     needs: test

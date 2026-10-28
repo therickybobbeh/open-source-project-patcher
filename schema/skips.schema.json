@@ -62,7 +62,7 @@
       "type": "array"
     },
     "quarantine": {
-      "description": "Run, report, but never fail the build (generic/go only)",
+      "description": "Run, report, but don't fail when every failing test is quarantined; needs JUnit output (`tests.junit`)",
       "items": {
         "$ref": "#/$defs/SkipEntry"
       },
