@@ -1,0 +1,157 @@
+# PR flow: find release lines that need work, patch + test + build + Copa each one (no secrets,
+# no pushes: upstream build/test code is untrusted), then open/update one PR per line with the
+# generated patch set and report. Merging that PR triggers release.yml.
+name: patch
+
+on:
+  schedule:
+    - cron: "17 3 * * *"   # nightly: new upstream releases
+  workflow_dispatch:
+    inputs:
+      recipe:
+        description: Recipe name (empty = every line with a new upstream release)
+        required: false
+      line:
+        description: Release line key (empty = every line of the recipe)
+        required: false
+      all:
+        description: Re-run every line of every recipe
+        type: boolean
+        default: false
+  push:
+    branches: [main]
+    paths: ["recipes/**", "skips/**", "patches/**", "vex/**", "patcher/**"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: patch-${{ github.event_name }}-${{ inputs.recipe || 'all' }}-${{ inputs.line || 'all' }}
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      count: ${{ steps.plan.outputs.count }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+      - id: plan
+        env:
+          EVENT: ${{ github.event_name }}
+          RECIPE: ${{ inputs.recipe }}
+          LINE: ${{ inputs.line }}
+          ALL: ${{ inputs.all }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          args=()
+          if [ "$EVENT" = workflow_dispatch ] && [ -n "$RECIPE" ]; then args+=(--recipe "$RECIPE");
+          elif [ "$ALL" = true ]; then args+=(--all);
+          elif [ "$EVENT" = push ]; then git diff --name-only "$BEFORE" HEAD > "$RUNNER_TEMP/changed"; args+=(--changed-files "$RUNNER_TEMP/changed"); fi
+          matrix=$(uv run --project patcher --frozen patcher plan "${args[@]}")
+          if [ -n "$LINE" ]; then matrix=$(jq -c --arg l "$LINE" '{include: [.include[] | select(.line == $l)]}' <<<"$matrix"); fi
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+          echo "count=$(jq '.include | length' <<<"$matrix")" >> "$GITHUB_OUTPUT"
+          jq . <<<"$matrix"
+
+  patch:
+    needs: plan
+    if: needs.plan.outputs.count != '0'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 330
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    name: patch ${{ matrix.recipe }} ${{ matrix.line }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Free disk space
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+      - name: Enable the containerd image store (lets Copa patch locally built images)
+        run: |
+          echo '{"features":{"containerd-snapshotter":true}}' | sudo tee /etc/docker/daemon.json
+          sudo systemctl restart docker
+      - uses: ./.github/actions/run-patcher
+        with:
+          args: run ${{ matrix.recipe }} --line ${{ matrix.line }} --out out --workdir ${{ runner.temp }}/work
+          cache-key: ${{ matrix.recipe }}
+      # every run's report is visible here, including lines that open no PR (no-changes, image-only)
+      - name: Report to the run summary
+        if: always()
+        env:
+          REPORT: out/${{ matrix.recipe }}/${{ matrix.line }}/generated/report.md
+        run: |
+          if [ -f "$REPORT" ]; then cat "$REPORT" >> "$GITHUB_STEP_SUMMARY"
+          else echo "No report: the run failed before reporting; see the log and the artifact." >> "$GITHUB_STEP_SUMMARY"; fi
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: out-${{ matrix.recipe }}-${{ matrix.line }}
+          path: out/${{ matrix.recipe }}/${{ matrix.line }}
+          retention-days: 14
+          if-no-files-found: warn
+
+  pr:
+    needs: [plan, patch]
+    if: always() && needs.plan.outputs.count != '0'
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    name: pr ${{ matrix.recipe }} ${{ matrix.line }}
+    concurrency:
+      group: pr-${{ matrix.recipe }}-${{ matrix.line }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        id: dl
+        continue-on-error: true
+        with:
+          name: out-${{ matrix.recipe }}-${{ matrix.line }}
+          path: out/${{ matrix.recipe }}/${{ matrix.line }}
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        if: steps.dl.outcome == 'success'
+      - id: collect
+        if: steps.dl.outcome == 'success'
+        run: |
+          items=$(uv run --project patcher --frozen patcher collect --out out)
+          jq . <<<"$items"
+          item=$(jq -c '.[0] // empty' <<<"$items")
+          [ -n "$item" ] || { echo "nothing generated"; exit 0; }
+          {
+            echo "found=true"
+            echo "tag=$(jq -r .tag <<<"$item")"
+            echo "status=$(jq -r .status <<<"$item")"
+            echo "draft=$(jq -r .draft <<<"$item")"
+            echo "body=$(jq -r .body <<<"$item")"
+          } >> "$GITHUB_OUTPUT"
+      - id: app-token
+        if: steps.collect.outputs.found == 'true'
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.PATCHER_APP_ID }}
+          private-key: ${{ secrets.PATCHER_APP_PRIVATE_KEY }}
+      - if: steps.collect.outputs.found == 'true'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          branch: patch/${{ matrix.recipe }}/${{ matrix.line }}
+          delete-branch: true
+          add-paths: generated/${{ matrix.recipe }}/**
+          commit-message: "${{ matrix.recipe }} ${{ steps.collect.outputs.tag }}: dependency updates"
+          title: "[${{ matrix.recipe }}] ${{ steps.collect.outputs.tag }}: dependency updates (${{ steps.collect.outputs.status }})"
+          body-path: ${{ steps.collect.outputs.body }}
+          draft: ${{ steps.collect.outputs.draft }}
+          labels: security, automated, ${{ matrix.recipe }}
+          sign-commits: true

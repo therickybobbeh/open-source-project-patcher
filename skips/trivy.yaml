@@ -1,0 +1,6 @@
+# yaml-language-server: $schema=../schema/skips.schema.json
+# The trivy test entrypoint takes no extra flags, so per-test skips aren't supported: the runner
+# refuses a non-empty list rather than silently ignoring it. To skip tests, change the recipe's
+# tests.command to call `go test` directly with {{skip_args}}.
+skips: []
+quarantine: []

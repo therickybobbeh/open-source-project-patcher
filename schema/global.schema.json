@@ -1,0 +1,189 @@
+{
+  "$defs": {
+    "Hold": {
+      "additionalProperties": false,
+      "description": "Never bump a dependency (or never past `max`).",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "max": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "reason"
+      ],
+      "title": "Hold",
+      "type": "object"
+    },
+    "Level": {
+      "description": "How far a dependency may move without a human: patch < minor < major.",
+      "enum": [
+        "patch",
+        "minor",
+        "major"
+      ],
+      "title": "Level",
+      "type": "string"
+    },
+    "Override": {
+      "additionalProperties": false,
+      "description": "Force a dependency: if a lower version is found, raise it to `min` (or set exactly `version`).",
+      "properties": {
+        "name": {
+          "description": "Package name; `*` globs allowed (e.g. `golang.org/x/*`)",
+          "title": "Name",
+          "type": "string"
+        },
+        "min": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "reason"
+      ],
+      "title": "Override",
+      "type": "object"
+    },
+    "Policy": {
+      "additionalProperties": false,
+      "properties": {
+        "default": {
+          "$ref": "#/$defs/Level",
+          "default": "minor"
+        },
+        "ecosystems": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Level"
+          },
+          "description": "Per-ecosystem override of `default`",
+          "title": "Ecosystems",
+          "type": "object"
+        }
+      },
+      "title": "Policy",
+      "type": "object"
+    },
+    "ScanConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "severities": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Severities",
+          "type": "array"
+        },
+        "maxRounds": {
+          "default": 3,
+          "description": "Re-scan/re-plan rounds until the plan is empty",
+          "title": "Maxrounds",
+          "type": "integer"
+        },
+        "skipDirs": {
+          "description": "`trivy fs --skip-dirs` applied to every recipe",
+          "items": {
+            "type": "string"
+          },
+          "title": "Skipdirs",
+          "type": "array"
+        }
+      },
+      "title": "ScanConfig",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "registry": {
+      "description": "Where patched images go, e.g. `ghcr.io/my-org`",
+      "title": "Registry",
+      "type": "string"
+    },
+    "tagFormat": {
+      "default": "{{upstream_tag}}-patched.{{revision}}",
+      "description": "Template for immutable patched tags",
+      "title": "Tagformat",
+      "type": "string"
+    },
+    "policy": {
+      "$ref": "#/$defs/Policy"
+    },
+    "overrides": {
+      "additionalProperties": {
+        "items": {
+          "$ref": "#/$defs/Override"
+        },
+        "type": "array"
+      },
+      "title": "Overrides",
+      "type": "object"
+    },
+    "holds": {
+      "additionalProperties": {
+        "items": {
+          "$ref": "#/$defs/Hold"
+        },
+        "type": "array"
+      },
+      "title": "Holds",
+      "type": "object"
+    },
+    "skipGraceDays": {
+      "default": 30,
+      "description": "Expired skips warn; after this many days they fail the run",
+      "title": "Skipgracedays",
+      "type": "integer"
+    },
+    "scan": {
+      "$ref": "#/$defs/ScanConfig"
+    }
+  },
+  "required": [
+    "registry"
+  ],
+  "title": "GlobalConfig",
+  "type": "object"
+}

@@ -1,0 +1,107 @@
+{
+  "$defs": {
+    "VexStatement": {
+      "additionalProperties": false,
+      "properties": {
+        "vulnerability": {
+          "title": "Vulnerability",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "not_affected",
+            "affected",
+            "fixed",
+            "under_investigation"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "justification": {
+          "anyOf": [
+            {
+              "enum": [
+                "component_not_present",
+                "vulnerable_code_not_present",
+                "vulnerable_code_not_in_execute_path",
+                "vulnerable_code_cannot_be_controlled_by_adversary",
+                "inline_mitigations_already_exist"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Justification"
+        },
+        "impact": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "impact_statement for not_affected",
+          "title": "Impact"
+        },
+        "action": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "action_statement for affected, e.g. 'waiting on upstream moby v29 migration'",
+          "title": "Action"
+        },
+        "packages": {
+          "description": "Package names/PURLs this applies to; empty = any",
+          "items": {
+            "type": "string"
+          },
+          "title": "Packages",
+          "type": "array"
+        },
+        "expires": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expires"
+        }
+      },
+      "required": [
+        "vulnerability",
+        "status"
+      ],
+      "title": "VexStatement",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "statements": {
+      "items": {
+        "$ref": "#/$defs/VexStatement"
+      },
+      "title": "Statements",
+      "type": "array"
+    }
+  },
+  "title": "VexFile",
+  "type": "object"
+}

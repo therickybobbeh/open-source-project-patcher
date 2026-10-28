@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=../schema/recipe.schema.json
+name: trivy
+description: Trivy scanner (aquasec/trivy, ghcr.io/aquasecurity/trivy)
+source:
+  repo: aquasecurity/trivy
+  lines:
+    - name: v0
+      tagPattern: '^v0\.\d+\.\d+$'
+toolchain:
+  go: "1.27"
+ecosystems:
+  # targeted `go get` only: the go.mod `tool` block (mage, buf, kind...) shares the module graph
+  - type: gomod
+    dirs: ["."]
+  - type: dockerfile
+    files: [Dockerfile]
+scan:
+  skipDirs: [integration, docs, magefiles, helm, examples]
+tests:
+  framework: go
+  # test:unit = generate Wasm test modules + download RPM/git fixtures (network) + `go test -short ./...`.
+  # mage takes no extra flags, so test skips are not supported for this recipe.
+  command: go tool mage test:unit
+  timeoutMinutes: 60
+build:
+  platforms: [linux/amd64, linux/arm64]
+  images:
+    - name: trivy
+      upstream: ghcr.io/aquasecurity/trivy
+      upstreamTag: "{{version}}"   # upstream image tags have no `v`
+      # the Dockerfile expects goreleaser's `<os>/<arch>/trivy` layout in the build context
+      command: >-
+        rm -rf .patcher-ctx && mkdir -p .patcher-ctx/{{platform}} &&
+        CGO_ENABLED=0 GOOS=linux GOARCH={{arch}} go build -trimpath
+        -ldflags "-s -w -X github.com/aquasecurity/trivy/pkg/version/app.ver={{version}}"
+        -o .patcher-ctx/{{platform}}/trivy ./cmd/trivy &&
+        cp -r Dockerfile contrib .patcher-ctx/ &&
+        docker buildx build --platform {{platform}} -t {{image}} --load .patcher-ctx
+      builtImage: "{{image}}"
+      smoke: ["--version"]
+notes:
+  - Trivy's release channels were compromised in March 2026 (GHSA-69fq-xp46-6x23). The patcher image should use this rebuilt Trivy, pinned by digest.

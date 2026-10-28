@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=../schema/recipe.schema.json
+name: dex
+description: Dex OIDC identity provider (ghcr.io/dexidp/dex)
+source:
+  repo: dexidp/dex
+  # tags like `api/v2.x.y` belong to the API sub-module and never match this pattern
+  lines:
+    - name: v2
+      tagPattern: '^v2\.\d+\.\d+$'
+toolchain:
+  go: "1.27"
+ecosystems:
+  # api/v2 is a separate module that is also copied into the image for scanners
+  - type: gomod
+    dirs: [".", "api/v2"]
+  # golang/alpine/xx/gomplate/distroless bases -> newest patch tag, digest-pinned
+  - type: dockerfile
+    files: [Dockerfile]
+scan:
+  skipDirs: [examples]  # separate module, not shipped
+regen: []  # bumping entgo.io/ent would need `make generate-ent`; add a regen step if that happens
+tests:
+  framework: go
+  # The Makefile's gotestsum download is hard-coded to amd64, so run gotestsum via `go run`.
+  # Storage/connector integration tests skip themselves unless DEX_* env vars are set.
+  command: >-
+    go run gotest.tools/gotestsum@v1.13.0 --format pkgname-and-test-fails --junitfile junit.xml --
+    -race {{skip_args}} ./...
+  env:
+    CGO_ENABLED: "1"
+  junit: [junit.xml]
+  timeoutMinutes: 45
+build:
+  platforms: [linux/amd64, linux/arm64]
+  images:
+    - name: dex
+      upstream: ghcr.io/dexidp/dex
+      args: { VERSION: "{{tag}}" }
+      smoke: ["dex version"]
+      ownBinaries: [usr/local/bin/dex, usr/local/bin/docker-entrypoint]
+    - name: dex
+      id: dex-distroless
+      upstream: ghcr.io/dexidp/dex
+      upstreamTag: "{{tag}}-distroless"
+      args: { VERSION: "{{tag}}", BASE_IMAGE: distroless }
+      smoke: ["dex version"]
+      ownBinaries: [usr/local/bin/dex, usr/local/bin/docker-entrypoint]
+notes:
+  - The image bundles the gomplate binary from ghcr.io/hairyhenderson/gomplate; it is refreshed to the newest patch tag by the dockerfile step, otherwise its CVEs are upstream's.

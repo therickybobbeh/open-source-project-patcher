@@ -1,0 +1,1265 @@
+{
+  "$defs": {
+    "Build": {
+      "additionalProperties": false,
+      "properties": {
+        "setup": {
+          "description": "Commands run before image builds (e.g. `make build`)",
+          "items": {
+            "type": "string"
+          },
+          "title": "Setup",
+          "type": "array"
+        },
+        "platforms": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Platforms",
+          "type": "array"
+        },
+        "env": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Env",
+          "type": "object"
+        },
+        "images": {
+          "items": {
+            "$ref": "#/$defs/ImageSpec"
+          },
+          "minItems": 1,
+          "title": "Images",
+          "type": "array"
+        }
+      },
+      "required": [
+        "images"
+      ],
+      "title": "Build",
+      "type": "object"
+    },
+    "CargoEco": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "cargo",
+          "title": "Type",
+          "type": "string"
+        },
+        "dirs": {
+          "description": "Workspace roots (contain Cargo.lock)",
+          "items": {
+            "type": "string"
+          },
+          "title": "Dirs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "CargoEco",
+      "type": "object"
+    },
+    "DerivedEdit": {
+      "additionalProperties": false,
+      "description": "A second edit that follows the main version change (URL, checksum...).",
+      "properties": {
+        "var": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Var"
+        },
+        "pattern": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Regex with a named group `value`",
+          "title": "Pattern"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Template, e.g. `https://download.redis.io/redis-{{version}}.tar.gz`",
+          "title": "Value"
+        },
+        "sha256Of": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Template URL to download; its sha256 becomes the value",
+          "title": "Sha256Of"
+        }
+      },
+      "title": "DerivedEdit",
+      "type": "object"
+    },
+    "DockerfileEco": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "dockerfile",
+          "title": "Type",
+          "type": "string"
+        },
+        "files": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Files",
+          "type": "array"
+        },
+        "pinDigest": {
+          "default": true,
+          "title": "Pindigest",
+          "type": "boolean"
+        },
+        "ignore": {
+          "description": "Image-name regexes to leave alone",
+          "items": {
+            "type": "string"
+          },
+          "title": "Ignore",
+          "type": "array"
+        },
+        "level": {
+          "$ref": "#/$defs/Level",
+          "default": "patch",
+          "description": "How far a base image tag may move"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "DockerfileEco",
+      "type": "object"
+    },
+    "FileEdit": {
+      "additionalProperties": false,
+      "properties": {
+        "file": {
+          "description": "Path (glob allowed) relative to the checkout",
+          "title": "File",
+          "type": "string"
+        },
+        "var": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Variable name: matches NAME=ver, NAME ver, NAME: ver (ENV/ARG/export ok)",
+          "title": "Var"
+        },
+        "pattern": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Regex with a named group `version`",
+          "title": "Pattern"
+        },
+        "to": {
+          "default": "latest-patch",
+          "description": "`latest-patch`, `latest-minor`, or an explicit version",
+          "title": "To",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VersionSource"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where to look up `latest-*` versions"
+        },
+        "derived": {
+          "items": {
+            "$ref": "#/$defs/DerivedEdit"
+          },
+          "title": "Derived",
+          "type": "array"
+        }
+      },
+      "required": [
+        "file"
+      ],
+      "title": "FileEdit",
+      "type": "object"
+    },
+    "FilesEco": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "files",
+          "title": "Type",
+          "type": "string"
+        },
+        "edits": {
+          "items": {
+            "$ref": "#/$defs/FileEdit"
+          },
+          "minItems": 1,
+          "title": "Edits",
+          "type": "array"
+        }
+      },
+      "required": [
+        "type",
+        "edits"
+      ],
+      "title": "FilesEco",
+      "type": "object"
+    },
+    "GoModEco": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "gomod",
+          "title": "Type",
+          "type": "string"
+        },
+        "dirs": {
+          "description": "Module directories (each has a go.mod); globs allowed",
+          "items": {
+            "type": "string"
+          },
+          "title": "Dirs",
+          "type": "array"
+        },
+        "replaceGroups": {
+          "items": {
+            "$ref": "#/$defs/ReplaceGroup"
+          },
+          "title": "Replacegroups",
+          "type": "array"
+        },
+        "bumpToolchainDirective": {
+          "default": true,
+          "description": "Raise an existing `toolchain` directive to the fixed Go version",
+          "title": "Bumptoolchaindirective",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "GoModEco",
+      "type": "object"
+    },
+    "Hold": {
+      "additionalProperties": false,
+      "description": "Never bump a dependency (or never past `max`).",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "max": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "reason"
+      ],
+      "title": "Hold",
+      "type": "object"
+    },
+    "ImageSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "description": "Our image repository name, e.g. `argocd`",
+          "title": "Name",
+          "type": "string"
+        },
+        "id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Unique key when several variants share a repository (defaults to `name`)",
+          "title": "Id"
+        },
+        "upstream": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Upstream image repo (for the baseline scan), e.g. `quay.io/argoproj/argocd`",
+          "title": "Upstream"
+        },
+        "upstreamTag": {
+          "default": "{{tag}}",
+          "description": "Upstream tag template, also the base of our tag: `{{version}}` strips the leading v, e.g. `{{tag}}-distroless`",
+          "title": "Upstreamtag",
+          "type": "string"
+        },
+        "dockerfile": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "Dockerfile",
+          "title": "Dockerfile"
+        },
+        "context": {
+          "default": ".",
+          "title": "Context",
+          "type": "string"
+        },
+        "target": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target"
+        },
+        "args": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Args",
+          "type": "object"
+        },
+        "command": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Custom build command instead of buildx; must produce `builtImage`",
+          "title": "Command"
+        },
+        "builtImage": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Image ref the custom command produces (template)",
+          "title": "Builtimage"
+        },
+        "smoke": {
+          "description": "Args passed to `docker run --rm <image>`; each must exit 0",
+          "items": {
+            "type": "string"
+          },
+          "title": "Smoke",
+          "type": "array"
+        },
+        "ownBinaries": {
+          "description": "Paths (in the image) of binaries built from this source, e.g. `usr/local/bin/dex`; anything else is reported as a bundled artifact. Empty = guess from the source scan.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Ownbinaries",
+          "type": "array"
+        },
+        "copa": {
+          "default": true,
+          "title": "Copa",
+          "type": "boolean"
+        },
+        "tagPattern": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "image-only: this image's own tag regex when it versions separately from the line",
+          "title": "Tagpattern"
+        },
+        "platforms": {
+          "description": "Platforms this image exists for, when fewer than build.platforms",
+          "items": {
+            "type": "string"
+          },
+          "title": "Platforms",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "ImageSpec",
+      "type": "object"
+    },
+    "Level": {
+      "description": "How far a dependency may move without a human: patch < minor < major.",
+      "enum": [
+        "patch",
+        "minor",
+        "major"
+      ],
+      "title": "Level",
+      "type": "string"
+    },
+    "Line": {
+      "additionalProperties": false,
+      "description": "A release line we track: the newest tag matching `tagPattern` (e.g. every v3.5.x), a pinned\n`tag`, or the head of a `branch` for projects that don't tag releases.",
+      "properties": {
+        "tagPattern": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Regex an upstream tag must match to belong to this line",
+          "title": "Tagpattern"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Short name used in branch/state keys; defaults to a slug of tagPattern",
+          "title": "Name"
+        },
+        "tag": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Pin an exact upstream tag instead of following the newest one",
+          "title": "Tag"
+        },
+        "branch": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Track this branch's head instead of tags (requires `versionFrom` and `name`)",
+          "title": "Branch"
+        },
+        "versionFrom": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VersionFrom"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "Line",
+      "type": "object"
+    },
+    "MavenEco": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "maven",
+          "title": "Type",
+          "type": "string"
+        },
+        "poms": {
+          "description": "Reactor root POMs (globs). A finding is patched in the deepest root whose directory contains its pom.xml: explicit versions via versions-maven-plugin, transitives pinned in that root's <dependencyManagement>",
+          "items": {
+            "type": "string"
+          },
+          "title": "Poms",
+          "type": "array"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "MavenEco",
+      "type": "object"
+    },
+    "NodeEco": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "enum": [
+            "npm",
+            "pnpm",
+            "yarn"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "dirs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Dirs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "NodeEco",
+      "type": "object"
+    },
+    "Override": {
+      "additionalProperties": false,
+      "description": "Force a dependency: if a lower version is found, raise it to `min` (or set exactly `version`).",
+      "properties": {
+        "name": {
+          "description": "Package name; `*` globs allowed (e.g. `golang.org/x/*`)",
+          "title": "Name",
+          "type": "string"
+        },
+        "min": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "reason"
+      ],
+      "title": "Override",
+      "type": "object"
+    },
+    "Policy": {
+      "additionalProperties": false,
+      "properties": {
+        "default": {
+          "$ref": "#/$defs/Level",
+          "default": "minor"
+        },
+        "ecosystems": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Level"
+          },
+          "description": "Per-ecosystem override of `default`",
+          "title": "Ecosystems",
+          "type": "object"
+        }
+      },
+      "title": "Policy",
+      "type": "object"
+    },
+    "RecipeScan": {
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "default": true,
+          "description": "Scan the source tree (`trivy fs`); false for Dockerfile-only projects",
+          "title": "Source",
+          "type": "boolean"
+        },
+        "offline": {
+          "default": false,
+          "description": "`trivy fs --offline-scan`: resolve Maven POMs from the local ~/.m2 only (fill it with `prepare`); avoids Maven Central rate limits",
+          "title": "Offline",
+          "type": "boolean"
+        },
+        "skipDirs": {
+          "description": "Extra `trivy fs --skip-dirs` globs (test fixtures, examples)",
+          "items": {
+            "type": "string"
+          },
+          "title": "Skipdirs",
+          "type": "array"
+        },
+        "skipFiles": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Skipfiles",
+          "type": "array"
+        }
+      },
+      "title": "RecipeScan",
+      "type": "object"
+    },
+    "Regen": {
+      "additionalProperties": false,
+      "properties": {
+        "when": {
+          "default": "always",
+          "enum": [
+            "always",
+            "replaceGroupMoved",
+            "never"
+          ],
+          "title": "When",
+          "type": "string"
+        },
+        "run": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Run",
+          "type": "array"
+        }
+      },
+      "required": [
+        "run"
+      ],
+      "title": "Regen",
+      "type": "object"
+    },
+    "ReplaceGroup": {
+      "additionalProperties": false,
+      "properties": {
+        "pattern": {
+          "description": "Regex over module paths, e.g. `^k8s\\.io/(api|apimachinery|client-go)$`",
+          "title": "Pattern",
+          "type": "string"
+        },
+        "sameVersion": {
+          "default": true,
+          "description": "Members that currently share a version move together",
+          "title": "Sameversion",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "pattern"
+      ],
+      "title": "ReplaceGroup",
+      "type": "object"
+    },
+    "Services": {
+      "additionalProperties": false,
+      "properties": {
+        "compose": {
+          "description": "docker compose file (relative to the checkout)",
+          "title": "Compose",
+          "type": "string"
+        },
+        "services": {
+          "description": "Subset to start; empty = all",
+          "items": {
+            "type": "string"
+          },
+          "title": "Services",
+          "type": "array"
+        }
+      },
+      "required": [
+        "compose"
+      ],
+      "title": "Services",
+      "type": "object"
+    },
+    "SkipVia": {
+      "additionalProperties": false,
+      "properties": {
+        "env": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Put the rendered skip args into this env var instead of `{{skip_args}}`",
+          "title": "Env"
+        },
+        "format": {
+          "default": "{{skip_args}}",
+          "description": "Template; `{{regex}}` = joined skip regex, `{{skip_args}}` = framework args",
+          "title": "Format",
+          "type": "string"
+        }
+      },
+      "title": "SkipVia",
+      "type": "object"
+    },
+    "Source": {
+      "additionalProperties": false,
+      "properties": {
+        "repo": {
+          "description": "GitHub `owner/name` or a full git URL",
+          "title": "Repo",
+          "type": "string"
+        },
+        "lines": {
+          "items": {
+            "$ref": "#/$defs/Line"
+          },
+          "minItems": 1,
+          "title": "Lines",
+          "type": "array"
+        },
+        "exclude": {
+          "description": "Tag regexes to ignore (e.g. sub-module tags like `api/v2.*`)",
+          "items": {
+            "type": "string"
+          },
+          "title": "Exclude",
+          "type": "array"
+        }
+      },
+      "required": [
+        "repo",
+        "lines"
+      ],
+      "title": "Source",
+      "type": "object"
+    },
+    "Tests": {
+      "additionalProperties": false,
+      "properties": {
+        "framework": {
+          "enum": [
+            "go",
+            "nextest",
+            "surefire",
+            "redis",
+            "jest",
+            "bats",
+            "generic"
+          ],
+          "title": "Framework",
+          "type": "string"
+        },
+        "setup": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Setup",
+          "type": "array"
+        },
+        "command": {
+          "description": "May contain `{{skip_args}}`, `{{skip_regex}}`, `{{skip_file}}`",
+          "title": "Command",
+          "type": "string"
+        },
+        "skipVia": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SkipVia"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "env": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Env",
+          "type": "object"
+        },
+        "services": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Services"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "junit": {
+          "description": "Globs of JUnit XML files to collect",
+          "items": {
+            "type": "string"
+          },
+          "title": "Junit",
+          "type": "array"
+        },
+        "timeoutMinutes": {
+          "default": 90,
+          "title": "Timeoutminutes",
+          "type": "integer"
+        },
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "runAs": {
+          "default": "root",
+          "description": "`nonroot`: run tests.command as an unprivileged user (needed when tests assert permission errors, which root bypasses); setup still runs as root",
+          "enum": [
+            "root",
+            "nonroot"
+          ],
+          "title": "Runas",
+          "type": "string"
+        }
+      },
+      "required": [
+        "framework",
+        "command"
+      ],
+      "title": "Tests",
+      "type": "object"
+    },
+    "Toolchain": {
+      "additionalProperties": false,
+      "properties": {
+        "go": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Go major.minor; the latest patch is installed (fixes stdlib CVEs)",
+          "title": "Go"
+        },
+        "rust": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Rust version, or `from-repo` to honor rust-toolchain.toml",
+          "title": "Rust"
+        },
+        "java": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "mise java spec, e.g. `temurin-21`",
+          "title": "Java"
+        },
+        "maven": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Maven"
+        },
+        "node": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Node"
+        },
+        "pnpm": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pnpm"
+        },
+        "extra": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Additional mise tools, e.g. {protoc: '29.3'}",
+          "title": "Extra",
+          "type": "object"
+        },
+        "repoMise": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": false,
+          "description": "Use the upstream repo's own mise config (exact upstream tool pins): `true` = every tool in it, or a list of tool names to install from it, in order",
+          "title": "Repomise"
+        }
+      },
+      "title": "Toolchain",
+      "type": "object"
+    },
+    "VersionFrom": {
+      "additionalProperties": false,
+      "description": "Where a branch-tracked line reads its version (e.g. `ARG MAVEN_VERSION=3.10.0`).",
+      "properties": {
+        "file": {
+          "title": "File",
+          "type": "string"
+        },
+        "var": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Var"
+        },
+        "pattern": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Regex with a named group `version`",
+          "title": "Pattern"
+        }
+      },
+      "required": [
+        "file"
+      ],
+      "title": "VersionFrom",
+      "type": "object"
+    },
+    "VersionSource": {
+      "additionalProperties": false,
+      "properties": {
+        "git": {
+          "description": "Repo to read tags from (`owner/name` or URL)",
+          "title": "Git",
+          "type": "string"
+        },
+        "tagPattern": {
+          "default": "^v?\\d+\\.\\d+\\.\\d+$",
+          "description": "Only tags matching this regex are candidates",
+          "title": "Tagpattern",
+          "type": "string"
+        }
+      },
+      "required": [
+        "git"
+      ],
+      "title": "VersionSource",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "pattern": "^[a-z0-9][a-z0-9-]*$",
+      "title": "Name",
+      "type": "string"
+    },
+    "description": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Description"
+    },
+    "mode": {
+      "default": "source",
+      "enum": [
+        "source",
+        "image-only"
+      ],
+      "title": "Mode",
+      "type": "string"
+    },
+    "source": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Source"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "toolchain": {
+      "$ref": "#/$defs/Toolchain"
+    },
+    "policy": {
+      "$ref": "#/$defs/Policy"
+    },
+    "ecosystems": {
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "cargo": "#/$defs/CargoEco",
+            "dockerfile": "#/$defs/DockerfileEco",
+            "files": "#/$defs/FilesEco",
+            "gomod": "#/$defs/GoModEco",
+            "maven": "#/$defs/MavenEco",
+            "npm": "#/$defs/NodeEco",
+            "pnpm": "#/$defs/NodeEco",
+            "yarn": "#/$defs/NodeEco"
+          },
+          "propertyName": "type"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/GoModEco"
+          },
+          {
+            "$ref": "#/$defs/CargoEco"
+          },
+          {
+            "$ref": "#/$defs/MavenEco"
+          },
+          {
+            "$ref": "#/$defs/NodeEco"
+          },
+          {
+            "$ref": "#/$defs/DockerfileEco"
+          },
+          {
+            "$ref": "#/$defs/FilesEco"
+          }
+        ]
+      },
+      "title": "Ecosystems",
+      "type": "array"
+    },
+    "overrides": {
+      "additionalProperties": {
+        "items": {
+          "$ref": "#/$defs/Override"
+        },
+        "type": "array"
+      },
+      "title": "Overrides",
+      "type": "object"
+    },
+    "holds": {
+      "additionalProperties": {
+        "items": {
+          "$ref": "#/$defs/Hold"
+        },
+        "type": "array"
+      },
+      "title": "Holds",
+      "type": "object"
+    },
+    "prepare": {
+      "description": "Commands run after checkout, before the first scan (e.g. `mvn -DskipTests install` so Trivy can resolve POMs from ~/.m2)",
+      "items": {
+        "type": "string"
+      },
+      "title": "Prepare",
+      "type": "array"
+    },
+    "regen": {
+      "items": {
+        "$ref": "#/$defs/Regen"
+      },
+      "title": "Regen",
+      "type": "array"
+    },
+    "gitIdentity": {
+      "default": true,
+      "description": "Configure a throwaway git user (needed for local commits and some tests)",
+      "title": "Gitidentity",
+      "type": "boolean"
+    },
+    "tests": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Tests"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "build": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Build"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "env": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Env for every stage",
+      "title": "Env",
+      "type": "object"
+    },
+    "scan": {
+      "$ref": "#/$defs/RecipeScan"
+    },
+    "notes": {
+      "description": "Free-form notes copied into the PR report",
+      "items": {
+        "type": "string"
+      },
+      "title": "Notes",
+      "type": "array"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "title": "Recipe",
+  "type": "object"
+}

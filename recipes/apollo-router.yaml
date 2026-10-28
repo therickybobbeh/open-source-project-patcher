@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=../schema/recipe.schema.json
+name: apollo-router
+description: Apollo Router (ghcr.io/apollographql/router), built from source
+source:
+  repo: apollographql/router
+  lines:
+    - name: v2
+      tagPattern: '^v2\.\d+\.\d+$'
+toolchain:
+  # versions come from upstream's .config/mise/config.toml; only what patch/test/build needs is
+  # installed (binstall first, so cargo-nextest is a download instead of a compile)
+  repoMise: [rust, protoc, "aqua:cargo-bins/cargo-binstall", "cargo:cargo-nextest"]
+ecosystems:
+  # one Cargo.lock for the whole workspace (router, federation, examples, fuzz, xtask)
+  - type: cargo
+    dirs: ["."]
+  - type: dockerfile
+    files: [dockerfiles/diy/dockerfiles/Dockerfile.repo]
+scan:
+  skipDirs: [fuzz, examples, apollo-router-benchmarks, docs, xtask]
+tests:
+  framework: nextest
+  # what `cargo xtask test` runs in upstream CI, called directly so the skip filter can be appended
+  command: >-
+    cargo nextest run --locked --no-fail-fast --workspace --features ci,snapshot --profile ci {{skip_args}}
+  # integration tests talk to redis (single + 6-node cluster), zipkin and the datadog test agent
+  services:
+    compose: docker-compose.yml
+  junit: ["target/nextest/ci/junit.xml"]
+  timeoutMinutes: 150
+build:
+  platforms: [linux/amd64, linux/arm64]
+  images:
+    # The official image only downloads a prebuilt tarball; upstream's DIY Dockerfile compiles
+    # `apollo-router` from the checkout onto the same bookworm-slim runtime.
+    - name: router
+      upstream: ghcr.io/apollographql/router
+      dockerfile: dockerfiles/diy/dockerfiles/Dockerfile.repo
+      smoke: ["--version"]
+notes:
+  - GraphOS-licensed integration tests (entity cache, APQ, reporting) return early without TEST_APOLLO_KEY / TEST_APOLLO_GRAPH_REF, so they pass without exercising anything.
+  - The DIY image's entrypoint is /dist/router_wrapper.sh; config path and user match the official image.

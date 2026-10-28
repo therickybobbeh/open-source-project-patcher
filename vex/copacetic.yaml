@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=../schema/vex.schema.json
+# Decisions about findings we can't fix by bumping (published as OpenVEX with each image and
+# used to explain "still fixable" rows in the PR report).
+# github.com/docker/docker is frozen at v28.x +incompatible (moby moved to github.com/moby/moby/v2);
+# record CVEs that are only fixed in moby v29+ here once you've assessed them, e.g.:
+#   - vulnerability: CVE-YYYY-NNNNN
+#     status: affected
+#     action: waiting for upstream copacetic to migrate to github.com/moby/moby/v2
+#     packages: [github.com/docker/docker]
+#     expires: 2027-01-31
+statements: []

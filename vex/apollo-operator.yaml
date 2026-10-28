@@ -1,0 +1,5 @@
+# yaml-language-server: $schema=../schema/vex.schema.json
+# The operator image is closed source and has no OS layer, so nothing in it can be patched here.
+# Record the assessment of each finding (not_affected with a justification, or affected with an
+# action such as "fixed in operator 1.7.0") so the report and the published OpenVEX explain it.
+statements: []

@@ -1,0 +1,75 @@
+{
+  "$defs": {
+    "SkipEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "match": {
+          "description": "Framework-native selector: Go/nextest regex, surefire pattern, redis test name...",
+          "title": "Match",
+          "type": "string"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "owner": {
+          "title": "Owner",
+          "type": "string"
+        },
+        "expires": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expires"
+        },
+        "filter": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "nextest only: raw filterset expression instead of a test-name regex",
+          "title": "Filter"
+        }
+      },
+      "required": [
+        "match",
+        "reason",
+        "owner"
+      ],
+      "title": "SkipEntry",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "skips": {
+      "items": {
+        "$ref": "#/$defs/SkipEntry"
+      },
+      "title": "Skips",
+      "type": "array"
+    },
+    "quarantine": {
+      "description": "Run, report, but never fail the build (generic/go only)",
+      "items": {
+        "$ref": "#/$defs/SkipEntry"
+      },
+      "title": "Quarantine",
+      "type": "array"
+    }
+  },
+  "title": "SkipFile",
+  "type": "object"
+}

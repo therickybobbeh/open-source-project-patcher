@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=../schema/recipe.schema.json
+name: strimzi
+description: Strimzi Kafka operator image (quay.io/strimzi/operator)
+source:
+  repo: strimzi/strimzi-kafka-operator
+  lines:
+    - name: "1"
+      tagPattern: '^1\.\d+\.\d+$'
+toolchain:
+  java: temurin-21
+  maven: "3.9"
+ecosystems:
+  - type: maven
+    poms: [pom.xml]
+  # tini/exporter download pins are checksum-verified in the Dockerfiles: update them with a patch
+  - type: dockerfile
+    files: ["docker-images/base/Dockerfile"]
+    level: patch
+# Trivy resolves every transitive POM; fetching them one by one from Maven Central gets rate-limited
+# (HTTP 429), so build once to fill ~/.m2 (cached in CI) and scan offline against it.
+prepare: ["mvn -B -ntp -q -DskipTests -pl '!systemtest' install"]
+scan:
+  offline: true
+  # not in the operator image: system tests/test helpers, docs, and the third-party libs that go into the
+  # separate Kafka images (docker-images/artifacts/kafka-thirdparty-libs/*, own Maven projects)
+  skipDirs: [systemtest, test, mockkube, development-docs, documentation, packaging, helm-charts,
+             docker-images/artifacts/kafka-thirdparty-libs]
+tests:
+  framework: surefire
+  # unit tests only (Failsafe ITs/STs need a kind cluster); some unit tests use Testcontainers -> Docker
+  command: >-
+    mvn -B -ntp -DskipITs -Dsurefire.rerunFailingTestsCount=2 -pl '!systemtest' {{skip_args}} install
+  junit: ["**/target/surefire-reports/TEST-*.xml"]
+  timeoutMinutes: 150
+build:
+  platforms: [linux/amd64, linux/arm64]
+  env:
+    # operator/Dockerfile does `FROM strimzi/base:latest`, which only exists in the local image store:
+    # build with the docker driver, not a docker-container buildx builder
+    BUILDX_BUILDER: default
+  images:
+    - name: strimzi-operator
+      upstream: quay.io/strimzi/operator
+      # mvn install -> docker-images/artifacts/build.sh collects the *-dist.zip files -> base -> operator
+      command: >-
+        mvn -B -ntp -DskipTests -pl '!systemtest' install &&
+        make -C docker-images/artifacts java_build &&
+        make -C docker-images/base docker_build DOCKER_ARCHITECTURE={{arch}} RELEASE_VERSION={{version}} &&
+        make -C docker-images/operator docker_build DOCKER_ARCHITECTURE={{arch}} RELEASE_VERSION={{version}}
+      builtImage: "strimzi/operator:latest"
+      smoke: []
+notes:
+  - Kafka broker images (quay.io/strimzi/kafka) embed the Apache Kafka binary tarball; their jars can't be bumped through the POMs. Add a separate recipe line if those images need Copa/base refreshes.
+  - The maven-builder image is its own recipe (strimzi-maven-builder).

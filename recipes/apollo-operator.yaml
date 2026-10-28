@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=../schema/recipe.schema.json
+name: apollo-operator
+description: Apollo GraphOS Operator (docker.io/apollograph/operator); closed source, image-only
+mode: image-only
+source:
+  # no public source; tags are read from the image registry
+  repo: https://hub.docker.com/r/apollograph/operator
+  lines:
+    - name: v1
+      tagPattern: '^1\.\d+\.\d+$'
+build:
+  platforms: [linux/amd64, linux/arm64]
+  images:
+    - name: apollo-operator
+      upstream: docker.io/apollograph/operator
+    - name: apollo-bundle-loader
+      upstream: docker.io/apollograph/bundle-loader
+      tagPattern: '^0\.\d+\.\d+$'   # versions separately from the operator
+      platforms: [linux/amd64]        # published for amd64 only
+notes:
+  - The images contain only copied files (operator binary, docker-credential-ecr-login, docker-credential-gcr, /etc/ssl) and no OS package database, so Copa has nothing to patch. Findings are reported and tracked in vex/apollo-operator.yaml until upstream releases fixes.
+  - To run a patched Apollo Router under the operator, set `spec.deployment.podTemplate.image` on the Supergraph to the apollo-router image from this repo.

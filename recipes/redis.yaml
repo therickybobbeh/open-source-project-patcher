@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=../schema/recipe.schema.json
+name: redis
+description: Redis official image (library/redis), from the image source repo redis/docker-library-redis
+source:
+  repo: redis/docker-library-redis
+  lines:
+    - tagPattern: '^v8\.10\.\d+$'
+toolchain: {}
+ecosystems:
+  # Redis vendors its C deps (jemalloc, lua, hiredis) as modified subtrees; scanners can't see them and
+  # fixes ship as Redis point releases. So: newest Redis patch of the line + refreshed base images.
+  - type: files
+    edits:
+      - file: "*/Dockerfile"
+        var: REDIS_VERSION
+        to: latest-patch
+        source: { git: redis/redis, tagPattern: '^\d+\.\d+\.\d+$' }
+        derived:
+          - var: REDIS_DOWNLOAD_URL
+            value: "https://github.com/redis/redis/releases/download/{{version}}/redis-full.tar.gz"
+          - var: REDIS_DOWNLOAD_SHA
+            sha256Of: "https://github.com/redis/redis/releases/download/{{version}}/redis-full.tar.gz"
+  - type: dockerfile
+    files: ["debian/Dockerfile", "alpine/Dockerfile"]
+scan:
+  skipDirs: [release-automation]  # release tooling (uv.lock), not shipped in the image
+tests:
+  framework: redis
+  # Redis' own test suite against the exact tarball the Dockerfile builds (core only, no modules)
+  setup:
+    - >-
+      rm -rf .redis-src && mkdir .redis-src &&
+      curl -fsSL "$(sed -n 's/^ARG REDIS_DOWNLOAD_URL=//p' debian/Dockerfile)" | tar -xz -C .redis-src --strip-components=1 &&
+      make -C .redis-src -j"$(nproc)" BUILD_TLS=no
+  command: cd .redis-src && ./runtest --clients 8 --tags -slow --dump-logs {{skip_args}}
+  timeoutMinutes: 60
+build:
+  platforms: [linux/amd64, linux/arm64]
+  images:
+    - name: redis
+      upstream: docker.io/library/redis
+      upstreamTag: "{{version}}"
+      dockerfile: debian/Dockerfile
+      context: debian
+      smoke: ["redis-server --version"]
+    - name: redis
+      id: redis-alpine
+      upstream: docker.io/library/redis
+      upstreamTag: "{{version}}-alpine"
+      dockerfile: alpine/Dockerfile
+      context: alpine
+      smoke: ["redis-server --version"]

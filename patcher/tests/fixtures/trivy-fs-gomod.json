@@ -1,0 +1,41 @@
+{
+  "SchemaVersion": 2,
+  "ArtifactName": "src",
+  "ArtifactType": "filesystem",
+  "Results": [
+    {
+      "Target": "go.mod",
+      "Class": "lang-pkgs",
+      "Type": "gomod",
+      "Packages": [
+        {"ID": "github.com/example/app", "Name": "github.com/example/app", "Version": "", "Relationship": "root"},
+        {"ID": "golang.org/x/net@v0.30.0", "Name": "golang.org/x/net", "Version": "v0.30.0", "Relationship": "indirect"},
+        {"ID": "golang.org/x/crypto@v0.31.0", "Name": "golang.org/x/crypto", "Version": "v0.31.0", "Relationship": "direct"},
+        {"ID": "stdlib@v1.27.0", "Name": "stdlib", "Version": "v1.27.0", "Relationship": "direct"},
+        {"ID": "github.com/unfixed/lib@v1.0.0", "Name": "github.com/unfixed/lib", "Version": "v1.0.0", "Relationship": "direct"}
+      ],
+      "Vulnerabilities": [
+        {"VulnerabilityID": "CVE-2024-45338", "PkgID": "golang.org/x/net@v0.30.0", "PkgName": "golang.org/x/net",
+         "InstalledVersion": "v0.30.0", "FixedVersion": "0.33.0", "Status": "fixed", "Severity": "MEDIUM"},
+        {"VulnerabilityID": "CVE-2025-22870", "PkgID": "golang.org/x/net@v0.30.0", "PkgName": "golang.org/x/net",
+         "InstalledVersion": "v0.30.0", "FixedVersion": "0.36.0", "Status": "fixed", "Severity": "MEDIUM"},
+        {"VulnerabilityID": "CVE-2025-47907", "PkgID": "stdlib@v1.27.0", "PkgName": "stdlib",
+         "InstalledVersion": "v1.27.0", "FixedVersion": "1.26.9, 1.27.5", "Status": "fixed", "Severity": "HIGH"},
+        {"VulnerabilityID": "CVE-2099-0001", "PkgID": "github.com/unfixed/lib@v1.0.0", "PkgName": "github.com/unfixed/lib",
+         "InstalledVersion": "v1.0.0", "FixedVersion": "", "Status": "affected", "Severity": "LOW"}
+      ]
+    },
+    {
+      "Target": "api/v2/go.mod",
+      "Class": "lang-pkgs",
+      "Type": "gomod",
+      "Packages": [
+        {"ID": "google.golang.org/grpc@v1.68.0", "Name": "google.golang.org/grpc", "Version": "v1.68.0", "Relationship": "direct"}
+      ],
+      "Vulnerabilities": [
+        {"VulnerabilityID": "GHSA-xxxx-yyyy-zzzz", "PkgID": "google.golang.org/grpc@v1.68.0", "PkgName": "google.golang.org/grpc",
+         "InstalledVersion": "v1.68.0", "FixedVersion": "1.68.2", "Status": "fixed", "Severity": "HIGH"}
+      ]
+    }
+  ]
+}

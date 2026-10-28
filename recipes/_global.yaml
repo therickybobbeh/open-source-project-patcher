@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=../schema/global.schema.json
+# Org-wide settings merged into every recipe. Per-recipe overrides/holds with the same `name` win.
+
+# Where patched images are pushed. CI overrides this with PATCHER_REGISTRY=ghcr.io/<owner>.
+registry: ghcr.io/replace-me
+# Immutable tag of every published image; `<upstream_tag>-patched` is moved to the newest revision.
+tagFormat: "{{upstream_tag}}-patched.{{revision}}"
+
+# How far a dependency may move without a human. Beyond this, findings are listed as
+# "needs-human" in the PR instead of being bumped.
+policy:
+  default: minor
+  ecosystems:
+    go-toolchain: minor   # Go stdlib fixes may move the build to the next supported Go minor
+
+# Expired skips warn; this many days after expiry they fail the run.
+skipGraceDays: 30
+
+scan:
+  severities: [CRITICAL, HIGH, MEDIUM, LOW, UNKNOWN]
+  maxRounds: 3
+  skipDirs: ["**/testdata", "**/node_modules", "**/vendor"]
+
+# "If a lower version is found, force at least this", for every project that uses the package.
+# Example:
+#   gomod:
+#     - name: golang.org/x/net
+#       min: v0.45.0
+#       reason: org baseline after CVE-2025-xxxxx
+overrides: {}
+
+# Never bump these (or never past `max`).
+holds: {}

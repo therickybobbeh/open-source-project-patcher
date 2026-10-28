@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=../schema/skips.schema.json
+# Tests skipped when running redis's upstream suite. `match` is a Redis test name or /regex (written to runtest --skipfile).
+# Every entry needs a reason and an owner; set `expires` so skips get revisited.
+# Example:
+#   - match: '...'
+#     reason: needs a cloud account / flaky against live service / unrelated to our use
+#     owner: platform-team
+#     expires: 2027-01-31
+skips: []
+quarantine: []

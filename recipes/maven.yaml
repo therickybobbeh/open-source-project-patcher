@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=../schema/recipe.schema.json
+name: maven
+description: Official Maven image (library/maven), source carlossg/docker-maven
+source:
+  repo: carlossg/docker-maven
+  lines:
+    # upstream releases from `main` without tags; the version is the Maven version it builds
+    - name: maven3
+      branch: main
+      versionFrom: { file: eclipse-temurin-17-noble/Dockerfile, var: MAVEN_VERSION }
+ecosystems:
+  # eclipse-temurin bases: same JDK major + OS, refreshed digest (JDK fixes ship as new temurin builds).
+  # `maven:<ver>-eclipse-temurin-17-noble` stages are left alone: they only provide the Maven
+  # distribution, which changes only with a Maven release.
+  - type: dockerfile
+    files: ["eclipse-temurin-17-noble/Dockerfile", "eclipse-temurin-21-noble/Dockerfile"]
+    ignore: ['^maven$']
+scan:
+  source: false  # Dockerfiles only; the image is judged by `trivy image`
+tests:
+  framework: bats
+  # upstream's bats suite builds each variant (and the image it copies Maven from) and runs mvn builds in it
+  setup: ["git submodule update --init --depth 1"]
+  command: >-
+    for t in eclipse-temurin-21-noble eclipse-temurin-17-noble; do TAG=$t bats tests/tests.bats {{skip_args}}; done
+  timeoutMinutes: 60
+build:
+  platforms: [linux/amd64, linux/arm64]
+  images:
+    - name: maven
+      id: maven-temurin-21-noble
+      upstream: docker.io/library/maven
+      upstreamTag: "{{version}}-eclipse-temurin-21-noble"
+      dockerfile: eclipse-temurin-21-noble/Dockerfile
+      context: eclipse-temurin-21-noble
+      smoke: ["mvn -v"]
+    - name: maven
+      id: maven-temurin-17-noble
+      upstream: docker.io/library/maven
+      upstreamTag: "{{version}}-eclipse-temurin-17-noble"
+      dockerfile: eclipse-temurin-17-noble/Dockerfile
+      context: eclipse-temurin-17-noble
+      smoke: ["mvn -v"]
+notes:
+  - Maven's own jars (/usr/share/maven/lib) only change with a Maven release; upstream bumps those with update-maven-version.sh.

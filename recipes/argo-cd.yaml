@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=../schema/recipe.schema.json
+name: argo-cd
+description: Argo CD (quay.io/argoproj/argocd)
+source:
+  repo: argoproj/argo-cd
+  # list the release lines you actually run; each gets its own PR, state and tags
+  lines:
+    - tagPattern: '^v3\.5\.\d+$'
+    - tagPattern: '^v3\.4\.\d+$'
+toolchain:
+  go: "1.26"
+  node: "24"
+  pnpm: "10.28.1"   # ui/package.json packageManager; the image build runs `pnpm install --frozen-lockfile`
+ecosystems:
+  - type: gomod
+    dirs: [".", "gitops-engine"]
+    # ~35 k8s.io/* modules are pinned with `replace` at one shared version: they move together
+    replaceGroups:
+      - pattern: '^k8s\.io/'
+  - type: pnpm
+    dirs: [ui]
+  - type: dockerfile
+    files: [Dockerfile]
+scan:
+  skipDirs: [hack/tools, hack/get-previous-release, test/e2e, docs]
+regen: []
+# k8s minor bumps may need `make codegen-local` (protoc, vendoring); patch bumps don't. To enable:
+#   - when: replaceGroupMoved
+#     run: ["make install-codegen-tools-local", "make codegen-local"]
+tests:
+  framework: go
+  setup: ["make install-test-tools-local"]   # helm, kustomize, gotestsum, oras into $BIN (needs sudo or root)
+  command: make test-local                    # gitops-engine module + every non-e2e package, with -race
+  # several tests assert "permission denied" (unreadable files, non-executable plugins), which root bypasses
+  runAs: nonroot
+  # hack/test.sh splices $TEST_FLAGS into `go test` unquoted: no spaces in skip regexes
+  skipVia: { env: TEST_FLAGS, format: "-skip={{skip_regex}}" }
+  env:
+    BIN: /usr/local/bin
+  junit: ["test-results/junit.xml"]
+  timeoutMinutes: 120
+build:
+  platforms: [linux/amd64, linux/arm64]
+  images:
+    - name: argocd
+      upstream: quay.io/argoproj/argocd
+      args: { GIT_TAG: "{{tag}}", GIT_COMMIT: "{{commit}}", GIT_TREE_STATE: clean }
+      smoke: ["argocd version --client"]
+notes:
+  - Bundled helm/kustomize/git-lfs binaries come from hack/tool-versions.sh. Their installers verify hack/installers/checksums/*.sha256, so a version bump also needs the new checksum files; do that with a patch in patches/argo-cd/ when one of those tools has a fixable CVE.
+  - End-to-end tests (k3s cluster) are not part of `make test-local` and are not run.

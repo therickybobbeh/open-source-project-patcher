@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=../schema/skips.schema.json
+# Tests skipped when running maven's upstream suite. `match` not supported: bats can only select tests, so the runner refuses a non-empty list.
+# Every entry needs a reason and an owner; set `expires` so skips get revisited.
+# Example:
+#   - match: '...'
+#     reason: needs a cloud account / flaky against live service / unrelated to our use
+#     owner: platform-team
+#     expires: 2027-01-31
+skips: []
+quarantine: []

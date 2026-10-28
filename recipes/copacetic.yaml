@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=../schema/recipe.schema.json
+name: copacetic
+description: Copacetic (copa) CLI image + BuildKit frontend image
+source:
+  repo: project-copacetic/copacetic
+  lines:
+    - name: v0
+      tagPattern: '^v0\.\d+\.\d+$'
+toolchain:
+  go: "1.25"
+ecosystems:
+  - type: gomod
+    dirs: ["."]
+  # also bumps `ARG GO_VERSION` / `ARG ALPINE_VERSION` in frontend.Dockerfile
+  - type: dockerfile
+    files: [frontend.Dockerfile, Dockerfile.copa]
+scan:
+  skipDirs: [integration, test, website]
+tests:
+  framework: go
+  # unit tests only: ./integration and ./test/e2e have no build tags and need BuildKit, registries, QEMU
+  command: make test CODECOV_OPTS="{{skip_args}}"
+  timeoutMinutes: 45
+build:
+  platforms: [linux/amd64, linux/arm64]
+  images:
+    # Upstream ships no CLI image (copa-action's image downloads the amd64 release tarball), so we
+    # build one from patches/copacetic/files/Dockerfile.copa with our own binary.
+    - name: copa
+      dockerfile: Dockerfile.copa
+      args: { CLI_VERSION: "{{version}}" }
+      smoke: ["--version"]
+    - name: copacetic-frontend
+      upstream: ghcr.io/project-copacetic/copacetic-frontend
+      dockerfile: frontend.Dockerfile
+      smoke: []
+notes:
+  - github.com/docker/docker is frozen at v28.x `+incompatible` (moby moved to github.com/moby/moby/v2); CVEs fixed only in moby v29+ need upstream code changes and are tracked in vex/copacetic.yaml.

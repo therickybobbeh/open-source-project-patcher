@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=../schema/skips.schema.json
+# Tests skipped when running Argo CD's upstream suite (`make test-local`).
+# `match` is a Go test regex, passed to `go test -skip` through $TEST_FLAGS (no spaces allowed).
+# Every entry needs a reason and an owner; expired entries warn, then fail the run after
+# `skipGraceDays` (recipes/_global.yaml).
+skips:
+  - match: '^TestIndex$'
+    reason: Downloads the live argo-helm index (argoproj.github.io); fails on network flakes, unrelated to dependency updates
+    owner: platform-team
+    expires: 2027-04-30
+  - match: '^Test_nativeHelmChart_ExtractChart$'
+    reason: Pulls a chart from the live argo-helm repository
+    owner: platform-team
+    expires: 2027-04-30
+# Failures in these tests are reported but don't fail the run (needs JUnit; Argo CD writes test-results/junit.xml).
+quarantine: []

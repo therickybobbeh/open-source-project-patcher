@@ -1,0 +1,7 @@
+# pipeline scratch + reports (CI uploads them as artifacts)
+out/
+.work/
+# python
+patcher/.venv/
+__pycache__/
+.pytest_cache/

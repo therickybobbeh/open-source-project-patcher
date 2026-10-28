@@ -1,0 +1,24 @@
+# yaml-language-server: $schema=../schema/recipe.schema.json
+name: strimzi-maven-builder
+description: Strimzi maven-builder (quay.io/strimzi/maven-builder), used by KafkaConnect plugin builds
+source:
+  repo: strimzi/strimzi-kafka-operator
+  lines:
+    - name: "1"
+      tagPattern: '^1\.\d+\.\d+$'
+ecosystems:
+  # FROM registry.access.redhat.com/ubi9/openjdk-21:<tag> + `microdnf update`: a rebuild with a
+  # refreshed base picks up every RHEL errata; Maven itself comes from the UBI image.
+  - type: dockerfile
+    files: ["docker-images/maven-builder/Dockerfile"]
+scan:
+  source: false  # no source dependencies are shipped in this image
+build:
+  platforms: [linux/amd64, linux/arm64]
+  images:
+    - name: strimzi-maven-builder
+      upstream: quay.io/strimzi/maven-builder
+      dockerfile: docker-images/maven-builder/Dockerfile
+      context: docker-images/maven-builder
+      args: { strimzi_version: "{{version}}" }
+      smoke: ["mvn -v"]

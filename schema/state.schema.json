@@ -1,0 +1,92 @@
+{
+  "$defs": {
+    "LineState": {
+      "additionalProperties": false,
+      "properties": {
+        "upstreamTag": {
+          "title": "Upstreamtag",
+          "type": "string"
+        },
+        "commit": {
+          "title": "Commit",
+          "type": "string"
+        },
+        "revision": {
+          "title": "Revision",
+          "type": "integer"
+        },
+        "releasedAt": {
+          "format": "date-time",
+          "title": "Releasedat",
+          "type": "string"
+        },
+        "platforms": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Platforms",
+          "type": "array"
+        },
+        "images": {
+          "items": {
+            "$ref": "#/$defs/ReleasedImage"
+          },
+          "title": "Images",
+          "type": "array"
+        }
+      },
+      "required": [
+        "upstreamTag",
+        "commit",
+        "revision",
+        "releasedAt"
+      ],
+      "title": "LineState",
+      "type": "object"
+    },
+    "ReleasedImage": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "ref": {
+          "title": "Ref",
+          "type": "string"
+        },
+        "digest": {
+          "title": "Digest",
+          "type": "string"
+        },
+        "knownFixable": {
+          "description": "`vuln|package|location` of fixable findings at release; rescan only acts on findings not in this list",
+          "items": {
+            "type": "string"
+          },
+          "title": "Knownfixable",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "ref",
+        "digest"
+      ],
+      "title": "ReleasedImage",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "lines": {
+      "additionalProperties": {
+        "$ref": "#/$defs/LineState"
+      },
+      "title": "Lines",
+      "type": "object"
+    }
+  },
+  "title": "State",
+  "type": "object"
+}
