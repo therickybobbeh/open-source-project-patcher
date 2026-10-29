@@ -130,3 +130,22 @@ def test_example_recipes_stay_valid():
     for p in examples.glob("*.yaml"):
         r = Recipe.model_validate(yaml.safe_load(p.read_text()))
         assert r.name == p.stem
+
+
+def test_new_upstream_release_lines_are_reported(tmp_path):
+    recipes = {
+        "argo-cd": {"source": {"repo": "argoproj/argo-cd", "lines": [{"tagPattern": r"^v3\.5\.\d+$"}, {"tagPattern": r"^v3\.4\.\d+$"}]}},
+        "trivy": {"source": {"repo": "aquasecurity/trivy", "lines": [{"tagPattern": r"^v0\.\d+\.\d+$"}]}},
+        "redis": {"source": {"repo": "redis/redis", "exclude": [r"^v9\."], "lines": [{"tagPattern": r"^v8\.10\.\d+$"}]}},
+    }
+    tags = {
+        # a prerelease, a Go submodule tag and a chart tag never count as the newest release
+        "argo-cd": ["v3.4.12", "v3.5.6", "v3.6.0", "v3.7.0-rc1", "apis/v4.0.0", "helm-chart-9.1.0"],
+        "trivy": ["v0.76.1", "v0.77.0"],  # still inside the tracked v0 line
+        "redis": ["v8.10.3", "v9.0.0"],  # v9 is excluded by the recipe
+    }
+    repo = _repo(tmp_path, recipes, [], {})
+    found = inventory.new_lines(repo, list_tags=lambda url: next(v for k, v in tags.items() if k in url))
+    assert [(x.recipe, x.line, x.tag, x.tracked) for x in found] == [("argo-cd", "v3.6", "v3.6.0", ["v3.5", "v3.4"])]
+    assert inventory._shape(r"^release\-2\.0\.\d+$").pattern == r"^release\-\d+\.\d+\.\d+$"
+    assert inventory._shape(r"^v1\.\d{2}$").pattern == r"^v\d+\.\d{2}$"  # quantifiers stay

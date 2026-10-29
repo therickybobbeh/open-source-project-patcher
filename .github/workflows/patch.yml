@@ -61,7 +61,7 @@ jobs:
           args=()
           if [ "$EVENT" = workflow_dispatch ] && [ -n "$RECIPE" ]; then args+=(--recipe "$RECIPE");
           elif [ "$ALL" = true ]; then args+=(--all);
-          elif [ "$EVENT" = push ]; then git diff --name-only "$BEFORE" HEAD > "$RUNNER_TEMP/changed"; args+=(--changed-files "$RUNNER_TEMP/changed"); fi
+          elif [ "$EVENT" = push ]; then git diff --name-only "$BEFORE" HEAD > "$RUNNER_TEMP/changed"; args+=(--changed-files "$RUNNER_TEMP/changed" --before "$BEFORE"); fi
           matrix=$(uv run --project patcher --frozen patcher plan "${args[@]}")
           if [ -n "$LINE" ]; then matrix=$(jq -c --arg l "$LINE" '{include: [.include[] | select(.line == $l)]}' <<<"$matrix"); fi
           if [ "$EVENT" = schedule ]; then
