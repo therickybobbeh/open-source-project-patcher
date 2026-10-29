@@ -1,0 +1,34 @@
+# A failed job on main opens an issue (scripts/ci-alert.sh); the next run where it passes closes it.
+# No upstream code runs here: the script only reads run metadata and writes issues.
+name: ci alerts
+
+on:
+  workflow_run:
+    workflows: [patch, release, rescan, patcher-image, tool-pins, wiki history]
+    types: [completed]
+
+permissions:
+  actions: read     # the finished run's jobs
+  issues: write
+
+# No concurrency group: GitHub keeps only one pending run per group, so several runs finishing together
+# (eight releases at once) would drop alerts. Different jobs get different issues anyway.
+
+jobs:
+  alert:
+    # main only: a pull request shows its own failed checks. Cancelled runs neither fail nor pass.
+    if: >-
+      github.event.workflow_run.head_branch == github.event.repository.default_branch &&
+      github.event.workflow_run.event != 'pull_request' &&
+      github.event.workflow_run.conclusion != 'cancelled'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: scripts
+      - name: Open, update or close ci-failure issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: scripts/ci-alert.sh "$RUN_ID"
