@@ -377,6 +377,9 @@ class Recipe(_Model):
     description: str | None = None
     mode: Literal["source", "image-only", "component"] = Field("source", description="component: patched and tested like a source "
                                                                  "recipe, but only shipped inside other images (see `components`)")
+    publish: bool = Field(True, description="false: patch, test, scan and report as usual, but never push images to the registry "
+                                            "(release and Copa refresh skip the recipe). For images you may not redistribute, e.g. "
+                                            "a closed-source vendor image")
     source: Source | None = None
     toolchain: Toolchain = Field(default_factory=Toolchain)
     policy: Policy = Field(default_factory=Policy)

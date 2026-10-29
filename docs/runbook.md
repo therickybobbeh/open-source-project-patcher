@@ -251,6 +251,7 @@ findings instead trigger a `patch.yml` run, which ends in a normal patch PR.
 | `pending first release` | The recipe and line exist, but nothing has been released yet |
 | `version not tracked` | A recipe exists, but no line matches this version: add a line, or upgrade |
 | `no recipe` | Nothing covers it: `patcher init` (see above) |
+| `scanned only` | The recipe has `publish: false`: patched and reported, never pushed. Keep running the vendor image |
 
 `rescan.yml` posts the table to its run summary every night. Keep the inventory current when
 deployments change; `patcher coverage --fail-on-uncovered` can gate a CI job on it.

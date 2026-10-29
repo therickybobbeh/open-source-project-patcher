@@ -732,6 +732,9 @@ def prepare_release_source(repo: Repo, recipe: Recipe, key: str, workdir: Path, 
 
 def release_build(repo: Repo, recipe: Recipe, key: str, platform: str, workdir: Path, out: Path, tag: str | None = None) -> list[dict]:
     """Build + push every image of a line for one platform as `<final>-<arch>` (merged by `publish`)."""
+    if not recipe.publish:
+        log(f"{recipe.name}: publish: false, nothing is built or pushed")
+        return []
     if recipe.mode == "image-only":
         return []  # nothing to build: `publish` mirrors the upstream image
     out = out / recipe.name / key
@@ -765,6 +768,10 @@ def publish(repo: Repo, recipe: Recipe, key: str, platforms: list[str], out: Pat
     g = repo.global_config()
     out = out / recipe.name / key
     out.mkdir(parents=True, exist_ok=True)
+    if not recipe.publish:
+        log(f"{recipe.name}: publish: false, nothing is published")
+        (out / "release.json").write_text("[]\n")
+        return []
     if recipe.mode == "image-only":
         return _publish_image_only(repo, recipe, key, platforms, out)
     gen, doc = find_generated(repo, recipe, key, tag)
@@ -885,6 +892,9 @@ def rescan(repo: Repo, out: Path) -> dict:
 
 def refresh(repo: Repo, recipe: Recipe, key: str, platforms: list[str], out: Path) -> list[dict]:
     """Copa-only re-patch of the currently published images to the next revision."""
+    if not recipe.publish:
+        log(f"{recipe.name}: publish: false, nothing to refresh")
+        return []
     g = repo.global_config()
     st = repo.state(recipe.name)
     ls = st.lines.get(key)

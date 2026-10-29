@@ -297,3 +297,24 @@ def test_collect_keeps_one_patch_set_per_line(tmp_path):
     items = collect(Repo(tmp_path), tmp_path / "out")
     assert [i["tag"] for i in items] == ["v3.5.6"]
     assert sorted(p.name for p in gen.iterdir()) == ["v3.4.12", "v3.5.6"]  # v3.5.5 replaced; the v3.4 line untouched
+
+
+def test_publish_false_never_pushes(tmp_path):
+    from patcher.config import Repo
+    from patcher.models import Recipe
+    from patcher.pipeline import publish, refresh, release_build
+    from patcher.report import Summary, render_markdown
+
+    (tmp_path / "recipes").mkdir()
+    (tmp_path / "recipes" / "_global.yaml").write_text("registry: ghcr.io/me\n")
+    r = Recipe.model_validate({"name": "vendor", "mode": "image-only", "publish": False,
+                               "source": {"repo": "https://hub.docker.com/r/x/y", "lines": [{"name": "v1", "tagPattern": "x"}]},
+                               "build": {"images": [{"name": "vendor", "upstream": "docker.io/x/y"}]}})
+    repo = Repo(tmp_path)
+    # no registry, git or docker access happens: the functions return before any of it
+    assert release_build(repo, r, "v1", "linux/amd64", tmp_path / "w", tmp_path / "out") == []
+    assert publish(repo, r, "v1", ["linux/amd64"], tmp_path / "out") == []
+    assert (tmp_path / "out" / "vendor" / "v1" / "release.json").read_text() == "[]\n"
+    assert refresh(repo, r, "v1", ["linux/amd64"], tmp_path / "out") == []
+    md = render_markdown(Summary(recipe=r, line="v1", tag="1.6.0", commit="n/a", status="success"))
+    assert "**Not published** (`publish: false`" in md
