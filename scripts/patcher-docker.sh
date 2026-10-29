@@ -35,11 +35,17 @@ else
   work_mount="$work:/work-vol" workdir=/work-vol
 fi
 
+# From a git worktree, .git is a file pointing into the main checkout's .git, outside the mounted repo: mount
+# that directory too (read-only), or every git command in the container fails with "not a git repository".
+git_mount=()
+common=$(cd "$repo" && git rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)
+if [[ -n "$common" && "$common" != "$repo"/* ]]; then git_mount=(-v "$common:$common:ro"); fi
+
 exec docker run --rm --network host \
   -e PATCHER_REGISTRY -e GITHUB_ACTIONS -e PATCHER_WORKDIR="$workdir" \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v "$docker_config:/root/.docker" \
-  -v "$repo:$repo" -w "$repo" \
+  -v "$repo:$repo" -w "$repo" ${git_mount[@]+"${git_mount[@]}"} \
   -v "$work_mount" \
   -v "$cache/mise:/opt/mise" -v "$cache/go:/opt/go" -v "$cache/cargo:/opt/cargo" -v "$cache/rustup:/opt/rustup" \
   -v "$cache/m2:/root/.m2" -v "$cache/gradle:/root/.gradle" -v "$cache/npm:/root/.npm" -v "$cache/uv:/root/.cache/uv" \
