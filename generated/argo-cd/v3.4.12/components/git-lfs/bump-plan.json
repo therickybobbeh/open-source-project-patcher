@@ -1,0 +1,208 @@
+{
+  "recipe": "git-lfs",
+  "line": "git-lfs-3.7.1",
+  "tag": "v3.7.1",
+  "commit": "b84b33847fe6458f36ef521534dc0eac953cb379",
+  "status": "success",
+  "requires": {
+    "go": "1.26.0"
+  },
+  "plan": {
+    "bumps": [
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.36.0",
+        "to": "v0.56.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2025-47913",
+          "CVE-2025-47914",
+          "CVE-2025-58181",
+          "CVE-2026-39827",
+          "CVE-2026-39828",
+          "CVE-2026-39829",
+          "CVE-2026-39830",
+          "CVE-2026-39831",
+          "CVE-2026-39832",
+          "CVE-2026-39833",
+          "CVE-2026-39834",
+          "CVE-2026-39835",
+          "CVE-2026-42508",
+          "CVE-2026-46595",
+          "CVE-2026-46597",
+          "CVE-2026-46598",
+          "CVE-2026-56854",
+          "CVE-2026-56855",
+          "CVE-2026-78662"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.38.0",
+        "to": "v0.60.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2025-47911",
+          "CVE-2025-58190",
+          "CVE-2026-25680",
+          "CVE-2026-25681",
+          "CVE-2026-27136",
+          "CVE-2026-33814",
+          "CVE-2026-39821",
+          "CVE-2026-42502",
+          "CVE-2026-42506",
+          "CVE-2026-46600",
+          "CVE-2026-78659",
+          "CVE-2026-78660",
+          "CVE-2026-78663",
+          "CVE-2026-78669",
+          "CVE-2026-97032"
+        ],
+        "direct": true,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/sys",
+        "installed": "v0.31.0",
+        "to": "v0.44.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-39824"
+        ],
+        "direct": true,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/text",
+        "installed": "v0.23.0",
+        "to": "v0.41.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-56851",
+          "CVE-2026-56852"
+        ],
+        "direct": false,
+        "dir": "."
+      }
+    ],
+    "unresolved": [
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.36.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": null,
+        "why": "no fixed version"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.38.0",
+        "vuln_id": "CVE-2026-78661",
+        "severity": "UNKNOWN",
+        "fixed": "0.62.0",
+        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.38.0",
+        "vuln_id": "CVE-2026-97045",
+        "severity": "UNKNOWN",
+        "fixed": "0.62.0",
+        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      }
+    ],
+    "toolchain": {}
+  },
+  "changes": [
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.38.0",
+      "new": "v0.60.0",
+      "note": "CVE-2025-47911, CVE-2025-58190, CVE-2026-25680, CVE-2026-25681, CVE-2026-27136, CVE-2026-33814, CVE-2026-39821, CVE-2026-42502, CVE-2026-42506, CVE-2026-46600, CVE-2026-78659, CVE-2026-78660, CVE-2026-78663, CVE-2026-78669, CVE-2026-97032"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/crypto",
+      "old": "v0.36.0",
+      "new": "v0.56.0",
+      "note": "CVE-2025-47913, CVE-2025-47914, CVE-2025-58181, CVE-2026-39827, CVE-2026-39828, CVE-2026-39829, CVE-2026-39830, CVE-2026-39831, CVE-2026-39832, CVE-2026-39833, CVE-2026-39834, CVE-2026-39835, CVE-2026-42508, CVE-2026-46595, CVE-2026-46597, CVE-2026-46598, CVE-2026-56854, CVE-2026-56855, CVE-2026-78662"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/sys",
+      "old": "v0.31.0",
+      "new": "v0.44.0",
+      "note": "CVE-2026-39824"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/text",
+      "old": "v0.23.0",
+      "new": "v0.41.0",
+      "note": "CVE-2026-56851, CVE-2026-56852"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go",
+      "old": "1.23.0",
+      "new": "1.26.0",
+      "note": "required by a bumped dependency"
+    }
+  ],
+  "failures": [],
+  "unresolved": [
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.57.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": null,
+      "why": "no fixed version"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.60.0",
+      "vuln_id": "CVE-2026-78661",
+      "severity": "UNKNOWN",
+      "fixed": "0.62.0",
+      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.60.0",
+      "vuln_id": "CVE-2026-97045",
+      "severity": "UNKNOWN",
+      "fixed": "0.62.0",
+      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+    }
+  ],
+  "skips": []
+}
