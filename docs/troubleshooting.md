@@ -213,6 +213,16 @@ The push job checks every archive before it pushes any, so nothing was pushed.
 **Fix:** look at the build job of that platform. A custom build `command` must build `{{platform}}` and produce exactly
 `builtImage`.
 
+### `publish`: "… exists, but this run's push just took revision N"
+**Cause:** a Copa refresh of the same line published revision N while this release was building. Nothing was
+published by this run, and the refresh's image is untouched.
+**Fix:** dispatch the release again; it takes the next free revision.
+
+### Copa refresh: "revision N was taken while Copa ran"
+**Cause:** a release of the same line took revision N while Copa was patching. The refresh's result stays under the
+scratch tag `<final>-refresh`; nothing of the release was overwritten.
+**Fix:** nothing. The release runs Copa itself, and the next rescan refreshes again if it still has to.
+
 ### `release-plan`: "no native runner for linux/…"
 **Cause:** `build.platforms` lists a platform without a native GitHub-hosted runner. Release builds run natively,
 one runner per platform: `linux/amd64` and `linux/arm64`.

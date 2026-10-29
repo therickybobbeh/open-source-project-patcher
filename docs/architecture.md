@@ -139,8 +139,8 @@ in a job that holds registry credentials:
 | `build`, one per platform | `patcher release-build`: applies the reviewed `deps.patch` to the verified upstream commit, builds each image for the platform with its components and bundled jars overlaid, and saves it as an archive (`docker save` to `images/<arch>/<image>.tar`), uploaded as an artifact | **yes** | `contents: read` only. No login, no cache |
 | `push` | `patcher release-push`: takes the next free revision, checks every archive, pushes each to `<final>-<arch>` with crane | no | `packages: write` |
 | `publish` | `patcher publish`: merges the per-arch images, Copa, final and moving tags, scan, OpenVEX, release record; then cosign signs and attaches the SBOM and OpenVEX | no | `packages: write`, `id-token: write` |
-| `attest` | SLSA build provenance, one per image | no | `packages: write`, `id-token: write`, `attestations: write` |
-| `state` | the PR updating `state/<project>/<line>.yaml` | no | GitHub App token (`contents`, `pull-requests: write` for its fallback) |
+| `attest` | SLSA build provenance, one per image (skipped for an image that has it already) | no | `packages: write`, `id-token: write`, `attestations: write` |
+| `state` | the PR updating `state/<project>/<line>.yaml`, from `publish`'s job outputs | no | GitHub App token (`contents`, `pull-requests: write` for its fallback) |
 
 **Why the build job gets no credentials.** Building upstream code runs it: the recipe's `build.setup` (upstream
 Makefile targets), custom build `command`s, and every Dockerfile `RUN` step. That code has the Docker socket, so it
@@ -158,7 +158,9 @@ started can wait for the credentials to show up. So the job that builds holds no
   reviewed patch set.
 - **One line per run.** A job can write any artifact of its own run (the runner holds the token), so in a run that
   released two projects, one project's build could replace the other's archives. A push that lands several patch sets
-  therefore dispatches a run per line, and a run's archives only ever come from that line's own build.
+  therefore dispatches a run per line, and a run's archives only ever come from that line's own build. For the same
+  reason no later job reads an artifact: `publish` hands the provenance subjects and the `state/` file to `attest` and
+  `state` as job outputs, which no other job can write.
 - **No cache where credentials are, or where a release is built.** Any job on a branch can write that branch's GitHub
   Actions cache, the jobs that run upstream code included. A job that reads it can end up running binaries another job
   planted: the patcher image's layers, toolchains on `PATH`. So every `release.yml` job that runs the patcher, and Copa
@@ -167,10 +169,16 @@ started can wait for the credentials to show up. So the job that builds holds no
   takes longer for it, but one project's code can't reach another project's release. The patch jobs still share
   caches; what they produce is reviewed in the PR.
 
+- **Image-only recipes** build nothing in `build`: `publish` overlays their components and bundled jars onto the
+  vendor image in one cross build, for every platform at once. The components' build commands run in BuildKit build
+  steps there, without the Docker socket or the job's credentials, but in the job that holds them. Moving them into
+  the credential-free build is a follow-up ([roadmap](roadmap.md)); today the only image-only recipe isn't published.
+
 **Platforms.** `build.platforms` (default `linux/amd64`, `linux/arm64`) are the platforms a line is released for, and
 an image's own `platforms` narrows it to a subset. `release-plan` turns them into the build matrix, one native runner
 per platform (`ubuntu-24.04`, `ubuntu-24.04-arm`; there is no native runner for others, so they are refused). Each
-image is built, pushed and merged for exactly its platforms.
+image is built, pushed and merged for exactly its platforms. A line that can't be released (an unknown recipe or
+line, a platform without a runner) fails the run, after the other lines of the same push are dispatched.
 
 **Recovery.** `state/` is written last, so it only records complete releases: signed, with SBOM, OpenVEX and
 provenance. A run that fails after its builds leaves an unrecorded revision, and dispatching the release with
@@ -219,13 +227,19 @@ How revisions are chosen:
   - `release-push` takes the first revision after the one `state/` records that has no tag in the registry yet, final
     or per-arch, for any image. Nothing is overwritten: not a revision whose `state/` PR isn't merged yet, and not the
     per-arch images a failed attempt left behind. A new build always takes a new revision, so revision numbers can skip.
-  - `publish` merges the revision `release-push` pushed in the same run.
+  - `publish` merges the revision `release-push` pushed in the same run. If its final tag exists already, something
+    else took the revision since (a Copa refresh of the line), and nothing is published: dispatch again. The exception
+    is a re-run of the `publish` job (`--finish-existing`), which finishes what its first attempt pushed, as below.
   - With `rebuild: false`, nothing is built or pushed, and `publish` finishes the highest revision after the recorded
     one whose per-arch images all exist. An image whose final tag exists already (an earlier publish of that revision
     pushed it, then failed) is kept as it is: no second merge or Copa, so its digest stays. It is tagged, scanned and
-    recorded again; signatures, SBOM and OpenVEX are only added where this workflow hasn't attached them yet (SLSA
-    provenance is attested again). A revision `state/` records is never published again.
-- **Copa refresh:** each refresh publishes the next revision of the same upstream tag.
+    recorded again; signatures, SBOM, OpenVEX and provenance are only added where this workflow hasn't attached them
+    yet. A revision `state/` records is never published again.
+- **Copa refresh:** each refresh publishes a new revision of the same upstream tag, the first after the recorded one
+  with no tag yet (as for a release). Copa pushes to a scratch tag, `<final>-refresh`; the result becomes `<final>` only
+  if no release has taken that revision in the meantime, otherwise the refresh stops and the next rescan tries again.
+- **Image-only releases:** each run publishes a new revision, the first after the recorded one with no final or
+  `-build` tag yet.
 
 ## Rescan and `knownFixable`
 
