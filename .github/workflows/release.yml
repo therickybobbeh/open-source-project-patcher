@@ -41,7 +41,7 @@ env:
 
 jobs:
   plan:
-    runs-on: ubuntu-24.04
+    runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
     permissions:
       contents: read
       actions: write         # a push that lands several patch sets dispatches one run per line
@@ -115,7 +115,7 @@ jobs:
       fail-fast: true
       matrix:
         arch: ${{ fromJSON(needs.plan.outputs.arches) }}
-    runs-on: ${{ matrix.arch.runner }}
+    runs-on: ${{ fromJSON(matrix.arch.arch == 'arm64' && (vars.PATCHER_RUNS_ON_UPSTREAM_ARM64 || vars.PATCHER_RUNS_ON_ARM64 || '"ubuntu-24.04-arm"') || (vars.PATCHER_RUNS_ON_UPSTREAM || vars.PATCHER_RUNS_ON || '"ubuntu-24.04"')) }}
     timeout-minutes: 240
     name: build ${{ needs.plan.outputs.recipe }} ${{ needs.plan.outputs.line }} ${{ matrix.arch.platform }}
     permissions:
@@ -144,7 +144,7 @@ jobs:
   push:
     needs: [plan, build]
     if: needs.plan.outputs.count == '1' && needs.plan.outputs.build == 'true'
-    runs-on: ubuntu-24.04
+    runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
     name: push ${{ needs.plan.outputs.recipe }} ${{ needs.plan.outputs.line }}
     concurrency:
       group: release-push-${{ needs.plan.outputs.recipe }}-${{ needs.plan.outputs.line }}
@@ -183,7 +183,7 @@ jobs:
     if: >-
       !cancelled() && needs.plan.outputs.count == '1'
       && (needs.push.result == 'success' || needs.plan.outputs.build == 'false')
-    runs-on: ubuntu-24.04
+    runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
     name: publish ${{ needs.plan.outputs.recipe }} ${{ needs.plan.outputs.line }}
     concurrency:
       group: publish-${{ needs.plan.outputs.recipe }}-${{ needs.plan.outputs.line }}
@@ -271,7 +271,7 @@ jobs:
     # `!cancelled()`: when this run built nothing, `push` was skipped, and a plain condition would skip this job too
     # (GitHub's implied success() also looks at the jobs `publish` needs)
     if: ${{ !cancelled() && needs.publish.result == 'success' && needs.publish.outputs.count != '0' }}
-    runs-on: ubuntu-24.04
+    runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
     strategy:
       matrix: ${{ fromJSON(needs.publish.outputs.subjects) }}
     name: provenance ${{ matrix.image }}
@@ -310,7 +310,7 @@ jobs:
   state:
     needs: [plan, publish, attest]
     if: ${{ !cancelled() && needs.attest.result == 'success' }}   # see attest
-    runs-on: ubuntu-24.04
+    runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
     name: state ${{ needs.plan.outputs.recipe }} ${{ needs.plan.outputs.line }}
     concurrency:
       group: state-${{ needs.plan.outputs.recipe }}-${{ needs.plan.outputs.line }}
