@@ -29,6 +29,8 @@ jobs:
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          enable-cache: false  # no shared cache: patch jobs, which run upstream code, can write it
       - run: uv run --project patcher --frozen pytest -q patcher/tests
       - run: uv run --project patcher --frozen patcher validate
       - name: Schemas are up to date
@@ -67,7 +69,6 @@ jobs:
           repo="${REPO,,}"
           arch="${PLATFORM#linux/}"
           docker buildx build --platform "$PLATFORM" --provenance=false \
-            --cache-from type=gha,scope=patcher-image-$arch --cache-to type=gha,mode=max,scope=patcher-image-$arch \
             -t "$repo:${GITHUB_SHA::12}-$arch" --push patcher
 
   manifest:
