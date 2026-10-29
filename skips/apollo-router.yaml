@@ -6,5 +6,9 @@
 #     reason: needs a cloud account / flaky against live service / unrelated to our use
 #     owner: platform-team
 #     expires: 2027-01-31
-skips: []
+skips:
+  - match: 'integration::connectors::authentication::test_aws_sig_v4_signing$'
+    reason: Calls live AWS (STS AssumeRole, then a SigV4-signed EC2 DescribeInstances) with upstream CI's role (AWS_ROLE_ARN); see tests/integration/fixtures/connectors_sigv4.router.yaml. Fails the same on the unpatched source
+    owner: platform-team
+    expires: 2027-04-30
 quarantine: []
