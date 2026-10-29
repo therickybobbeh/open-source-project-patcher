@@ -1,0 +1,4 @@
+# yaml-language-server: $schema=../schema/skips.schema.json
+# Tests skipped when patching the helm component (Go test regex).
+skips: []
+quarantine: []

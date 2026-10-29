@@ -15,21 +15,23 @@ import shutil
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-from . import adapters, toolchain, upstream
+from . import adapters, components, reach, releases, toolchain, upstream
 from .adapters.base import Ctx, Result
 from .build import BuiltImage, arch_of, build_image, image_digest, native_platform, smoke_test, template_ctx
 from .config import Repo, line_key, render
-from .copa import patch as copa_patch
-from .models import Level, Line, LineState, Policy, Recipe, ReleasedImage
+from .ecosystems import CVE_ECOSYSTEMS
+from . import copa
+from .models import RELEASABLE_STATUSES, Level, Line, LineState, Recipe, ReleasedImage
 from .planner import Plan, Unresolved, build_plan
-from .proc import CommandError, log, run
-from .report import ImageOutcome, Summary, render_markdown
+from .proc import CommandError, first_error, log, output, run
+from .report import BASE_TOOLING, GLOBAL_NODE_PREFIX, ImageOutcome, Summary, render_markdown
 from .scan import ScanReport, scan_fs, scan_image
-from .tests_runner import TestOutcome, run_tests
+from .tests_runner import TestOutcome, only_preexisting, run_tests
 from .versions import parse_semver, try_parse
 from .vex import oci_purl, openvex
 
-CVE_ECOSYSTEMS = ("gomod", "cargo", "maven", "npm", "pnpm", "yarn")
+# statuses whose patch set may be merged and released (tests-preexisting: upstream's own failures)
+RELEASABLE = RELEASABLE_STATUSES
 LOCAL_PREFIX = "patcher.local"
 
 
@@ -42,6 +44,7 @@ class RunOptions:
     skip_build: bool = False
     copa: bool = True
     retry_patch_level: bool = True
+    cooldown: bool = True  # the minimum-release-age rule (policy.minReleaseAgeDays)
 
 
 @dataclass
@@ -56,6 +59,8 @@ class Attempt:
     fs_after: ScanReport | None
     patch: str
     tests: TestOutcome | None
+    malicious: list[dict] = field(default_factory=list)
+    install_env: dict[str, str] = field(default_factory=dict)  # release-age cutoff for test installs
 
 
 def _lines(recipe: Recipe, only: str | None) -> list[Line]:
@@ -70,8 +75,9 @@ def _base_env(recipe: Recipe, out: Path) -> dict[str, str]:
     env = dict(recipe.env)
     if recipe.gitIdentity:
         cfg = out / "gitconfig"
+        # git's own default branch (master), as on CI runners: upstream suites create repos and check it out
         cfg.write_text("[user]\n\tname = patcher\n\temail = patcher@localhost\n[commit]\n\tgpgsign = false\n[tag]\n\tgpgsign = false\n"
-                       "[advice]\n\tdetachedHead = false\n[init]\n\tdefaultBranch = main\n")
+                       "[advice]\n\tdetachedHead = false\n\tdefaultBranchName = false\n")
         env["GIT_CONFIG_GLOBAL"] = str(cfg)
     return env
 
@@ -86,7 +92,7 @@ def _capped(recipe: Recipe, cap: Level | None) -> Recipe:
     pol = recipe.policy
     ecos = {k: (v if v.rank <= cap.rank else cap) for k, v in pol.ecosystems.items()}
     default = pol.default if pol.default.rank <= cap.rank else cap
-    return recipe.model_copy(update={"policy": Policy(default=default, ecosystems=ecos)})
+    return recipe.model_copy(update={"policy": pol.model_copy(update={"default": default, "ecosystems": ecos})})
 
 
 def _ecosystem_types(recipe: Recipe) -> set[str]:
@@ -102,17 +108,18 @@ def _scan_fs(repo: Repo, recipe: Recipe, src: Path, out: Path) -> ScanReport:
 
 
 def _attempt(repo: Repo, recipe: Recipe, tag: str, commit: str, out: Path, opts: RunOptions, cap: Level | None,
-             fs_before: ScanReport | None) -> tuple[Attempt, ScanReport]:
+             fs_before: ScanReport | None, extra: ScanReport | None = None) -> tuple[Attempt, ScanReport]:
     key = out.name
-    label = "full plan" if cap is None else f"capped at {cap.value}"
+    label = ("full plan" if cap is None else f"capped at {cap.value}") + (" + image findings" if extra else "")
     log(f"== {recipe.name} {tag}: attempt ({label})")
-    src = opts.workdir / recipe.name / key / "src"
+    # one checkout per attempt, so the tree on disk always matches the attempt that is kept
+    src = opts.workdir / recipe.name / key / ("src" + ("" if cap is None else f"-{cap.value}") + ("-image" if extra else ""))
     if src.exists():
         shutil.rmtree(src)
     upstream.checkout(recipe.source.url, tag, src, expected_commit=commit, by_commit=_by_commit(recipe, key))
     upstream.apply_patches(src, repo.patches(recipe.name), repo.overlay_dir(recipe.name))
     log_file = out / "patcher.log"
-    env = toolchain.activate(recipe.toolchain, _base_env(recipe, out), src=src)
+    env = toolchain.activate(recipe.toolchain, _base_env(recipe, out), src=src, recipe=recipe)
     for cmd in recipe.prepare:
         run(cmd, cwd=src, env=env, log_file=log_file, capture=False, clean=True)
     if fs_before is None:
@@ -121,16 +128,20 @@ def _attempt(repo: Repo, recipe: Recipe, tag: str, commit: str, out: Path, opts:
     eff = _capped(recipe, cap)
     ctx = Ctx(src=src, recipe=eff, plan=Plan(), env=env, log=log_file)
     total = Result()
-    report = fs_before
+    report = _merge(fs_before, extra) if extra else fs_before
     first_plan: Plan | None = None
     plan = Plan()
     max_rounds = repo.global_config().scan.maxRounds
+    gate = releases.gate_for(eff.policy) if opts.cooldown else None
     for rnd in range(1, max_rounds + 1):
-        plan = build_plan(report, eff, _ecosystem_types(recipe))
+        plan = build_plan(report, eff, _ecosystem_types(recipe), gate)
         first_plan = first_plan or plan
         if plan.toolchain.get("go"):
             ctx.requires["go"] = max(plan.toolchain["go"], ctx.requires.get("go", "0"), key=lambda v: parse_semver(v))
         ctx.plan = plan
+        deferred = sum(1 for u in plan.unresolved if u.why.startswith("cooldown:"))
+        if deferred:
+            log(f"round {rnd}: {deferred} fix(es) deferred by the {eff.policy.minReleaseAgeDays}-day release-age rule")
         if not plan.bumps:
             break
         log(f"round {rnd}: {len(plan.bumps)} bump(s)")
@@ -155,7 +166,7 @@ def _attempt(repo: Repo, recipe: Recipe, tag: str, commit: str, out: Path, opts:
         if eco.type not in CVE_ECOSYSTEMS:
             total.extend(adapters.apply(ctx, eco))
 
-    env = toolchain.activate(recipe.toolchain, env, ctx.requires, src=src)
+    env = toolchain.activate(recipe.toolchain, env, ctx.requires, src=src, recipe=recipe)
     for rg in recipe.regen:
         if rg.when == "always" or (rg.when == "replaceGroupMoved" and "replaceGroupMoved" in total.flags):
             for cmd in rg.run:
@@ -165,13 +176,43 @@ def _attempt(repo: Repo, recipe: Recipe, tag: str, commit: str, out: Path, opts:
     upstream.commit_all(src, f"patcher: dependency updates for {tag}", retag=tag)
     patch = upstream.diff(src, commit)
 
+    # the versions we just introduced must not be known-malicious (OSV MAL-* advisories)
+    changed = [l for l in output(["git", "-C", str(src), "diff", "--name-only", commit, "HEAD"]).splitlines() if l]
+    malicious, mal_note = reach.malicious(src, changed, env)
+    if mal_note:
+        (first_plan or Plan()).notes.append(mal_note)
+    if malicious:
+        log(f"MALICIOUS package advisories for bumped versions: {malicious}")
+        att = Attempt(label, src, env, first_plan or Plan(), total, unresolved, dict(ctx.requires), fs_after, patch, None, malicious)
+        return att, fs_before
+
     tests = None
+    install_env = _install_cutoff(gate, src, commit)
     if recipe.tests and not opts.skip_tests:
-        tests = run_tests(src, recipe.tests, repo.skips(recipe.name), out / ("tests" if cap is None else f"tests-{cap.value}"), env,
+        test_dir = "tests" + ("" if cap is None else f"-{cap.value}") + ("-image" if extra else "")
+        tests = run_tests(src, recipe.tests, repo.skips(recipe.name), out / test_dir, {**env, **install_env},
                           grace_days=repo.global_config().skipGraceDays)
     total.changes = _collapse(total.changes)
-    att = Attempt(label, src, env, first_plan or Plan(), total, unresolved, dict(ctx.requires), fs_after, patch, tests)
+    plan_notes = set((first_plan or Plan()).notes) | {r.degraded for r in (fs_before, fs_after) if r and r.degraded}
+    if gate is not None:
+        plan_notes |= gate.notes
+    (first_plan or Plan()).notes = sorted(plan_notes)
+    att = Attempt(label, src, env, first_plan or Plan(), total, unresolved, dict(ctx.requires), fs_after, patch, tests,
+                  install_env=install_env)
     return att, fs_before
+
+
+def _install_cutoff(gate: releases.AgeGate | None, src: Path, commit: str) -> dict[str, str]:
+    """The release-age rule, applied to what test setups install from ranges (see releases.install_cutoff_env)."""
+    if gate is None or gate.bypassed_fresh:  # a CRITICAL/KEV fix younger than the rule must stay installable
+        return {}
+    try:
+        released = dt.datetime.fromisoformat(output(["git", "-C", str(src), "log", "-1", "--format=%cI", commit]).strip())
+    except (CommandError, ValueError):
+        released = None
+    cut = releases.install_cutoff_env(gate.min_days, released, now=gate.now)
+    log(f"test installs (uv, pip, npm) resolve only releases published before {cut['UV_EXCLUDE_NEWER']}")
+    return cut
 
 
 def _collapse(changes: list) -> list:
@@ -219,31 +260,143 @@ def run_line(repo: Repo, recipe: Recipe, line: Line, opts: RunOptions) -> Summar
             log(f"warning: could not scan upstream image {ref}: {e.tail[-300:]}")
             images_before[spec.key] = (ref, None)
 
-    att, fs_before = _attempt(repo, recipe, tag, commit, out, opts, None, None)
+    att, fs_before, attempts = _attempt_with_retry(repo, recipe, tag, commit, out, opts, None)
+    summary = _summarize(repo, recipe, key, tag, commit, fs_before, att, attempts)
+    summary.images = _build_and_scan(repo, recipe, att, summary, out, opts, tctx, images_before)
+
+    # also (especially) after `no-changes`: a Gradle build without lockfiles shows the source scan nothing
+    if _image_planning(recipe) and summary.status in RELEASABLE and summary.images:
+        extra = image_derived(recipe, summary.images, att.fs_after, att.src)
+        summary_first_images = list(summary.images)
+        if extra.findings:
+            log(f"{len(extra.findings)} finding(s) in the image's own artifacts that the source scan missed: second pass")
+            att2, _, attempts2 = _attempt_with_retry(repo, recipe, tag, commit, out, opts, fs_before, extra)
+            if att2.tests is None or not att2.tests.ran or att2.tests.passed or att2.tests.preexisting:
+                summary = _summarize(repo, recipe, key, tag, commit, fs_before, att2, attempts + attempts2)
+                # images without an upstream to compare with are compared with the first pass's build
+                for o in summary_first_images:
+                    if images_before.get(o.name, (None, None))[1] is None:
+                        images_before[o.name] = (f"{o.ref} (first pass)", o.after)
+                summary.images = _build_and_scan(repo, recipe, att2, summary, out, opts, tctx, images_before)
+                att = att2
+            else:
+                summary.notes.append("Bumps planned from image findings broke the upstream tests; the first pass is kept "
+                                     f"({len(extra.findings)} image finding(s) remain).")
+
+    if recipe.scan.reachability and summary.status != "malicious-dependency":
+        summary.vex_suggestions = _reachability(recipe, att)
+
+    summary.src = str(att.src)
+    _write_outputs(repo, summary, att, out)
+    return summary
+
+
+def _reachability(recipe: Recipe, att: Attempt) -> list[dict]:
+    """govulncheck evidence for the Go findings that remain after patching (draft VEX, human-reviewed)."""
+    gomod = [e for e in recipe.ecosystems if e.type == "gomod"]
+    remaining = [f for f in (att.fs_after.findings if att.fs_after else []) if f.ecosystem == "gomod" and f.name != "stdlib"]
+    if not gomod or not remaining:
+        return []
+    from .adapters.base import expand_dirs
+
+    dirs = [d for e in gomod for d in expand_dirs(att.src, e.dirs, "go.mod")]
+    levels = reach.go_reachability(att.src, dirs, att.env)
+    return reach.vex_suggestions(remaining, levels)
+
+
+def _attempt_with_retry(repo: Repo, recipe: Recipe, tag: str, commit: str, out: Path, opts: RunOptions,
+                        fs_before: ScanReport | None, extra: ScanReport | None = None):
+    att, fs_before = _attempt(repo, recipe, tag, commit, out, opts, None, fs_before, extra)
     attempts = [f"{att.label}: {_test_word(att.tests)}"]
-    if (att.tests and att.tests.ran and not att.tests.passed and opts.retry_patch_level
-            and any(c.ecosystem in CVE_ECOSYSTEMS and _level(c) != "patch" for c in att.result.changes)):
-        retry, _ = _attempt(repo, recipe, tag, commit, out, opts, Level.patch, fs_before)
+    if not (att.tests and att.tests.ran and not att.tests.passed):
+        return att, fs_before, attempts
+    if not att.result.changes and not att.requires:
+        # nothing was changed (any change can matter: Redis tests the tarball a `files` edit picks, the maven
+        # image's bats suite builds the Dockerfiles), so this run *is* the unpatched source
+        att.tests.preexisting = list(att.tests.failed)
+        attempts.append("no dependency changes, so the failures are upstream's")
+        return att, fs_before, attempts
+    # failing tests: which of them already fail on the unpatched source?
+    baseline = _baseline_tests(repo, recipe, tag, commit, out, opts, att.install_env)
+    attempts.append(f"unpatched baseline: {_test_word(baseline)}")
+    if only_preexisting(att.tests, baseline):
+        att.tests.preexisting = list(att.tests.failed)
+        return att, fs_before, attempts
+    if opts.retry_patch_level and any(c.ecosystem in CVE_ECOSYSTEMS and _level(c) != "patch" for c in att.result.changes):
+        retry, _ = _attempt(repo, recipe, tag, commit, out, opts, Level.patch, fs_before, extra)
         attempts.append(f"{retry.label}: {_test_word(retry.tests)}")
         if retry.tests and retry.tests.passed:
             att = retry
+        elif only_preexisting(retry.tests, baseline):
+            retry.tests.preexisting = list(retry.tests.failed)
+            att = retry
+    return att, fs_before, attempts
 
+
+def _baseline_tests(repo: Repo, recipe: Recipe, tag: str, commit: str, out: Path, opts: RunOptions,
+                    install_env: dict[str, str] | None = None) -> TestOutcome | None:
+    """The same tests on the unpatched source (upstream tag + patches/, no bumps), so failures that
+    upstream already has aren't blamed on the bumps."""
+    key = out.name
+    src = opts.workdir / recipe.name / key / "baseline-src"
+    if src.exists():
+        shutil.rmtree(src)
+    log(f"== {recipe.name} {tag}: tests on the unpatched source (baseline)")
+    try:
+        upstream.checkout(recipe.source.url, tag, src, expected_commit=commit, by_commit=_by_commit(recipe, key))
+        upstream.apply_patches(src, repo.patches(recipe.name), repo.overlay_dir(recipe.name))
+        env = toolchain.activate(recipe.toolchain, _base_env(recipe, out), src=src, recipe=recipe)
+        for cmd in recipe.prepare:
+            run(cmd, cwd=src, env=env, log_file=out / "patcher.log", capture=False, clean=True)
+        return run_tests(src, recipe.tests, repo.skips(recipe.name), out / "tests-baseline", {**env, **(install_env or {})},
+                         grace_days=repo.global_config().skipGraceDays)
+    except (CommandError, RuntimeError) as e:
+        log(f"baseline test run failed to start: {str(e)[:300]}")
+        return None
+
+
+def _summarize(repo: Repo, recipe: Recipe, key: str, tag: str, commit: str, fs_before: ScanReport, att: Attempt,
+               attempts: list[str]) -> Summary:
     summary = Summary(recipe=recipe, line=key, tag=tag, commit=commit, status="success", fs_before=fs_before, fs_after=att.fs_after,
                       changes=att.result.changes, failures=att.result.failures, unresolved=att.unresolved, tests=att.tests,
-                      attempts=attempts if len(attempts) > 1 else [], vex=repo.vex(recipe.name))
-    if att.tests and not att.tests.passed:
-        summary.status = "tests-failed"
+                      attempts=attempts if len(attempts) > 1 else [], vex=repo.vex(recipe.name),
+                      notes=list(att.first_plan.notes))
+    summary.malicious = list(att.malicious)
+    if att.malicious:
+        summary.status = "malicious-dependency"
+    elif att.tests and not att.tests.passed:
+        summary.status = "tests-preexisting" if att.tests.preexisting else "tests-failed"
     elif not att.result.changes:
         summary.status = "no-changes"
+    return summary
 
+
+def _build_and_scan(repo: Repo, recipe: Recipe, att: Attempt, summary: Summary, out: Path, opts: RunOptions,
+                    tctx: dict[str, str], images_before: dict) -> list[ImageOutcome]:
+    g = repo.global_config()
     built: list[BuiltImage] = []
-    if recipe.build and not opts.skip_build and summary.status != "tests-failed":
+    if recipe.build and not opts.skip_build and summary.status not in ("tests-failed", "malicious-dependency"):
+        upstream.reset_tree(att.src)
         try:
             for cmd in recipe.build.setup:
-                run(render(cmd, tctx), cwd=att.src, env={**att.env, **recipe.build.env}, log_file=out / "build.log", capture=False, clean=True)
+                run(render(cmd, tctx), cwd=att.src, env={**att.env, **recipe.build.env}, log_file=out / "build.log", capture=False, clean=True,
+                    timeout=recipe.build.timeoutMinutes * 60)
+            cache: dict = {}
+            chosen: dict[str, str] = {}  # component -> the one version this line ships
             for spec in recipe.build.images:
                 ref = f"{LOCAL_PREFIX}/{spec.name}:{render(spec.upstreamTag, tctx)}-patched.dev"
                 img = build_image(att.src, recipe.build, spec, ref, opts.platform, tctx, att.env, out / "build.log", push=False)
+                refs = components.applicable(recipe, spec.key)
+                if refs:
+                    built_scan = scan_image(img.ref, out / f"scan-image-built-{spec.key}.json", severities=g.scan.severities,
+                                            platform=opts.platform)
+                    comps = components.prepare(repo, refs, built_scan, opts, out, cache, src=att.src, image=img.ref)
+                    usable = components.swappable(comps, chosen, spec.key, summary.notes)
+                    if usable:
+                        components.overlay(img.ref, usable, out / f"overlay-{spec.key}", platforms=[opts.platform], tag_ref=img.ref,
+                                           push=False, local_base=True)
+                    summary.components += [components.image_row(c, spec.key, usable) for c in comps]
+                    summary.component_runs += [c for c in comps if c not in summary.component_runs]
                 if not smoke_test(img, out / "build.log"):
                     summary.status = "smoke-failed"
                 built.append(img)
@@ -251,28 +404,93 @@ def run_line(repo: Repo, recipe: Recipe, line: Line, opts: RunOptions) -> Summar
             summary.status = "build-failed"
             summary.notes.append(f"build failed: {str(e).splitlines()[0][:300]}")
 
+    outcomes = []
     for img in built:
         before_ref, before = images_before.get(img.spec.key, (None, None))
         final_ref = img.ref
         copa_note = "disabled"
-        if opts.copa and img.spec.copa:
-            cr = copa_patch(img.ref, img.ref.rsplit(":", 1)[1] + "-copa", out / f"copa-{img.spec.key}", platforms=[opts.platform],
-                            severities=g.scan.severities)
-            copa_note = cr.skipped or (f"patched {cr.os_fixable_before} OS finding(s)" if cr.patched_ref else f"failed: {_first_error(cr.error)}")
+        cr = copa.for_image(img.spec, img.ref, img.ref.rsplit(":", 1)[1] + "-copa", out, platforms=[opts.platform],
+                            severities=g.scan.severities) if opts.copa else None
+        if cr:
+            copa_note = cr.note()
             final_ref = cr.patched_ref or img.ref
         after = scan_image(final_ref, out / f"scan-image-after-{img.spec.key}.json", severities=g.scan.severities, platform=opts.platform)
-        summary.images.append(ImageOutcome(img.spec.key, final_ref, before_ref, before, after, img.smoke, copa_note, img.spec.ownBinaries))
-
-    _write_outputs(repo, summary, att, out)
-    return summary
+        outcomes.append(ImageOutcome(img.spec.key, final_ref, before_ref, before, after, img.smoke, copa_note, img.spec.ownBinaries))
+    return outcomes
 
 
-def _first_error(text: str | None) -> str:
-    lines = [l.strip() for l in (text or "").splitlines() if l.strip()]
-    for l in lines:
-        if "error" in l.lower():
-            return l[:160]
-    return (lines[-1] if lines else "unknown error")[:160]
+# --- planning from image findings --------------------------------------------------------------
+
+def _is_own(location: str, own: list[str]) -> bool:
+    """`ownBinaries` entries are paths or directory prefixes inside the image."""
+    return any(location == p.strip("/") or location.startswith(p.strip("/") + "/") for p in own)
+
+
+def _image_planning(recipe: Recipe) -> bool:
+    if recipe.scan.image is not None:
+        return recipe.scan.image
+    return any(e.type in ("gradle", "python") for e in recipe.ecosystems)
+
+
+def _merge(a: ScanReport, b: ScanReport) -> ScanReport:
+    return ScanReport(artifact=a.artifact, findings=a.findings + b.findings, packages=a.packages + b.packages, os=a.os)
+
+
+def image_derived(recipe: Recipe, images: list[ImageOutcome], fs_after: ScanReport | None, src: Path | None = None) -> ScanReport:
+    """Fixable findings in the built image's own jars / Python packages / node_modules that the source
+    scan didn't see (Gradle builds without lockfiles, unpinned installs), re-targeted to the ecosystem
+    that can fix them."""
+    from dataclasses import replace
+
+    from .adapters.node import LOCKFILES
+    from .adapters.python import MARKERS, detect_tool
+    from .scan import Package
+
+    ecos = {e.type: e for e in recipe.ecosystems}
+    java = ecos.get("gradle") or ecos.get("maven")
+    java_target = None
+    if java is not None:
+        java_target = (java.dirs[0].rstrip("/") + "/build.gradle") if java.type == "gradle" else java.poms[0]
+        java_target = java_target.removeprefix("./")
+    node = next((ecos[t] for t in ("pnpm", "yarn", "npm") if t in ecos), None)
+    python = ecos.get("python")
+    python_target = None
+    if python is not None:
+        d = python.dirs[0]
+        marker = dict(MARKERS).get(detect_tool((src or Path(".")) / d) or "", "requirements.txt")
+        python_target = marker if d in (".", "") else f"{d}/{marker}"
+    # packages the source scan already sees are planned there
+    seen = {(f.name, f.installed) for f in (fs_after.findings if fs_after else [])}
+    seen |= {(p.name, p.version) for p in (fs_after.packages if fs_after else [])}
+    found: set[tuple[str, str, str]] = set()
+    added: set[tuple[str, str]] = set()
+    out = ScanReport(artifact="image-derived")
+    for img in images:
+        if not img.after:
+            continue
+        for f in img.after.fixable():
+            loc = f.location
+            if img.own_binaries and not _is_own(loc, img.own_binaries):
+                continue
+            if f.name in BASE_TOOLING.get(f.ecosystem, set()) or loc.startswith(GLOBAL_NODE_PREFIX):
+                continue
+            if f.ecosystem == "jar" and java is not None:
+                eco, target = java.type, java_target
+            elif f.ecosystem == "python-pkg" and python is not None:
+                eco, target = "python", python_target
+            elif f.ecosystem == "node-pkg" and node is not None:
+                eco, target = node.type, f"{node.dirs[0].rstrip('/')}/{LOCKFILES[node.type]}".removeprefix("./")
+            else:
+                continue
+            # every CVE of a package, so the planner picks a version that fixes all of them
+            if (f.name, f.installed) in seen or (f.name, f.installed, f.vuln_id) in found:
+                continue
+            found.add((f.name, f.installed, f.vuln_id))
+            out.findings.append(replace(f, ecosystem=eco, target=target, relationship=None))
+            if (f.name, f.installed) not in added:
+                added.add((f.name, f.installed))
+                out.packages.append(Package(target, eco, f.name, f.installed, f"{f.name}@{f.installed}"))
+    return out
 
 
 def _level(change) -> str:
@@ -312,6 +530,16 @@ def _write_outputs(repo: Repo, s: Summary, att: Attempt | None, out: Path) -> No
         "skips": [e.model_dump(mode="json") for e in (s.tests.skipped if s.tests else [])],
     }
     (gen / "bump-plan.json").write_text(json.dumps(plan_doc, indent=2, sort_keys=False) + "\n")
+    for c in s.component_runs:
+        if c.out and (c.out / "generated").is_dir() and c.recipe is not None:
+            shutil.copytree(c.out / "generated", gen / "components" / c.recipe.name, dirs_exist_ok=True)
+    if s.vex_suggestions:
+        import yaml as _yaml
+
+        (gen / "vex-suggestions.yaml").write_text(
+            "# Draft VEX statements from govulncheck reachability. Review each one, then copy the ones you\n"
+            f"# accept into vex/{s.recipe.name}.yaml. Nothing here is applied automatically.\n"
+            + _yaml.safe_dump({"statements": s.vex_suggestions}, sort_keys=False))
     summary = {
         "recipe": s.recipe.name,
         "line": s.line,
@@ -320,7 +548,7 @@ def _write_outputs(repo: Repo, s: Summary, att: Attempt | None, out: Path) -> No
         "generatedAt": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
         "images": [{"name": i.name, "ref": i.ref, "upstream": i.upstream_ref,
                     "after": i.after.to_json() if i.after else None} for i in s.images],
-        "draft": s.status not in ("success", "no-changes"),
+        "draft": s.status not in RELEASABLE,
     }
     (out / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     findings = [f for i in s.images if i.after for f in i.after.findings]
@@ -355,26 +583,42 @@ def _run_image_only(repo: Repo, recipe: Recipe, line: Line, out: Path, opts: Run
     g = repo.global_config()
     targets = _image_only_targets(recipe, line)
     s = Summary(recipe=recipe, line=line_key(line), tag=targets[0][1], commit="n/a", status="success", vex=repo.vex(recipe.name))
+    cache: dict = {}
+    chosen: dict[str, str] = {}  # component -> the one version this line ships
     for spec, tag in targets:
         ref = f"{spec.upstream}:{render(spec.upstreamTag, template_ctx(tag, ''))}"
         platform = _spec_platform(spec, opts.platform)
         try:
             before = scan_image(ref, out / f"scan-image-before-{spec.key}.json", severities=g.scan.severities, platform=platform, src="remote")
         except CommandError as e:
-            s.notes.append(f"could not scan {ref} ({platform}): {_first_error(e.tail)}")
+            s.notes.append(f"could not scan {ref} ({platform}): {first_error(e.tail)}")
             s.status = "scan-failed"
             continue
         copa_note, after = "disabled", before
-        if opts.copa and spec.copa:
-            local = f"{LOCAL_PREFIX}/{spec.name}:{tag}"
-            run(["docker", "pull", "--platform", platform, ref])
-            run(["docker", "tag", ref, local])
-            cr = copa_patch(local, f"{tag}-copa", out / f"copa-{spec.key}", platforms=[platform], severities=g.scan.severities)
-            copa_note = cr.skipped or (f"patched {cr.os_fixable_before} OS finding(s)" if cr.patched_ref else f"failed: {_first_error(cr.error)}")
+        local = f"{LOCAL_PREFIX}/{spec.name}:{tag}"
+        refs = components.applicable(recipe, spec.key)
+        overlaid = False
+        if refs:
+            comps = components.prepare(repo, refs, before, opts, out, cache, image=ref)
+            usable = components.swappable(comps, chosen, spec.key, s.notes)
+            if usable:
+                components.overlay(ref, usable, out / f"overlay-{spec.key}", platforms=[platform], tag_ref=local, push=False,
+                                   local_base=False)
+                overlaid = True
+                after = scan_image(local, out / f"scan-image-after-{spec.key}.json", severities=g.scan.severities, platform=platform)
+            s.components += [components.image_row(c, spec.key, usable) for c in comps]
+            s.component_runs += [c for c in comps if c not in s.component_runs]
+        if opts.copa and spec.copa_enabled:
+            if not overlaid:
+                run(["docker", "pull", "--platform", platform, ref])
+                run(["docker", "tag", ref, local])
+            cr = copa.for_image(spec, local, f"{tag}-copa", out, platforms=[platform], severities=g.scan.severities)
+            copa_note = cr.note()
             if cr.patched_ref:
                 after = scan_image(cr.patched_ref, out / f"scan-image-after-{spec.key}.json", severities=g.scan.severities, platform=platform)
         s.images.append(ImageOutcome(f"{spec.key} {tag}", ref, ref, before, after, [], copa_note))
-    if s.status == "success" and all(i.copa in ("disabled", "no fixable OS packages") for i in s.images):
+    if (s.status == "success" and not any(c["status"] in RELEASABLE for c in s.components)
+            and all(i.copa in ("disabled", "no fixable OS packages", "no fixable packages") for i in s.images)):
         s.status = "no-changes"
     _write_outputs(repo, s, None, out)
     return s
@@ -451,7 +695,7 @@ def upstream_tag_of(repo: Repo, tag: str) -> str:
 
 def prepare_release_source(repo: Repo, recipe: Recipe, key: str, workdir: Path, out: Path, tag: str | None = None):
     gen, doc = find_generated(repo, recipe, key, tag)
-    if doc.get("status") not in ("success", "no-changes"):
+    if doc.get("status") not in RELEASABLE:
         raise RuntimeError(f"generated patch set {gen} has status {doc.get('status')!r}; only successful runs are released")
     src = workdir / recipe.name / key / "release-src"
     if src.exists():
@@ -462,7 +706,7 @@ def prepare_release_source(repo: Repo, recipe: Recipe, key: str, workdir: Path, 
         run(["git", "-C", str(src), "apply", "--binary", "--whitespace=nowarn", str(patch.resolve())])
     upstream.commit_all(src, f"patcher: release {doc['tag']}", retag=doc["tag"])
     out.mkdir(parents=True, exist_ok=True)
-    env = toolchain.activate(recipe.toolchain, _base_env(recipe, out), doc.get("requires") or {}, src=src)
+    env = toolchain.activate(recipe.toolchain, _base_env(recipe, out), doc.get("requires") or {}, src=src, recipe=recipe)
     return src, doc, env
 
 
@@ -477,13 +721,22 @@ def release_build(repo: Repo, recipe: Recipe, key: str, platform: str, workdir: 
     tctx = template_ctx(doc["tag"], doc["commit"])
     rev = next_revision(repo, recipe, key, doc["tag"])
     for cmd in recipe.build.setup:
-        run(render(cmd, tctx), cwd=src, env={**env, **recipe.build.env}, log_file=out / "build.log", capture=False, clean=True)
+        run(render(cmd, tctx), cwd=src, env={**env, **recipe.build.env}, log_file=out / "build.log", capture=False, clean=True,
+            timeout=recipe.build.timeoutMinutes * 60)
+    gen, _ = find_generated(repo, recipe, key, tag)
+    comps = components.from_generated(repo, recipe, gen, workdir / recipe.name / key) if recipe.components else {}
     pushed = []
     for spec in recipe.build.images:
         tag_base = final_tag(repo, render(spec.upstreamTag, tctx), rev)
         ref = f"{g.registry}/{spec.name}:{tag_base}-{arch_of(platform)}"
-        img = build_image(src, recipe.build, spec, ref, platform, tctx, env, out / "build.log", push=True)
-        pushed.append({"image": spec.key, "ref": img.ref, "platform": platform})
+        mine = [comps[c.recipe] for c in components.applicable(recipe, spec.key) if c.recipe in comps]
+        if mine:  # build locally, then push the overlay with the rebuilt components
+            base = build_image(src, recipe.build, spec, f"{LOCAL_PREFIX}/{spec.name}:{tag_base}-base", platform, tctx, env,
+                               out / "build.log", push=False)
+            components.overlay(base.ref, mine, out / f"overlay-{spec.key}", platforms=[platform], tag_ref=ref, push=True, local_base=True)
+        else:
+            build_image(src, recipe.build, spec, ref, platform, tctx, env, out / "build.log", push=True)
+        pushed.append({"image": spec.key, "ref": ref, "platform": platform, "components": [c.ref.recipe for c in mine]})
     return pushed
 
 
@@ -505,8 +758,7 @@ def publish(repo: Repo, recipe: Recipe, key: str, platforms: list[str], out: Pat
         repo_ref = f"{g.registry}/{spec.name}"
         build_ref = f"{repo_ref}:{final}-build"
         run(["docker", "buildx", "imagetools", "create", "-t", build_ref, *[f"{repo_ref}:{final}-{arch_of(p)}" for p in platforms]])
-        cr = copa_patch(build_ref, final, out / f"copa-{spec.key}", platforms=platforms, severities=g.scan.severities, push=True, src="remote") \
-            if spec.copa else None
+        cr = copa.for_image(spec, build_ref, final, out, platforms=platforms, severities=g.scan.severities, push=True, src="remote")
         if not (cr and cr.patched_ref):
             run(["docker", "buildx", "imagetools", "create", "-t", f"{repo_ref}:{final}", build_ref])
         run(["docker", "buildx", "imagetools", "create", "-t", f"{repo_ref}:{up_tag}-patched", f"{repo_ref}:{final}"])
@@ -537,14 +789,23 @@ def _publish_image_only(repo: Repo, recipe: Recipe, key: str, platforms: list[st
     targets = _image_only_targets(recipe, line)
     prev = st.lines.get(key)
     rev = prev.revision + 1 if prev and prev.upstreamTag == targets[0][1] else 1
+    comps = {}
+    if recipe.components:
+        gen, _ = find_generated(repo, recipe, key)
+        comps = components.from_generated(repo, recipe, gen, out / "work")
     for spec, tag in targets:
         repo_ref = f"{g.registry}/{spec.name}"
         up_ref = f"{spec.upstream}:{render(spec.upstreamTag, template_ctx(tag, ''))}"
         final = final_tag(repo, tag, rev)
         plats = [p for p in platforms if not spec.platforms or p in spec.platforms] or spec.platforms
-        run(["docker", "buildx", "imagetools", "create", "-t", f"{repo_ref}:{final}-build", up_ref])
-        cr = copa_patch(f"{repo_ref}:{final}-build", final, out / f"copa-{spec.key}", platforms=plats, severities=g.scan.severities,
-                        push=True, src="remote") if spec.copa else None
+        mine = [comps[c.recipe] for c in components.applicable(recipe, spec.key) if c.recipe in comps]
+        if mine:  # vendor image + our rebuilt helpers, all platforms in one cross-compiling build
+            components.overlay(up_ref, mine, out / f"overlay-{spec.key}", platforms=plats, tag_ref=f"{repo_ref}:{final}-build",
+                               push=True, local_base=False)
+        else:
+            run(["docker", "buildx", "imagetools", "create", "-t", f"{repo_ref}:{final}-build", up_ref])
+        cr = copa.for_image(spec, f"{repo_ref}:{final}-build", final, out, platforms=plats, severities=g.scan.severities, push=True,
+                            src="remote")
         if not (cr and cr.patched_ref):
             run(["docker", "buildx", "imagetools", "create", "-t", f"{repo_ref}:{final}", f"{repo_ref}:{final}-build"])
         run(["docker", "buildx", "imagetools", "create", "-t", f"{repo_ref}:{tag}-patched", f"{repo_ref}:{final}"])
@@ -616,13 +877,16 @@ def refresh(repo: Repo, recipe: Recipe, key: str, platforms: list[str], out: Pat
     released, images = [], []
     specs = {s.key: s for s in recipe.build.images}
     for img in ls.images:
-        spec = specs[img.name]
+        spec = specs.get(img.name)
+        if spec is None or not spec.copa_enabled:  # removed from the recipe since, or `copa: false`
+            images.append(img)
+            continue
         repo_ref, cur_tag = img.ref.rsplit(":", 1)
         up_tag = upstream_tag_of(repo, cur_tag)
         final = final_tag(repo, up_tag, rev)
-        cr = copa_patch(f"{repo_ref}@{img.digest}", final, out / f"copa-{spec.key}", platforms=platforms,
-                        severities=g.scan.severities, push=True, src="remote")
-        if not cr.patched_ref:
+        cr = copa.for_image(spec, f"{repo_ref}@{img.digest}", final, out, platforms=platforms, severities=g.scan.severities,
+                            push=True, src="remote")
+        if not (cr and cr.patched_ref):
             images.append(img)
             continue
         run(["docker", "buildx", "imagetools", "create", "-t", f"{repo_ref}:{up_tag}-patched", f"{repo_ref}:{final}"])
@@ -655,10 +919,18 @@ def plan_matrix(repo: Repo, *, recipes: list[str] | None = None, changed_files: 
                 selected[Path(parts[1]).stem] = None
             elif parts[0] == "patches" and len(parts) > 2:
                 selected[parts[1]] = None
+        # a changed component re-runs every recipe that bundles it; components never run on their own
+        parents: dict[str, list[str]] = {}
+        for n in names:
+            for c in repo.load_recipe(n).components:
+                parents.setdefault(c.recipe, []).append(n)
+        for comp in [n for n in list(selected) if n in parents]:
+            for parent in parents[comp]:
+                selected.setdefault(parent, None)
     else:
         for name in names:
             recipe = repo.load_recipe(name)
-            if not recipe.source:
+            if not recipe.source or recipe.mode == "component":
                 continue
             state = repo.state(name)
             if recipe.mode == "image-only":  # new upstream image tag -> run
@@ -680,6 +952,8 @@ def plan_matrix(repo: Repo, *, recipes: list[str] | None = None, changed_files: 
         if name not in names:
             continue
         recipe = repo.load_recipe(name)
+        if recipe.mode == "component":
+            continue
         lines = recipe.source.lines if recipe.source else []
         for line in lines:
             k = line_key(line)

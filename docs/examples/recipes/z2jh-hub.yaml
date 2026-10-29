@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=../../../schema/recipe.schema.json
+name: z2jh-hub
+description: JupyterHub's Kubernetes hub image (quay.io/jupyterhub/k8s-hub) from zero-to-jupyterhub-k8s; pip-compiled requirements.txt
+source:
+  repo: jupyterhub/zero-to-jupyterhub-k8s
+  lines:
+    - tagPattern: '^4\.4\.\d+$'
+ecosystems:
+  # requirements.txt is compiled from unfrozen/requirements.txt by an upstream workflow, so it is edited as a
+  # pinned file (tool: pip); the image installs exactly these pins
+  - type: python
+    dirs: [images/hub]
+  - type: dockerfile
+    files: [images/hub/Dockerfile]
+scan:
+  # the other images and tooling aren't part of k8s-hub
+  skipDirs: [docs, ci, tests, tools, jupyterhub, images/singleuser-sample, images/secret-sync, images/image-awaiter,
+             images/network-tools, images/hub/unfrozen]
+# no unit tests: upstream tests the chart in a Kubernetes cluster; the smoke test imports and runs JupyterHub
+build:
+  platforms: [linux/amd64, linux/arm64]
+  images:
+    - name: k8s-hub
+      upstream: quay.io/jupyterhub/k8s-hub
+      dockerfile: images/hub/Dockerfile
+      context: images/hub
+      smoke: ["jupyterhub --version"]

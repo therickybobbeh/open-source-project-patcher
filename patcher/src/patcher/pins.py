@@ -40,6 +40,8 @@ TOOLS = (
          r"^copacetic_checksums\.txt$"),
     Tool("COSIGN", "sigstore/cosign", {"amd64": "cosign-linux-amd64", "arm64": "cosign-linux-arm64"}, r"^cosign_checksums\.txt$"),
     Tool("YQ", "mikefarah/yq", {"amd64": "yq_linux_amd64", "arm64": "yq_linux_arm64"}, r"^checksums$", fmt="yq"),
+    Tool("OSV_SCANNER", "google/osv-scanner", {"amd64": "osv-scanner_linux_amd64", "arm64": "osv-scanner_linux_arm64"},
+         r"^osv-scanner_SHA256SUMS$"),
 )
 
 

@@ -45,5 +45,9 @@ build:
       args: { VERSION: "{{tag}}", BASE_IMAGE: distroless }
       smoke: ["dex version"]
       ownBinaries: [usr/local/bin/dex, usr/local/bin/docker-entrypoint]
-notes:
-  - The image bundles the gomplate binary from ghcr.io/hairyhenderson/gomplate; it is refreshed to the newest patch tag by the dockerfile step, otherwise its CVEs are upstream's.
+# the gomplate binary is copied from ghcr.io/hairyhenderson/gomplate; it is rebuilt from source at the same
+# version with patched dependencies and swapped in
+components:
+  - recipe: gomplate
+    path: /usr/local/bin/gomplate
+    versionCommand: ["--version"]

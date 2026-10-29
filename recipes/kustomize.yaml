@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=../schema/recipe.schema.json
+name: kustomize
+description: kustomize CLI bundled in other images (component of argo-cd)
+mode: component
+source:
+  repo: kubernetes-sigs/kustomize
+  exclude: ['^(api|kyaml|cmd/config|plugin)/']
+  lines:   # only used for standalone runs; parents pick the exact version they bundle
+    - tagPattern: '^kustomize/v5\.\d+\.\d+$'
+ecosystems:
+  - type: gomod
+    dirs: [kustomize]   # the CLI module; api/kyaml are separate modules at their own tags
+scan:
+  # only the kustomize/ module is shipped; cmd/depprobcheck and functions/ are separate tooling/example modules
+  skipDirs: [examples, plugin, hack, site, cmd/depprobcheck, functions]
+tests:
+  framework: go
+  command: cd kustomize && go test {{skip_args}} ./...
+  timeoutMinutes: 45
+artifact:
+  builder: "golang:{{go}}"
+  build: >-
+    cd kustomize && CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath
+    -ldflags "-s -w -X sigs.k8s.io/kustomize/api/provenance.version=v{{version}}" -o /out/kustomize .
+  output: /out/kustomize

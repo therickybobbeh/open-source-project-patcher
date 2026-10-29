@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=schema/inventory.schema.json
+# Images we actually run. `patcher coverage` checks each one against the recipes and released state:
+# covered or not, patched or not, and which patched reference to switch to.
+#
+# TODO: the versions below are placeholders (the newest upstream releases on 2026-10-28). Replace them
+# with the versions you deploy, and fill in usedBy/owner.
+images:
+  - image: quay.io/argoproj/argocd:v3.5.6
+  - image: quay.io/argoproj/workflow-controller:v4.1.6
+  - image: quay.io/argoproj/argocli:v4.1.6
+  - image: quay.io/argoproj/argoexec:v4.1.6
+  - image: quay.io/argoproj/argo-rollouts:v1.10.1
+  - image: quay.io/argoproj/kubectl-argo-rollouts:v1.10.1
+  - image: ghcr.io/dexidp/dex:v2.46.1
+  - image: ghcr.io/external-secrets/external-secrets:v2.14.0
+  - image: ghcr.io/aquasecurity/trivy:0.76.1
+  - image: ghcr.io/project-copacetic/copacetic-frontend:v0.15.0
+  - image: ghcr.io/apollographql/router:v2.19.0
+  - image: docker.io/apollograph/operator:1.6.0
+  - image: docker.io/library/redis:8.10.3
+  - image: quay.io/strimzi/operator:1.3.0
+  - image: quay.io/strimzi/maven-builder:1.3.0
+  - image: docker.io/library/maven:3.10.0-eclipse-temurin-21-noble

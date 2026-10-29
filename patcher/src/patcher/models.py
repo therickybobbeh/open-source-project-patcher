@@ -12,6 +12,8 @@ from typing import Annotated, Literal, Union
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from .ecosystems import ECOSYSTEMS
+
 
 class _Model(BaseModel):
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
@@ -87,14 +89,24 @@ class Toolchain(_Model):
     maven: str | None = None
     node: str | None = None
     pnpm: str | None = None
+    yarn: str | None = Field(None, description="e.g. `1.22.22` (classic) or `4.5.0` (berry)")
+    python: str | None = Field(None, description="Python version for mise, e.g. `3.12`")
     extra: dict[str, str] = Field(default_factory=dict, description="Additional mise tools, e.g. {protoc: '29.3'}")
     repoMise: bool | list[str] = Field(False, description="Use the upstream repo's own mise config (exact upstream tool pins): "
                                        "`true` = every tool in it, or a list of tool names to install from it, in order")
 
 
+class CooldownBypass(_Model):
+    severities: list[str] = Field(default_factory=lambda: ["CRITICAL"], description="Findings of these severities skip the age rule")
+    kev: bool = Field(True, description="CVEs on CISA's Known Exploited Vulnerabilities list skip the age rule")
+
+
 class Policy(_Model):
     default: Level = Level.minor
     ecosystems: dict[str, Level] = Field(default_factory=dict, description="Per-ecosystem override of `default`")
+    minReleaseAgeDays: int | None = Field(None, description="Only bump to versions published at least this many days ago "
+                                          "(supply-chain cooldown); unset/0 = off")
+    cooldownBypass: CooldownBypass = Field(default_factory=CooldownBypass)
 
     def for_ecosystem(self, eco: str) -> Level:
         return self.ecosystems.get(eco, self.default)
@@ -131,6 +143,22 @@ class MavenEco(_Model):
 class NodeEco(_Model):
     type: Literal["npm", "pnpm", "yarn"]
     dirs: list[str] = Field(default_factory=lambda: ["."])
+
+
+class PythonEco(_Model):
+    type: Literal["python"]
+    dirs: list[str] = Field(default_factory=lambda: ["."], description="Project dirs (globs); the tool is detected per dir")
+    tool: Literal["auto", "uv", "poetry", "pipenv", "pip-tools", "pip"] = Field(
+        "auto", description="auto: uv.lock -> uv, poetry.lock -> poetry, Pipfile.lock -> pipenv, requirements.in or a "
+                            "pip-compile / `uv pip compile` header -> pip-tools, other requirements*.txt -> pip")
+    toolVersion: str | None = Field(None, description="poetry/pipenv/pip-tools version (default: read from the lockfile header, "
+                                                      "else a pinned default)")
+
+
+class GradleEco(_Model):
+    type: Literal["gradle"]
+    dirs: list[str] = Field(default_factory=lambda: ["."], description="Gradle build roots (settings.gradle[.kts] or build.gradle[.kts])")
+    catalog: str = Field("gradle/libs.versions.toml", description="Version catalog, relative to the build root")
 
 
 class DockerfileEco(_Model):
@@ -186,11 +214,14 @@ class FilesEco(_Model):
 
 
 Ecosystem = Annotated[
-    Union[GoModEco, CargoEco, MavenEco, NodeEco, DockerfileEco, FilesEco],
+    Union[GoModEco, CargoEco, MavenEco, NodeEco, PythonEco, GradleEco, DockerfileEco, FilesEco],
     Field(discriminator="type"),
 ]
 
-ECOSYSTEM_KEYS = ("gomod", "cargo", "maven", "npm", "pnpm", "yarn", "dockerfile", "files")
+ECOSYSTEM_KEYS = tuple(ECOSYSTEMS)
+
+# run outcomes whose result may ship: a line's patch set may be released, a component's binary swapped in
+RELEASABLE_STATUSES = ("success", "no-changes", "tests-preexisting")
 
 
 # --- overrides / holds ------------------------------------------------------
@@ -238,7 +269,7 @@ class Services(_Model):
 
 
 class Tests(_Model):
-    framework: Literal["go", "nextest", "surefire", "redis", "jest", "bats", "generic"]
+    framework: Literal["go", "nextest", "surefire", "gradle", "pytest", "jest", "vitest", "mocha", "redis", "bats", "generic"]
     setup: list[str] = Field(default_factory=list)
     command: str = Field(description="May contain `{{skip_args}}`, `{{skip_regex}}`, `{{skip_file}}`")
     skipVia: SkipVia | None = None
@@ -249,6 +280,12 @@ class Tests(_Model):
     enabled: bool = True
     runAs: Literal["root", "nonroot"] = Field("root", description="`nonroot`: run tests.command as an unprivileged user (needed when "
                                               "tests assert permission errors, which root bypasses); setup still runs as root")
+
+
+class CopaOptions(_Model):
+    libraries: bool = Field(False, description="Also patch language packages (COPA_EXPERIMENTAL library patching: pip and npm "
+                                               "packages inside the image); for closed-source images")
+    level: Level = Field(Level.patch, description="How far Copa may move library versions")
 
 
 class ImageSpec(_Model):
@@ -263,9 +300,9 @@ class ImageSpec(_Model):
     command: str | None = Field(None, description="Custom build command instead of buildx; must produce `builtImage`")
     builtImage: str | None = Field(None, description="Image ref the custom command produces (template)")
     smoke: list[str] = Field(default_factory=list, description="Args passed to `docker run --rm <image>`; each must exit 0")
-    ownBinaries: list[str] = Field(default_factory=list, description="Paths (in the image) of binaries built from this source, e.g. `usr/local/bin/dex`; "
-                                   "anything else is reported as a bundled artifact. Empty = guess from the source scan.")
-    copa: bool = True
+    ownBinaries: list[str] = Field(default_factory=list, description="Paths or directory prefixes (in the image) of what this source builds, "
+                                   "e.g. `usr/local/bin/dex` or `app/`; anything else is a bundled artifact. Empty = guess from the source scan.")
+    copa: bool | CopaOptions = Field(True, description="Copa for leftover OS packages; an object enables library patching too")
     tagPattern: str | None = Field(None, description="image-only: this image's own tag regex when it versions separately from the line")
     platforms: list[str] = Field(default_factory=list, description="Platforms this image exists for, when fewer than build.platforms")
 
@@ -273,12 +310,22 @@ class ImageSpec(_Model):
     def key(self) -> str:
         return self.id or self.name
 
+    @property
+    def copa_enabled(self) -> bool:
+        return bool(self.copa)
+
+    @property
+    def copa_options(self) -> CopaOptions:
+        return self.copa if isinstance(self.copa, CopaOptions) else CopaOptions()
+
 
 class Build(_Model):
     setup: list[str] = Field(default_factory=list, description="Commands run before image builds (e.g. `make build`)")
     platforms: list[str] = Field(default_factory=lambda: ["linux/amd64", "linux/arm64"])
     env: dict[str, str] = Field(default_factory=dict)
     images: list[ImageSpec] = Field(min_length=1)
+    timeoutMinutes: int = Field(60, description="Per image build (and per component overlay); a build that hangs is killed "
+                                                "and retried once")
 
     @model_validator(mode="after")
     def _unique(self) -> "Build":
@@ -291,10 +338,36 @@ class Build(_Model):
 # --- recipe -----------------------------------------------------------------
 
 
+class Artifact(_Model):
+    """How a component recipe's binary is built (inside a buildx stage, cross-compiled per platform)."""
+
+    builder: str = Field("golang:{{go}}", description="Builder image; `{{go}}` = the Go version the component needs")
+    build: str = Field(description="Shell command run in the checkout (/src) with TARGETOS/TARGETARCH set; must write `output`")
+    output: str = Field(description="Path of the built binary inside the builder, e.g. /out/helm")
+
+
+class ComponentRef(_Model):
+    """A third-party binary bundled in this recipe's images, rebuilt from source and swapped in."""
+
+    recipe: str = Field(description="Component recipe (mode: component) that patches and builds it")
+    path: str = Field(description="Where the binary lives in the image, e.g. /usr/local/bin/helm")
+    tag: str = Field("v{{version}}", description="Upstream tag for the version found in the image (`{{version}}` = without v)")
+    images: list[str] = Field(default_factory=list, description="Image keys to apply it to (default: every image)")
+    # how the bundled version is found, first match wins: version, versionFrom, Go build info, versionCommand
+    version: str | None = Field(None, description="Pin the bundled version explicitly")
+    versionFrom: VersionFrom | None = Field(None, description="Read it from a file in the parent's checkout (e.g. hack/tool-versions.sh)")
+    versionCommand: list[str] = Field(default_factory=list, description="Run the binary in the image with these args and take "
+                                                                        "the first version in its output (e.g. [version])")
+
+
 class RecipeScan(_Model):
     source: bool = Field(True, description="Scan the source tree (`trivy fs`); false for Dockerfile-only projects")
     offline: bool = Field(False, description="`trivy fs --offline-scan`: resolve Maven POMs from the local ~/.m2 only (fill it with `prepare`); "
                           "avoids Maven Central rate limits")
+    reachability: bool = Field(True, description="Go recipes: run govulncheck on the patched source and suggest VEX statements "
+                               "for remaining findings whose vulnerable code isn't reached")
+    image: bool | None = Field(None, description="Also plan bumps from findings in the built image's own artifacts (jars, Python "
+                               "packages, node_modules) the source scan can't see; costs one extra run. Default: on for gradle/python")
     skipDirs: list[str] = Field(default_factory=list, description="Extra `trivy fs --skip-dirs` globs (test fixtures, examples)")
     skipFiles: list[str] = Field(default_factory=list)
 
@@ -302,7 +375,8 @@ class RecipeScan(_Model):
 class Recipe(_Model):
     name: str = Field(pattern=r"^[a-z0-9][a-z0-9-]*$")
     description: str | None = None
-    mode: Literal["source", "image-only"] = "source"
+    mode: Literal["source", "image-only", "component"] = Field("source", description="component: patched and tested like a source "
+                                                                 "recipe, but only shipped inside other images (see `components`)")
     source: Source | None = None
     toolchain: Toolchain = Field(default_factory=Toolchain)
     policy: Policy = Field(default_factory=Policy)
@@ -315,14 +389,18 @@ class Recipe(_Model):
     gitIdentity: bool = Field(True, description="Configure a throwaway git user (needed for local commits and some tests)")
     tests: Tests | None = None
     build: Build | None = None
+    artifact: Artifact | None = Field(None, description="mode: component - how to build the binary")
+    components: list[ComponentRef] = Field(default_factory=list, description="Bundled third-party binaries to rebuild and swap in")
     env: dict[str, str] = Field(default_factory=dict, description="Env for every stage")
     scan: RecipeScan = Field(default_factory=RecipeScan)
     notes: list[str] = Field(default_factory=list, description="Free-form notes copied into the PR report")
 
     @model_validator(mode="after")
     def _check(self) -> "Recipe":
-        if self.mode == "source" and not self.source:
-            raise ValueError("`source` is required when mode=source")
+        if self.mode in ("source", "component") and not self.source:
+            raise ValueError(f"`source` is required when mode={self.mode}")
+        if self.mode == "component" and (not self.artifact or self.build):
+            raise ValueError("mode=component needs `artifact` (and no `build`)")
         for key in list(self.overrides) + list(self.holds):
             if key not in ECOSYSTEM_KEYS:
                 raise ValueError(f"unknown ecosystem key {key!r} in overrides/holds (expected one of {ECOSYSTEM_KEYS})")
@@ -354,7 +432,8 @@ class SkipEntry(_Model):
     reason: str
     owner: str
     expires: dt.date | None = None
-    filter: str | None = Field(None, description="nextest only: raw filterset expression instead of a test-name regex")
+    filter: str | None = Field(None, description="nextest: raw filterset expression; jest/vitest: a test *path* pattern; "
+                                                "instead of the test-name regex in `match`")
 
 
 class SkipFile(_Model):
@@ -390,6 +469,20 @@ class VexStatement(_Model):
 
 class VexFile(_Model):
     statements: list[VexStatement] = Field(default_factory=list)
+
+
+# --- inventory --------------------------------------------------------------
+
+
+class InventoryImage(_Model):
+    image: str = Field(description="Image reference as deployed, e.g. `quay.io/argoproj/argocd:v3.5.6`")
+    usedBy: list[str] = Field(default_factory=list, description="Where it runs (clusters, apps, charts)")
+    owner: str | None = None
+    notes: str | None = None
+
+
+class Inventory(_Model):
+    images: list[InventoryImage] = Field(default_factory=list)
 
 
 # --- state ------------------------------------------------------------------

@@ -100,6 +100,8 @@ class Repo:
         recipe.holds = _merge_rules(g.holds, recipe.holds)
         if "policy" not in recipe.model_fields_set:
             recipe.policy = g.policy
+        else:  # fields the recipe sets win; the rest (e.g. the age rule) come from _global.yaml
+            recipe.policy = g.policy.model_copy(update=recipe.policy.model_dump(exclude_unset=True))
         return recipe
 
     def skips(self, name: str) -> SkipFile:

@@ -1,0 +1,5 @@
+# yaml-language-server: $schema=../schema/skips.schema.json
+# Tests skipped when running argo-rollouts's upstream suite. `match` is a Go test regex (passed to go test -skip).
+# Every entry needs a reason and an owner; set `expires` so skips get revisited.
+skips: []
+quarantine: []

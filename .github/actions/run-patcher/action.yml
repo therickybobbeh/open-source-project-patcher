@@ -8,7 +8,7 @@ inputs:
     description: Arguments for the `patcher` CLI
     required: true
   cache-key:
-    description: Key for the toolchain/module caches (mise, Go, Cargo, Maven, Trivy DB); empty = no cache
+    description: Key for the toolchain/module caches (mise, Go, Cargo, Maven, Gradle, npm, uv, Trivy DB); empty = no cache
     required: false
     default: ""
 runs:
@@ -37,16 +37,8 @@ runs:
       env:
         ARGS: ${{ inputs.args }}
       run: |
-        cache="$RUNNER_TEMP/patcher-cache"
-        mkdir -p "$cache"/{mise,go,cargo,rustup,m2,trivy} "$RUNNER_TEMP/work" "$HOME/.docker"
+        # same container setup as a local run: scripts/patcher-docker.sh
         # ARGS is built by our workflows from recipe/line names only; word splitting is intended
         # shellcheck disable=SC2086
-        docker run --rm --network host \
-          -e PATCHER_REGISTRY -e GITHUB_ACTIONS -e WORK="$RUNNER_TEMP/work" \
-          -v /var/run/docker.sock:/var/run/docker.sock \
-          -v "$HOME/.docker:/root/.docker" \
-          -v "$GITHUB_WORKSPACE:$GITHUB_WORKSPACE" -w "$GITHUB_WORKSPACE" \
-          -v "$RUNNER_TEMP/work:$RUNNER_TEMP/work" \
-          -v "$cache/mise:/opt/mise" -v "$cache/go:/opt/go" -v "$cache/cargo:/opt/cargo" \
-          -v "$cache/rustup:/opt/rustup" -v "$cache/m2:/root/.m2" -v "$cache/trivy:/opt/trivy-cache" \
-          patcher:ci $ARGS
+        PATCHER_IMAGE=patcher:ci PATCHER_CACHE="$RUNNER_TEMP/patcher-cache" PATCHER_WORK="$RUNNER_TEMP/work" \
+          "$GITHUB_WORKSPACE/scripts/patcher-docker.sh" $ARGS

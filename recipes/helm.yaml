@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=../schema/recipe.schema.json
+name: helm
+description: Helm CLI bundled in other images (component of argo-cd)
+mode: component
+source:
+  repo: helm/helm
+  lines:   # only used for standalone runs; parents pick the exact version they bundle
+    - tagPattern: '^v4\.\d+\.\d+$'
+ecosystems:
+  - type: gomod
+    dirs: ["."]
+scan:
+  skipDirs: [internal/test, scripts]
+tests:
+  framework: go
+  command: go test {{skip_args}} ./...
+  timeoutMinutes: 60
+  runAs: nonroot   # pkg/pusher expects "permission denied" on an unreadable chart, which root bypasses
+artifact:
+  builder: "golang:{{go}}"
+  # the module path differs between helm v3 and v4, so read it instead of hard-coding it
+  build: >-
+    MOD=$(go list -m) && CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath
+    -ldflags "-w -s -X $MOD/internal/version.version={{tag}}" -o /out/helm ./cmd/helm
+  output: /out/helm

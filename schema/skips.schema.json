@@ -39,7 +39,7 @@
             }
           ],
           "default": null,
-          "description": "nextest only: raw filterset expression instead of a test-name regex",
+          "description": "nextest: raw filterset expression; jest/vitest: a test *path* pattern; instead of the test-name regex in `match`",
           "title": "Filter"
         }
       },

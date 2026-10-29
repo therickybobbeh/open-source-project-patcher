@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=../schema/recipe.schema.json
+name: argo-rollouts
+description: Argo Rollouts (quay.io/argoproj/argo-rollouts, kubectl-argo-rollouts)
+source:
+  repo: argoproj/argo-rollouts
+  lines:
+    - tagPattern: '^v1\.10\.\d+$'
+toolchain:
+  go: "1.26"
+  node: "22"          # the image builds the UI on node:22
+  pnpm: "11.9.0"      # ui/package.json packageManager; overrides go in ui/pnpm-workspace.yaml
+ecosystems:
+  - type: gomod
+    dirs: ["."]
+  - type: pnpm
+    dirs: [ui]
+  - type: dockerfile
+    files: [Dockerfile]
+scan:
+  skipDirs: [test, examples, docs, hack, manifests]
+tests:
+  framework: go
+  # `make test-unit`, called directly so skips can be appended (same package list as upstream);
+  # the kustomize tests (`make test-kustomize`) need kustomize plugins and are not run
+  command: >-
+    go run gotest.tools/gotestsum@v1.13.0 --junitfile junit-unit-test.xml --format testname --
+    $(go list ./... | grep -v ./test/cmd/metrics-plugin-sample) -cover {{skip_args}}
+  junit: [junit-unit-test.xml]
+  timeoutMinutes: 90
+build:
+  platforms: [linux/amd64, linux/arm64]
+  images:
+    - name: argo-rollouts
+      upstream: quay.io/argoproj/argo-rollouts
+      smoke: ["--help"]
+      ownBinaries: [bin/rollouts-controller]
+    - name: kubectl-argo-rollouts
+      upstream: quay.io/argoproj/kubectl-argo-rollouts
+      target: kubectl-argo-rollouts
+      smoke: ["version"]
+      ownBinaries: [bin/kubectl-argo-rollouts]

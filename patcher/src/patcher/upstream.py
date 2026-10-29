@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 
 from .models import Line, Source
-from .proc import output, run
+from .proc import output, retry_on_network, run
 from .versions import InvalidVersion, parse_semver
 
 GIT_ID = ["-c", "user.name=patcher", "-c", "user.email=patcher@localhost", "-c", "commit.gpgsign=false", "-c", "tag.gpgsign=false"]
@@ -14,7 +14,7 @@ GIT_ID = ["-c", "user.name=patcher", "-c", "user.email=patcher@localhost", "-c",
 
 def list_tags(url: str) -> dict[str, str]:
     """tag -> commit sha (annotated tags are peeled)."""
-    out = output(["git", "ls-remote", "--tags", url])
+    out = retry_on_network(lambda: output(["git", "ls-remote", "--tags", url]))
     tags: dict[str, str] = {}
     for line in out.splitlines():
         sha, _, ref = line.partition("\t")
@@ -54,7 +54,7 @@ def newest_tag(tags: dict[str, str] | list[str], pattern: str, exclude: list[str
 
 
 def branch_head(url: str, branch: str) -> str:
-    out = output(["git", "ls-remote", url, f"refs/heads/{branch}"]).split()
+    out = retry_on_network(lambda: output(["git", "ls-remote", url, f"refs/heads/{branch}"])).split()
     if not out:
         raise LookupError(f"no branch {branch!r} in {url}")
     return out[0]
@@ -96,6 +96,12 @@ def resolve_line(source: Source, line: Line, tags: dict[str, str] | None = None)
     return tag, tags[tag]
 
 
+def reset_tree(src: Path) -> None:
+    """Back to the committed tree: test artifacts would leak into an image and make Go stamp binaries `+dirty`."""
+    run(["git", "-C", str(src), "checkout", "--", "."], quiet=True, check=False)
+    run(["git", "-C", str(src), "clean", "-fdxq"], quiet=True, check=False)
+
+
 def checkout(url: str, tag: str, dest: Path, expected_commit: str | None = None, by_commit: bool = False) -> str:
     """Shallow checkout of `tag` (or of `expected_commit` itself for branch lines) into `dest`;
     verifies the commit when `expected_commit` is given."""
@@ -104,10 +110,10 @@ def checkout(url: str, tag: str, dest: Path, expected_commit: str | None = None,
     run(["git", "-C", str(dest), "remote", "add", "origin", url])
     if by_commit:
         assert expected_commit
-        run(["git", "-C", str(dest), "fetch", "-q", "--depth", "1", "origin", expected_commit])
+        retry_on_network(lambda: run(["git", "-C", str(dest), "fetch", "-q", "--depth", "1", "origin", expected_commit]))
         run(["git", "-C", str(dest), "-c", "advice.detachedHead=false", "checkout", "-q", "FETCH_HEAD"])
     else:
-        run(["git", "-C", str(dest), "fetch", "-q", "--depth", "1", "origin", f"refs/tags/{tag}:refs/tags/{tag}"])
+        retry_on_network(lambda: run(["git", "-C", str(dest), "fetch", "-q", "--depth", "1", "origin", f"refs/tags/{tag}:refs/tags/{tag}"]))
         run(["git", "-C", str(dest), "-c", "advice.detachedHead=false", "checkout", "-q", tag])
     commit = head(dest)
     if expected_commit and commit != expected_commit:

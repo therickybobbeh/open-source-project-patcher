@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from ..models import CargoEco, DockerfileEco, FilesEco, GoModEco, MavenEco, NodeEco
-from . import cargo, dockerfile, files, gomod, maven, node
+from ..models import CargoEco, DockerfileEco, FilesEco, GoModEco, GradleEco, MavenEco, NodeEco, PythonEco
+from . import cargo, dockerfile, files, gomod, gradle, maven, node, python
 from .base import Ctx, Result
 
 
@@ -16,6 +16,10 @@ def apply(ctx: Ctx, eco) -> Result:
         return maven.apply(ctx, eco)
     if isinstance(eco, NodeEco):
         return node.apply(ctx, eco)
+    if isinstance(eco, PythonEco):
+        return python.apply(ctx, eco)
+    if isinstance(eco, GradleEco):
+        return gradle.apply(ctx, eco)
     if isinstance(eco, DockerfileEco):
         return dockerfile.apply(ctx, eco)
     if isinstance(eco, FilesEco):

@@ -46,6 +46,20 @@ build:
       upstream: quay.io/argoproj/argocd
       args: { GIT_TAG: "{{tag}}", GIT_COMMIT: "{{commit}}", GIT_TREE_STATE: clean }
       smoke: ["argocd version --client"]
+# helm, kustomize and git-lfs are downloaded prebuilt (hack/tool-versions.sh). They are rebuilt from source
+# at the same version with patched dependencies and swapped into the image (see components in docs/recipes.md).
+components:
+  - recipe: helm
+    path: /usr/local/bin/helm            # version from Go build info
+  - recipe: kustomize
+    path: /usr/local/bin/kustomize
+    tag: "kustomize/v{{version}}"
+    versionFrom: { file: hack/tool-versions.sh, var: kustomize5_version }
+    versionCommand: [version]
+  - recipe: git-lfs
+    path: /usr/local/bin/git-lfs
+    versionFrom: { file: hack/tool-versions.sh, var: git_lfs_version }
+    versionCommand: [version]
 notes:
-  - Bundled helm/kustomize/git-lfs binaries come from hack/tool-versions.sh. Their installers verify hack/installers/checksums/*.sha256, so a version bump also needs the new checksum files; do that with a patch in patches/argo-cd/ when one of those tools has a fixable CVE.
+  - helm, kustomize and git-lfs are rebuilt from source at the versions in hack/tool-versions.sh (components); moving to a newer tool version still needs a patch that updates tool-versions.sh and hack/installers/checksums/.
   - End-to-end tests (k3s cluster) are not part of `make test-local` and are not run.

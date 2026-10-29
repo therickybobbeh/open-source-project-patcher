@@ -13,7 +13,7 @@ Real recipes are the best examples. See [Worked examples](#worked-examples) at t
 |---|---|---|---|
 | `name` | string | required | Recipe id, `^[a-z0-9][a-z0-9-]*$`; must match the file name |
 | `description` | string | | Free text |
-| `mode` | `source` \| `image-only` | `source` | `image-only`: no source rebuild (closed source); scan, Copa and mirror the upstream image |
+| `mode` | `source` \| `image-only` \| `component` | `source` | `image-only`: no source rebuild (closed source); scan, Copa and mirror the upstream image. `component`: patched and tested like a source recipe, but only shipped inside other images ([Components](#components)) |
 | `source` | [Source](#source-and-release-lines) | required for `source` | Where upstream lives and which release lines we track |
 | `toolchain` | [Toolchain](#toolchain) | | Toolchains to install with mise |
 | `policy` | [Policy](#policy) | from `_global.yaml` | How far a dependency may move without a human |
@@ -25,6 +25,8 @@ Real recipes are the best examples. See [Worked examples](#worked-examples) at t
 | `scan` | [Scan](#scan) | | Source-scan scope |
 | `tests` | [Tests](#tests) | | The upstream test suite |
 | `build` | [Build](#build) | | Images to build and publish |
+| `components` | list of [component refs](#components) | `[]` | Bundled third-party binaries to rebuild from source and swap into this recipe's images |
+| `artifact` | [Artifact](#components) | required for `component` | How a component recipe's binary is built |
 | `env` | map | `{}` | Environment for every stage |
 | `notes` | list of strings | `[]` | Copied into every PR report |
 
@@ -64,6 +66,8 @@ Each line gets its own patch PR, release state and image tags. List the versions
 | `go` | `"1.27"` | Go major.minor. mise installs its newest patch release, which carries the stdlib fixes |
 | `rust` | `"1.99.0"` / `from-repo` | `from-repo` honors the upstream `rust-toolchain.toml` |
 | `java`, `maven`, `node`, `pnpm` | `temurin-21`, `"3.9"`, `"24"`, `"10.28.1"` | mise specs |
+| `yarn` | `1.22.22` / `4.5.0` | Classic (1.x) or berry; the adapter handles them differently |
+| `python` | `"3.12"` | mise spec |
 | `extra` | `{protoc: "29.3"}` | Any other mise tool |
 | `repoMise` | `true` or `[rust, protoc, "cargo:cargo-nextest"]` | Use tools pinned in the upstream repo's own mise config. A list installs just those, in order |
 
@@ -71,12 +75,27 @@ When bumps need a newer Go than the recipe's line (a raised `go` directive, or s
 installs that minor instead. A requirement never lowers the recipe's version. Go builder images in
 Dockerfiles are raised the same way.
 
+Fields the recipe leaves unset are **detected from the checkout** at run time:
+
+| Toolchain | Read from |
+|---|---|
+| Go | `go.mod` `go` / `toolchain` |
+| Node | `.nvmrc`, `.node-version`, `engines.node` |
+| pnpm, yarn | `packageManager` in `package.json` |
+| Python | `.python-version`, `requires-python` |
+| Java | `maven.compiler.release`, the Gradle toolchain, `.java-version` |
+| Rust | `rust-toolchain.toml` |
+
+Explicit recipe values always win.
+
 ## Policy
 
 ```yaml
 policy:
   default: minor            # patch | minor | major
   ecosystems: { gomod: minor, cargo: patch, go-toolchain: minor }
+  minReleaseAgeDays: 7      # set in _global.yaml for every recipe
+  cooldownBypass: { severities: [CRITICAL], kev: true }
 ```
 
 - For each finding, the planner picks the **smallest** fixed version above the installed one. It
@@ -85,6 +104,15 @@ policy:
 - For npm, pnpm, yarn and Cargo, a **0.x minor bump counts as major**, because their caret ranges
   treat it as breaking (`^0.18` excludes `0.25`). For Go, `golang.org/x/*` v0 bumps stay routine.
 - `go-toolchain` caps how far Go stdlib fixes may move the build's Go version.
+- **Release age:** a fix version must have been published at least `minReleaseAgeDays` ago, so a
+  freshly hijacked release can't ride in on a bump. The next-oldest fixed version that is old enough
+  is used instead. When none is, the finding is reported as `cooldown: <ver> released N day(s) ago
+  (eligible <date>)` and a later nightly run picks it up.
+  - Publish times come from the Go module proxy, the npm registry, PyPI, Maven Central and crates.io.
+    When a publish time can't be found, the bump goes ahead with a note in the report.
+  - `cooldownBypass`: findings of these severities, and CVEs on CISA's Known Exploited Vulnerabilities
+    list (fetched once per run), are fixed immediately.
+  - `patcher run --no-cooldown` turns the rule off for one local run.
 
 ## Ecosystems
 
@@ -150,6 +178,68 @@ Pair Maven recipes with `prepare: ["mvn -DskipTests install"]` and `scan.offline
   the lockfile stay put. If upstream already pins the package to the vulnerable version, that pin is
   moved instead of adding a second entry.
 - **Afterwards:** the lockfile is regenerated with lifecycle scripts disabled.
+- **yarn classic vs. berry:** the major version comes from `packageManager` (or `toolchain.yarn`).
+  Classic installs with `--ignore-scripts` through a temporary yarnrc, so an upstream `.yarnrc` with
+  `--frozen-lockfile` doesn't block the update. Berry uses `--mode=update-lockfile`.
+- **yarn resolutions** move every installed copy of a package. A package installed in several major
+  lines therefore becomes needs-human, instead of one resolution that would force every copy onto
+  one major.
+
+### `python`
+
+```yaml
+- type: python
+  dirs: [".", "services/*"]   # project dirs (globs)
+  tool: auto                  # auto | uv | poetry | pipenv | pip-tools | pip
+  toolVersion: "2.5.1"        # poetry / pipenv / pip-tools version (default: from the lockfile header, else pinned)
+```
+
+The tool is detected per dir:
+
+| Tool | Detected by | How a bump is applied |
+|---|---|---|
+| uv | `uv.lock` | `uv lock --upgrade-package name==ver` |
+| poetry | `poetry.lock` | `poetry update --lock name`. If the lock still has the old version, a direct dependency becomes needs-human (its constraint doesn't allow the fix) and a transitive one gets an explicit `name>=ver` constraint |
+| pipenv | `Pipfile.lock` | `pipenv upgrade name>=ver` |
+| pip-tools | `requirements.in`, or a `pip-compile` / `uv pip compile` header in `requirements.txt` | The command recorded in the header is re-run, with `--upgrade-package name==ver` and without any `--upgrade` that would move everything else |
+| pip | `requirements*.txt` | `name==old` becomes `name==new`. A loose line gets a lower bound (`name>=1.0` → `name>=1.0,>=1.2.5`), and a transitive package gets its own `name>=fixed` line, like an npm override. A hash-checked file with nothing to recompile from is needs-human |
+
+- poetry, pipenv and pip-tools run through `uvx` at pinned versions. uv itself is pinned in the
+  patcher image.
+- Versions are compared with PEP 440 rules.
+- Every change is checked against the lockfile afterwards. A bump that didn't land is reported, not
+  claimed.
+- Trivy only reads lockfiles and exact `==` pins. Dependencies an image installs from loose ranges
+  are found by the [image scan](#scan) instead, and bumped in the first `dirs` entry's lockfile or
+  requirements file. That only helps if the Dockerfile installs from that file; otherwise the finding
+  stays in the report.
+
+### `gradle`
+
+```yaml
+- type: gradle
+  dirs: ["."]                            # build roots
+  catalog: gradle/libs.versions.toml     # default
+```
+
+- **Direct dependencies in the version catalog:** the catalog version is edited. This covers
+  `[versions]` refs, `version = "..."` and `"group:artifact:version"` forms. A shared `[versions]`
+  entry only moves when every library using it is in the same group (a family like `jackson-*`);
+  otherwise the dependency is pinned in the constraints script instead.
+- **Everything else:** pins go into a generated `gradle/patcher-constraints.gradle`, wired in with one
+  `apply from:` line in the root `build.gradle(.kts)`.
+  - **What it does:** for every project it registers a `resolutionStrategy.eachDependency` rule after
+    the project is evaluated. The rule raises each request for a listed module to at least the fixed
+    version, and records the CVE with `because`.
+  - **Why a rule:** it runs after the rules plugins add, so it also beats versions that Spring's
+    dependency-management plugin sets from its BOM. Plain `dependencies { constraints { } }` lose to
+    that plugin: it rewrites them back to the BOM version (seen with spring-petclinic).
+  - **Never downgrades:** requests already above the fixed version are left alone.
+- **Lockfiles:** when `gradle.lockfile`s exist, they are re-written with
+  `./gradlew dependencies --write-locks`.
+- **Finding the versions:** without lockfiles, Trivy can't see Gradle dependencies in the source tree.
+  Gradle recipes therefore plan from the built image's jars (`scan.image`, on by default for
+  `gradle` and `python`).
 
 ### `dockerfile`
 
@@ -208,7 +298,8 @@ holds:       # never bump (or never past `max`)
     - { name: react, max: 18.3.1, reason: UI not ready for 19 }
 ```
 
-- **Keys** are ecosystem names: `gomod`, `cargo`, `maven`, `npm`, `pnpm`, `yarn`, `dockerfile`, `files`.
+- **Keys** are ecosystem names: `gomod`, `cargo`, `maven`, `gradle`, `npm`, `pnpm`, `yarn`, `python`,
+  `dockerfile`, `files`.
 - **Precedence:** entries in `_global.yaml` apply to every recipe, and a recipe entry with the same
   `name` replaces the global one.
 - **Overrides ignore the policy cap:** an override is a human decision.
@@ -220,12 +311,14 @@ holds:       # never bump (or never past `max`)
 | `source` | `true` | `false` skips `trivy fs` for Dockerfile-only projects (only the images are judged) |
 | `offline` | `false` | `trivy fs --offline-scan`: resolve Maven POMs from the local `~/.m2`. Avoids Maven Central's per-IP rate limiting (HTTP 429) |
 | `skipDirs`, `skipFiles` | `[]` | Unshipped trees: test fixtures, examples, release tooling. Added to `_global.yaml`'s `scan.skipDirs` |
+| `image` | on for `gradle`/`python`, else off | Also plan from fixable findings in the built image's **own** artifacts (jars, Python packages, node_modules) that the source scan couldn't see; costs one extra build. Bundled third-party binaries and base-image tooling (pip, the global npm) are excluded |
+| `reachability` | `true` | Go recipes: run `govulncheck` on the patched source and draft VEX suggestions for remaining findings whose vulnerable code is never called. See the [runbook](runbook.md#vex-suggestions-from-reachability) |
 
 ## Tests
 
 | Field | Default | Meaning |
 |---|---|---|
-| `framework` | required | `go`, `nextest`, `surefire`, `redis`, `jest`, `bats`, `generic`. Decides how skips are applied |
+| `framework` | required | `go`, `nextest`, `surefire`, `gradle`, `pytest`, `jest`, `vitest`, `mocha`, `redis`, `bats`, `generic`. Decides how skips are applied |
 | `setup` | `[]` | Commands before the test command (always as root) |
 | `command` | required | The upstream test command. May use `{{skip_args}}`, `{{skip_regex}}`, `{{skip_file}}`, `{{src}}` |
 | `skipVia` | | `{env: TEST_FLAGS, format: "-skip={{skip_regex}}"}` for suites that read flags from an env var |
@@ -244,12 +337,34 @@ How `skips/<name>.yaml` entries become filters:
 | `nextest` | `-E 'not (test(/match/) \| …)'`; an entry's `filter:` is used verbatim |
 | `surefire` | `-Dsurefire.excludesFile=<file>` |
 | `redis` | `--skipfile <file>` |
-| `jest` | `--testPathIgnorePatterns ...` |
+| `gradle` | a generated init script (`--init-script <file>`) with `filter.excludeTestsMatching` per entry |
+| `pytest` | entries with `::` are node ids, passed as `--deselect`; others are joined into `-k 'not (…)'` |
+| `jest` | `match` = test-name regex, as `--testNamePattern '^(?!.*(…))'`; `filter` = path, as `--testPathIgnorePatterns` |
+| `vitest` | like jest; paths as `--exclude` |
+| `mocha` | `--grep <joined regex> --invert` |
 | `generic` | exported as `PATCHER_SKIP_REGEX` |
 | `bats` | not supported (a non-empty skip list is refused) |
 
 A run fails rather than silently ignoring skips when the skip file has entries but the command uses
 no skip placeholder.
+
+When the patched tests fail, the same tests run on the **unpatched** source (upstream tag plus
+`patches/`, no bumps). If every failing test also fails there, the run is `tests-preexisting`: the
+PR is ready for review and labeled `preexisting-test-failures`. Otherwise the run retries with
+patch-level bumps only, and the PR is a draft if failures remain. Failing tests are compared using
+JUnit when available, otherwise by test ids parsed from the log (durations and counts removed).
+
+Install test dependencies into the checkout, never into the shared toolchain. For Python, use a
+project `.venv`, `uv sync` or `poetry install` with `POETRY_VIRTUALENVS_IN_PROJECT=true`; see
+`patcher init`'s drafts.
+
+**Install cutoff:** while the release-age rule is on, `setup` and `command` run with
+`UV_EXCLUDE_NEWER`, `PIP_UPLOADED_PRIOR_TO` (pip ≥ 26) and `npm_config_before` set to the rule's
+cutoff, or to the upstream release time if that is later. Dependencies a test setup installs from
+version ranges then resolve roughly as they did for upstream's CI, and a release from yesterday can't
+break, or compromise, the run. Lockfile installs are unaffected. Set any of these in `tests.env` to
+override, e.g. `UV_EXCLUDE_NEWER: "2026-10-01T00:00:00Z"`. When a CRITICAL or KEV fix younger than the
+rule was bumped, no cutoff is set, so the fix stays installable.
 
 ## Build
 
@@ -275,9 +390,66 @@ build:
 |---|---|
 | `command` + `builtImage` | Custom build instead of buildx, e.g. `make docker.build`. It must produce `builtImage` |
 | `tagPattern`, `platforms` | Image-only recipes: an image that versions or ships separately from the line (e.g. Apollo's bundle-loader) |
+| `timeoutMinutes` (on `build`) | Per image build, build `setup` command and component overlay (default 60). A build that hangs or fails on a network error is retried once |
+| `copa` | `true` (default): Copa patches leftover OS packages. `false`: off. `{libraries: true, level: patch}`: also patch Python and npm packages inside the image (Copa's experimental library patching, `COPA_EXPERIMENTAL=1`); meant for closed-source images that can't be rebuilt |
 
 Templates: `{{tag}}`, `{{version}}` (tag without `v`), `{{commit}}`, `{{short_commit}}`, and in
 image builds also `{{image}}`, `{{platform}}`, `{{arch}}`. Unknown placeholders are errors.
+
+## Components
+
+Images often bundle third-party binaries that their own build doesn't compile: helm, kustomize and
+git-lfs in Argo CD; gomplate in Dex; the credential helpers in Apollo's closed-source operator. Their
+findings can't be fixed by bumping the parent's dependencies. A **component** rebuilds such a binary
+from its own source at the same version, with patched dependencies and its own tests, and swaps it
+into the parent image.
+
+```yaml
+# recipes/argo-cd.yaml (the parent)
+components:
+  - recipe: helm
+    path: /usr/local/bin/helm               # version from the binary's Go build info
+  - recipe: kustomize
+    path: /usr/local/bin/kustomize
+    tag: "kustomize/v{{version}}"            # upstream tag for that version
+    versionFrom: { file: hack/tool-versions.sh, var: kustomize5_version }
+  - recipe: git-lfs
+    path: /usr/bin/git-lfs
+    versionCommand: [version]                # run `git-lfs version` in the image
+    images: [argocd]                         # default: every image of the recipe
+```
+
+```yaml
+# recipes/helm.yaml (the component)
+name: helm
+mode: component
+source: { repo: helm/helm, lines: [{ tagPattern: '^v4\.\d+\.\d+$' }] }
+ecosystems: [{ type: gomod }]
+tests: { framework: go, command: "go test {{skip_args}} ./..." }
+artifact:
+  builder: "golang:{{go}}"                   # {{go}} = the Go version the component needs
+  build: CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o /out/helm ./cmd/helm
+  output: /out/helm
+```
+
+- **Version:** the first of `version`, `versionFrom` (a file in the parent's checkout), the binary's
+  Go build info, and `versionCommand` that yields one.
+- **Patch and test:** the component recipe runs like a source recipe on exactly that tag:
+  policy, release-age rule, skips and baseline included. Results are cached per run, so several
+  images share one build.
+- **Overlay:** the parent image is rebuilt `FROM` itself with each usable component's binary copied
+  over the original. Binaries are cross-compiled per platform in a buildx stage, with no emulation.
+  Smoke tests, Copa and the after-scan run on the result.
+- **Usable** means the component's run ended `success`, `no-changes` or `tests-preexisting`.
+  Otherwise the original binary stays, and the report says why.
+- **One version per line:** if two images of a line bundle different versions of the same component,
+  the first image's version is rebuilt. The other image keeps its original binary (`kept-original`,
+  with a note).
+- **PR and release:** the component's diff and report go into the parent's PR under
+  `generated/<recipe>/<tag>/components/<component>/`. The release rebuilds exactly that reviewed
+  diff.
+- **Planning:** a change to a component recipe, its skips or its patches re-runs every parent.
+  Components never run on their own.
 
 ## Global config (`recipes/_global.yaml`)
 
@@ -285,7 +457,7 @@ image builds also `{{image}}`, `{{platform}}`, `{{arch}}`. Unknown placeholders 
 |---|---|
 | `registry` | Where images go; CI overrides it with `PATCHER_REGISTRY=ghcr.io/<owner>` |
 | `tagFormat` | `{{upstream_tag}}-patched.{{revision}}` |
-| `policy`, `overrides`, `holds` | Defaults for every recipe |
+| `policy`, `overrides`, `holds` | Defaults for every recipe (including the 7-day `minReleaseAgeDays` rule) |
 | `skipGraceDays` | Expired skips warn, and fail the run this many days after `expires` |
 | `scan.severities`, `scan.maxRounds`, `scan.skipDirs` | Trivy severities, plan/apply rounds, dirs skipped everywhere |
 
@@ -303,4 +475,8 @@ image builds also `{{image}}`, `{{platform}}`, `{{arch}}`. Unknown placeholders 
 | [`redis.yaml`](../recipes/redis.yaml) | `files` edits with derived URL + sha256, Redis' own `runtest` |
 | [`maven.yaml`](../recipes/maven.yaml) | Branch-tracked line with `versionFrom`, bats tests, `scan.source: false` |
 | [`strimzi-maven-builder.yaml`](../recipes/strimzi-maven-builder.yaml) | Dockerfile-only rebuild (UBI base refresh) |
-| [`apollo-operator.yaml`](../recipes/apollo-operator.yaml) | `mode: image-only`, per-image `tagPattern` and `platforms` |
+| [`apollo-operator.yaml`](../recipes/apollo-operator.yaml) | `mode: image-only`, per-image `tagPattern` and `platforms`, components in a closed-source image |
+| [`argo-workflows.yaml`](../recipes/argo-workflows.yaml) | Three images from one Dockerfile (`target`), yarn classic UI, Testcontainers-backed Go tests |
+| [`argo-rollouts.yaml`](../recipes/argo-rollouts.yaml) | pnpm workspace UI, default target plus a named target |
+| [`helm.yaml`](../recipes/helm.yaml), [`kustomize.yaml`](../recipes/kustomize.yaml), [`gomplate.yaml`](../recipes/gomplate.yaml) | `mode: component` with an `artifact` build |
+| [`examples/`](examples/README.md) | Python (pip-compiled image build; pytest with a venv), Gradle (image-driven planning), a vendor image with Copa library patching |

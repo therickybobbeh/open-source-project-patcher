@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=../../../schema/recipe.schema.json
+name: spring-petclinic
+description: Spring PetClinic (Gradle + Spring Boot); validates the Gradle adapter and image-driven planning
+source:
+  repo: spring-projects/spring-petclinic
+  lines:
+    - branch: main          # no release tags upstream
+      name: main
+      versionFrom: { file: build.gradle, var: version }
+toolchain:
+  java: temurin-17          # build.gradle asks for a Java 17 toolchain
+ecosystems:
+  # no lockfiles and no version catalog: bumps go into a generated constraints script; the vulnerable
+  # versions are found by scanning the built image's jar (scan.image)
+  - type: gradle
+  - type: dockerfile
+    files: [Dockerfile]     # ours, from patches/spring-petclinic/files
+scan:
+  image: true
+  skipFiles: [pom.xml]      # the Maven build is an alternative; the image is built with Gradle
+tests:
+  framework: gradle
+  command: ./gradlew --no-daemon test {{skip_args}}
+  junit: ["build/test-results/test/*.xml"]
+  timeoutMinutes: 45
+build:
+  platforms: [linux/amd64, linux/arm64]
+  images:
+    - name: spring-petclinic
+      # starts the application context without a web server and exits 0
+      smoke: ["--spring.main.web-application-type=none"]
+      ownBinaries: [app/]

@@ -1,0 +1,59 @@
+# yaml-language-server: $schema=../schema/recipe.schema.json
+name: argo-workflows
+description: Argo Workflows (quay.io/argoproj/workflow-controller, argocli, argoexec)
+source:
+  repo: argoproj/argo-workflows
+  # add the lines you run, e.g. '^v4\.0\.\d+$' or '^v3\.7\.\d+$'
+  lines:
+    - tagPattern: '^v4\.1\.\d+$'
+toolchain:
+  go: "1.26"
+  node: "20"          # ui/package.json engines >=20; the image builds the UI on node:20
+  yarn: "1.22.22"     # yarn classic (ui/yarn.lock, ui/.yarnrc)
+ecosystems:
+  # vendor/ is not committed: the Makefile runs `go mod vendor` before building
+  - type: gomod
+    dirs: ["."]
+  - type: yarn
+    dirs: [ui]
+  - type: dockerfile
+    files: [Dockerfile]
+scan:
+  skipDirs: [test, examples, docs, hack, sdks, manifests]
+tests:
+  framework: go
+  # `make test` with the UI build stubbed out (STATIC_FILES=false writes a placeholder index.html),
+  # called directly so skips can be appended (make passes fixed gotestsum flags). As upstream's
+  # Makefile (TEST_RETRIES=2), failed tests are re-run twice: some query Docker Hub and fail on a
+  # network blip. workflow/sync runs its semaphore tests against Postgres and MySQL in Testcontainers:
+  # past go test's 10m default package timeout on a busy Docker host, hence -timeout 30m.
+  command: >-
+    make ui/dist/app/index.html STATIC_FILES=false &&
+    go mod vendor && go build -mod=vendor ./... &&
+    env KUBECONFIG=/dev/null go run gotest.tools/gotestsum@v1.12.3 --junitfile junit.xml --format testname
+    --rerun-fails=2 --rerun-fails-run-root-test --packages ./... -- -p 20 -timeout 30m {{skip_args}}
+  junit: [junit.xml]
+  timeoutMinutes: 120
+build:
+  platforms: [linux/amd64, linux/arm64]
+  images:
+    - name: workflow-controller
+      upstream: quay.io/argoproj/workflow-controller
+      target: workflow-controller
+      args: { GIT_TAG: "{{tag}}", GIT_COMMIT: "{{commit}}", GIT_TREE_STATE: clean }
+      smoke: ["--help"]
+      ownBinaries: [bin/workflow-controller]
+    - name: argocli
+      upstream: quay.io/argoproj/argocli
+      target: argocli
+      args: { GIT_TAG: "{{tag}}", GIT_COMMIT: "{{commit}}", GIT_TREE_STATE: clean }
+      smoke: ["version"]
+      ownBinaries: [bin/argo]
+    - name: argoexec
+      upstream: quay.io/argoproj/argoexec
+      target: argoexec
+      args: { GIT_TAG: "{{tag}}", GIT_COMMIT: "{{commit}}", GIT_TREE_STATE: clean }
+      smoke: ["--help"]
+      ownBinaries: [bin/argoexec]
+notes:
+  - The argocli image embeds the UI (STATIC_FILES=true in its build stage); UI dependencies are patched through ui/yarn.lock.

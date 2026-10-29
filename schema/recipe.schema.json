@@ -1,5 +1,33 @@
 {
   "$defs": {
+    "Artifact": {
+      "additionalProperties": false,
+      "description": "How a component recipe's binary is built (inside a buildx stage, cross-compiled per platform).",
+      "properties": {
+        "builder": {
+          "default": "golang:{{go}}",
+          "description": "Builder image; `{{go}}` = the Go version the component needs",
+          "title": "Builder",
+          "type": "string"
+        },
+        "build": {
+          "description": "Shell command run in the checkout (/src) with TARGETOS/TARGETARCH set; must write `output`",
+          "title": "Build",
+          "type": "string"
+        },
+        "output": {
+          "description": "Path of the built binary inside the builder, e.g. /out/helm",
+          "title": "Output",
+          "type": "string"
+        }
+      },
+      "required": [
+        "build",
+        "output"
+      ],
+      "title": "Artifact",
+      "type": "object"
+    },
     "Build": {
       "additionalProperties": false,
       "properties": {
@@ -32,6 +60,12 @@
           "minItems": 1,
           "title": "Images",
           "type": "array"
+        },
+        "timeoutMinutes": {
+          "default": 60,
+          "description": "Per image build (and per component overlay); a build that hangs is killed and retried once",
+          "title": "Timeoutminutes",
+          "type": "integer"
         }
       },
       "required": [
@@ -61,6 +95,114 @@
         "type"
       ],
       "title": "CargoEco",
+      "type": "object"
+    },
+    "ComponentRef": {
+      "additionalProperties": false,
+      "description": "A third-party binary bundled in this recipe's images, rebuilt from source and swapped in.",
+      "properties": {
+        "recipe": {
+          "description": "Component recipe (mode: component) that patches and builds it",
+          "title": "Recipe",
+          "type": "string"
+        },
+        "path": {
+          "description": "Where the binary lives in the image, e.g. /usr/local/bin/helm",
+          "title": "Path",
+          "type": "string"
+        },
+        "tag": {
+          "default": "v{{version}}",
+          "description": "Upstream tag for the version found in the image (`{{version}}` = without v)",
+          "title": "Tag",
+          "type": "string"
+        },
+        "images": {
+          "description": "Image keys to apply it to (default: every image)",
+          "items": {
+            "type": "string"
+          },
+          "title": "Images",
+          "type": "array"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Pin the bundled version explicitly",
+          "title": "Version"
+        },
+        "versionFrom": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VersionFrom"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Read it from a file in the parent's checkout (e.g. hack/tool-versions.sh)"
+        },
+        "versionCommand": {
+          "description": "Run the binary in the image with these args and take the first version in its output (e.g. [version])",
+          "items": {
+            "type": "string"
+          },
+          "title": "Versioncommand",
+          "type": "array"
+        }
+      },
+      "required": [
+        "recipe",
+        "path"
+      ],
+      "title": "ComponentRef",
+      "type": "object"
+    },
+    "CooldownBypass": {
+      "additionalProperties": false,
+      "properties": {
+        "severities": {
+          "description": "Findings of these severities skip the age rule",
+          "items": {
+            "type": "string"
+          },
+          "title": "Severities",
+          "type": "array"
+        },
+        "kev": {
+          "default": true,
+          "description": "CVEs on CISA's Known Exploited Vulnerabilities list skip the age rule",
+          "title": "Kev",
+          "type": "boolean"
+        }
+      },
+      "title": "CooldownBypass",
+      "type": "object"
+    },
+    "CopaOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "libraries": {
+          "default": false,
+          "description": "Also patch language packages (COPA_EXPERIMENTAL library patching: pip and npm packages inside the image); for closed-source images",
+          "title": "Libraries",
+          "type": "boolean"
+        },
+        "level": {
+          "$ref": "#/$defs/Level",
+          "default": "patch",
+          "description": "How far Copa may move library versions"
+        }
+      },
+      "title": "CopaOptions",
       "type": "object"
     },
     "DerivedEdit": {
@@ -288,6 +430,35 @@
       "title": "GoModEco",
       "type": "object"
     },
+    "GradleEco": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "gradle",
+          "title": "Type",
+          "type": "string"
+        },
+        "dirs": {
+          "description": "Gradle build roots (settings.gradle[.kts] or build.gradle[.kts])",
+          "items": {
+            "type": "string"
+          },
+          "title": "Dirs",
+          "type": "array"
+        },
+        "catalog": {
+          "default": "gradle/libs.versions.toml",
+          "description": "Version catalog, relative to the build root",
+          "title": "Catalog",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "GradleEco",
+      "type": "object"
+    },
     "Hold": {
       "additionalProperties": false,
       "description": "Never bump a dependency (or never past `max`).",
@@ -431,7 +602,7 @@
           "type": "array"
         },
         "ownBinaries": {
-          "description": "Paths (in the image) of binaries built from this source, e.g. `usr/local/bin/dex`; anything else is reported as a bundled artifact. Empty = guess from the source scan.",
+          "description": "Paths or directory prefixes (in the image) of what this source builds, e.g. `usr/local/bin/dex` or `app/`; anything else is a bundled artifact. Empty = guess from the source scan.",
           "items": {
             "type": "string"
           },
@@ -439,9 +610,17 @@
           "type": "array"
         },
         "copa": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/CopaOptions"
+            }
+          ],
           "default": true,
-          "title": "Copa",
-          "type": "boolean"
+          "description": "Copa for leftover OS packages; an object enables library patching too",
+          "title": "Copa"
         },
         "tagPattern": {
           "anyOf": [
@@ -660,9 +839,75 @@
           "description": "Per-ecosystem override of `default`",
           "title": "Ecosystems",
           "type": "object"
+        },
+        "minReleaseAgeDays": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Only bump to versions published at least this many days ago (supply-chain cooldown); unset/0 = off",
+          "title": "Minreleaseagedays"
+        },
+        "cooldownBypass": {
+          "$ref": "#/$defs/CooldownBypass"
         }
       },
       "title": "Policy",
+      "type": "object"
+    },
+    "PythonEco": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "python",
+          "title": "Type",
+          "type": "string"
+        },
+        "dirs": {
+          "description": "Project dirs (globs); the tool is detected per dir",
+          "items": {
+            "type": "string"
+          },
+          "title": "Dirs",
+          "type": "array"
+        },
+        "tool": {
+          "default": "auto",
+          "description": "auto: uv.lock -> uv, poetry.lock -> poetry, Pipfile.lock -> pipenv, requirements.in or a pip-compile / `uv pip compile` header -> pip-tools, other requirements*.txt -> pip",
+          "enum": [
+            "auto",
+            "uv",
+            "poetry",
+            "pipenv",
+            "pip-tools",
+            "pip"
+          ],
+          "title": "Tool",
+          "type": "string"
+        },
+        "toolVersion": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "poetry/pipenv/pip-tools version (default: read from the lockfile header, else a pinned default)",
+          "title": "Toolversion"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "PythonEco",
       "type": "object"
     },
     "RecipeScan": {
@@ -679,6 +924,25 @@
           "description": "`trivy fs --offline-scan`: resolve Maven POMs from the local ~/.m2 only (fill it with `prepare`); avoids Maven Central rate limits",
           "title": "Offline",
           "type": "boolean"
+        },
+        "reachability": {
+          "default": true,
+          "description": "Go recipes: run govulncheck on the patched source and suggest VEX statements for remaining findings whose vulnerable code isn't reached",
+          "title": "Reachability",
+          "type": "boolean"
+        },
+        "image": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Also plan bumps from findings in the built image's own artifacts (jars, Python packages, node_modules) the source scan can't see; costs one extra run. Default: on for gradle/python",
+          "title": "Image"
         },
         "skipDirs": {
           "description": "Extra `trivy fs --skip-dirs` globs (test fixtures, examples)",
@@ -837,8 +1101,12 @@
             "go",
             "nextest",
             "surefire",
-            "redis",
+            "gradle",
+            "pytest",
             "jest",
+            "vitest",
+            "mocha",
+            "redis",
             "bats",
             "generic"
           ],
@@ -1000,6 +1268,32 @@
           "default": null,
           "title": "Pnpm"
         },
+        "yarn": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "e.g. `1.22.22` (classic) or `4.5.0` (berry)",
+          "title": "Yarn"
+        },
+        "python": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Python version for mise, e.g. `3.12`",
+          "title": "Python"
+        },
         "extra": {
           "additionalProperties": {
             "type": "string"
@@ -1111,9 +1405,11 @@
     },
     "mode": {
       "default": "source",
+      "description": "component: patched and tested like a source recipe, but only shipped inside other images (see `components`)",
       "enum": [
         "source",
-        "image-only"
+        "image-only",
+        "component"
       ],
       "title": "Mode",
       "type": "string"
@@ -1143,9 +1439,11 @@
             "dockerfile": "#/$defs/DockerfileEco",
             "files": "#/$defs/FilesEco",
             "gomod": "#/$defs/GoModEco",
+            "gradle": "#/$defs/GradleEco",
             "maven": "#/$defs/MavenEco",
             "npm": "#/$defs/NodeEco",
             "pnpm": "#/$defs/NodeEco",
+            "python": "#/$defs/PythonEco",
             "yarn": "#/$defs/NodeEco"
           },
           "propertyName": "type"
@@ -1162,6 +1460,12 @@
           },
           {
             "$ref": "#/$defs/NodeEco"
+          },
+          {
+            "$ref": "#/$defs/PythonEco"
+          },
+          {
+            "$ref": "#/$defs/GradleEco"
           },
           {
             "$ref": "#/$defs/DockerfileEco"
@@ -1236,6 +1540,26 @@
         }
       ],
       "default": null
+    },
+    "artifact": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Artifact"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "mode: component - how to build the binary"
+    },
+    "components": {
+      "description": "Bundled third-party binaries to rebuild and swap in",
+      "items": {
+        "$ref": "#/$defs/ComponentRef"
+      },
+      "title": "Components",
+      "type": "array"
     },
     "env": {
       "additionalProperties": {

@@ -35,6 +35,9 @@ jobs:
         with:
           args: rescan --out out/rescan
           cache-key: rescan
+      - name: Image coverage (inventory.yaml) to the run summary
+        if: always()
+        run: docker run --rm -v "$PWD:$PWD" -w "$PWD" patcher:ci coverage >> "$GITHUB_STEP_SUMMARY"
       - id: r
         run: |
           result=$(cat out/rescan/result.json)

@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import os
+import re
 import shlex
+import signal
 import subprocess
 import sys
+import threading
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -81,42 +84,97 @@ def run(
             stderr=subprocess.STDOUT,
             text=True,
             bufsize=1,
+            # with a timeout, the command gets its own process group so the whole tree can be killed:
+            # a hung test prints nothing, and its children keep the output pipe open
+            start_new_session=timeout is not None,
         )
+        timed_out = threading.Event()
+        timer = None
+        if timeout:
+            timer = threading.Timer(timeout, _kill_group, (proc, timed_out))
+            timer.daemon = True
+            timer.start()
         if input is not None:
             assert proc.stdin
             proc.stdin.write(input)
             proc.stdin.close()
         chunks: list[str] = []
         assert proc.stdout
-        deadline = start + timeout if timeout else None
-        for line in proc.stdout:
-            chunks.append(line)
-            if lf:
-                lf.write(line)
-            if not capture:
-                sys.stderr.write(line)
-            if deadline and time.monotonic() > deadline:
-                proc.kill()
-                raise CommandError(shown, -9, f"timed out after {timeout}s")
-        code = proc.wait()
+        try:
+            for line in proc.stdout:
+                chunks.append(line)
+                if lf:
+                    lf.write(line)
+                if not capture:
+                    sys.stderr.write(line)
+            code = proc.wait()
+        except KeyboardInterrupt:
+            if timeout:  # not in our foreground group: stop it ourselves
+                _kill_group(proc, timed_out)
+            raise
+        finally:
+            if timer:
+                timer.cancel()
     finally:
         if lf:
             lf.close()
     out = "".join(chunks)
     seconds = time.monotonic() - start
+    if timed_out.is_set():
+        raise CommandError(shown, -9, f"timed out after {timeout:.0f}s (killed with its child processes)\n"
+                           + "\n".join(out.splitlines()[-60:]))
     if check and code != 0:
         tail = "\n".join(out.splitlines()[-60:])
         raise CommandError(shown, code, tail)
     return Result(code=code, out=out, seconds=seconds)
 
 
-def output(cmd: Sequence[str], *, cwd: Path | None = None, env: Mapping[str, str] | None = None) -> str:
+def first_error(text: str | None) -> str:
+    """The line of a failure log most worth showing: the first one mentioning an error, else the last."""
+    lines = [l.strip() for l in (text or "").splitlines() if l.strip()]
+    for l in lines:
+        if "error" in l.lower():
+            return l[:160]
+    return (lines[-1] if lines else "unknown error")[:160]
+
+
+def _kill_group(proc: subprocess.Popen, flag: threading.Event) -> None:
+    flag.set()
+    try:
+        os.killpg(proc.pid, signal.SIGKILL)
+    except (ProcessLookupError, PermissionError):
+        pass
+
+
+def output(cmd: Sequence[str], *, cwd: Path | None = None, env: Mapping[str, str] | None = None, check: bool = True) -> str:
     """stdout only (stderr kept apart), for commands whose output is parsed: e.g. `go` prints
-    "switching to go1.26.10" on stderr, which must not end up in JSON or a version string."""
+    "switching to go1.26.10" on stderr, which must not end up in JSON or a version string.
+    `check=False` for tools that exit non-zero when they find something (osv-scanner, govulncheck)."""
     proc = subprocess.run(list(cmd), cwd=cwd, env=_env(env), stdin=subprocess.DEVNULL, capture_output=True, text=True)
-    if proc.returncode != 0:
+    if check and proc.returncode != 0:
         raise CommandError(shlex.join(cmd), proc.returncode, (proc.stderr or proc.stdout)[-4000:])
     return proc.stdout
+
+
+# failures that come from fetching something over a flaky network, not from the work itself
+NETWORK_ERRORS = re.compile(r"unexpected EOF|connection reset|i/o timeout|TLS handshake timeout|no such host|Could not resolve host|"
+                            r"Temporary failure in name resolution|EAI_AGAIN|ECONNRESET|ETIMEDOUT|502 Bad Gateway|"
+                            r"503 Service Unavailable|429 Too Many Requests", re.I)
+
+
+def retry_on_network(call, *, attempts: int = 2, wait: int = 30, timeouts: bool = False):
+    """call(), and call() again after `wait` seconds if it failed with a network error (DNS blips, EOFs from
+    module proxies and registries), or with `timeouts`, if it hung and was killed; any other failure is raised at once."""
+    for i in range(attempts):
+        try:
+            return call()
+        except CommandError as e:
+            m = NETWORK_ERRORS.search(e.tail)
+            why = m.group(0) if m else ("hung, killed at the timeout" if timeouts and e.code == -9 else None)
+            if not why or i == attempts - 1:
+                raise
+            log(f"{why}; retrying in {wait}s")
+            time.sleep(wait)
 
 
 def which(name: str) -> str | None:

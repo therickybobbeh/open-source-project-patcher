@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=../schema/recipe.schema.json
+name: gomplate
+description: gomplate bundled in other images (component of dex)
+mode: component
+source:
+  repo: hairyhenderson/gomplate
+  lines:   # only used for standalone runs; parents pick the exact version they bundle
+    - tagPattern: '^v5\.\d+\.\d+$'
+ecosystems:
+  - type: gomod
+    dirs: ["."]
+scan:
+  skipDirs: [docs, internal/tests, test]
+tests:
+  framework: go
+  # unit tests only: internal/tests/integration drives a built gomplate binary against live Consul and
+  # Vault servers (upstream's `make integration`); the patcher image has neither
+  command: go test {{skip_args}} $(go list ./... | grep -v /internal/tests/integration)
+  timeoutMinutes: 45
+artifact:
+  builder: "golang:{{go}}"
+  build: >-
+    CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath
+    -ldflags "-s -w -X github.com/hairyhenderson/gomplate/v5/version.Version={{version}}" -o /out/gomplate ./cmd/gomplate
+  output: /out/gomplate

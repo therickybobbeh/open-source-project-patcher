@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=../../../schema/recipe.schema.json
+# Drafted by `patcher init jupyterhub/jupyterhub`, then: test setup in a venv, scan.skipDirs, no build
+# (JupyterHub 6 ships no Dockerfile; its images are built in other repos, e.g. z2jh-hub).
+name: jupyterhub
+description: JupyterHub (Python + npm); validates the pytest runner
+source:
+  repo: jupyterhub/jupyterhub
+  lines:
+    - tagPattern: '^6\.1\.\d+$'
+toolchain:
+  python: "3.12"
+  node: "22"
+ecosystems:
+  - type: npm
+    dirs: [".", "jsx"]
+  - type: python
+    dirs: ["."]
+scan:
+  skipDirs: [ci, docs, examples, testing]
+tests:
+  framework: pytest
+  # as upstream CI (test.yml, default matrix entry): npm deps, `.[test]`, and configurable-http-proxy (CI
+  # installs it globally; here into its own prefix, since JupyterHub's build prunes extraneous node_modules).
+  # The venv's bin goes on PATH like an activated env: test_db runs the `alembic` CLI.
+  setup:
+    - npm install
+    - uv venv --seed .venv && uv pip install --python .venv -e '.[test]'
+    - npm install --prefix .chp configurable-http-proxy
+  command: >-
+    PATH="$PWD/.venv/bin:$PWD/.chp/node_modules/.bin:$PATH" python -m pytest -p no:cacheprovider --junitxml=junit.xml
+    jupyterhub/tests {{skip_args}}
+  junit: [junit.xml]
+  timeoutMinutes: 120   # ~10 min on a CI runner; much longer on a busy laptop

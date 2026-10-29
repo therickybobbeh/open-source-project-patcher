@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from .ecosystems import ECOSYSTEMS
 from .models import Toolchain
 from .proc import CommandError, log, output, run, which
 from .versions import try_parse
@@ -25,6 +26,31 @@ def go_spec(recipe_go: str | None, required: str | None) -> str | None:
     return recipe_go
 
 
+# which toolchain fields each test framework needs (ecosystems declare theirs in ecosystems.py)
+FRAMEWORK_FIELDS = {"go": ["go"], "surefire": ["java", "maven"], "gradle": ["java"], "jest": ["node"], "vitest": ["node"],
+                    "mocha": ["node"], "pytest": ["python"]}
+LANGUAGE_FIELDS = {k: list(e.toolchain) for k, e in ECOSYSTEMS.items()} | FRAMEWORK_FIELDS
+
+
+def effective(tc: Toolchain, recipe, src: Path | None) -> Toolchain:
+    """Fill toolchain fields the recipe leaves unset from what the checkout declares (go.mod, .nvmrc,
+    packageManager, requires-python, maven.compiler.release, ...), only for languages the recipe uses."""
+    if src is None or recipe is None:
+        return tc
+    from . import detect
+
+    kinds = {e.type for e in recipe.ecosystems} | ({recipe.tests.framework} if recipe.tests else set())
+    wanted = {f for k in kinds for f in LANGUAGE_FIELDS.get(k, [])}
+    node_dirs = [d for e in recipe.ecosystems if e.type in ("npm", "pnpm", "yarn") for d in e.dirs]
+    python_dirs = [d for e in recipe.ecosystems if e.type == "python" for d in e.dirs]
+    go_dirs = [d for e in recipe.ecosystems if e.type == "gomod" for d in e.dirs]
+    found = detect.toolchain(src, node_dirs, python_dirs, go_dirs)
+    if "maven" in wanted and "maven" not in found:
+        found["maven"] = "3"  # newest Maven 3.x when the project doesn't say
+    fill = {k: v for k, v in found.items() if k in wanted and getattr(tc, k, None) in (None, "")}
+    return tc.model_copy(update=fill) if fill else tc
+
+
 def mise_specs(tc: Toolchain, requires: dict[str, str]) -> list[str]:
     specs: list[str] = []
     go = go_spec(tc.go, requires.get("go"))
@@ -40,6 +66,10 @@ def mise_specs(tc: Toolchain, requires: dict[str, str]) -> list[str]:
         specs.append(f"node@{tc.node}")
     if tc.pnpm:
         specs.append(f"pnpm@{tc.pnpm}")
+    if tc.yarn:
+        specs.append(f"yarn@{tc.yarn}")
+    if tc.python:
+        specs.append(f"python@{tc.python}")
     specs += [f"{k}@{v}" for k, v in tc.extra.items()]
     return specs
 
@@ -51,9 +81,11 @@ def _local_go(env: dict[str, str]) -> str | None:
         return None
 
 
-def activate(tc: Toolchain, env: dict[str, str], requires: dict[str, str] | None = None, src: Path | None = None) -> dict[str, str]:
+def activate(tc: Toolchain, env: dict[str, str], requires: dict[str, str] | None = None, src: Path | None = None,
+             recipe=None) -> dict[str, str]:
     requires = requires or {}
     env = dict(env)
+    tc = effective(tc, recipe, src)
     specs = mise_specs(tc, requires)
     use_repo = bool(tc.repoMise) and src is not None
     if not which("mise"):

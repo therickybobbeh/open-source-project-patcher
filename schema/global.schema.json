@@ -1,5 +1,26 @@
 {
   "$defs": {
+    "CooldownBypass": {
+      "additionalProperties": false,
+      "properties": {
+        "severities": {
+          "description": "Findings of these severities skip the age rule",
+          "items": {
+            "type": "string"
+          },
+          "title": "Severities",
+          "type": "array"
+        },
+        "kev": {
+          "default": true,
+          "description": "CVEs on CISA's Known Exploited Vulnerabilities list skip the age rule",
+          "title": "Kev",
+          "type": "boolean"
+        }
+      },
+      "title": "CooldownBypass",
+      "type": "object"
+    },
     "Hold": {
       "additionalProperties": false,
       "description": "Never bump a dependency (or never past `max`).",
@@ -101,6 +122,22 @@
           "description": "Per-ecosystem override of `default`",
           "title": "Ecosystems",
           "type": "object"
+        },
+        "minReleaseAgeDays": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Only bump to versions published at least this many days ago (supply-chain cooldown); unset/0 = off",
+          "title": "Minreleaseagedays"
+        },
+        "cooldownBypass": {
+          "$ref": "#/$defs/CooldownBypass"
         }
       },
       "title": "Policy",

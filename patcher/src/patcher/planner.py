@@ -16,12 +16,13 @@ import fnmatch
 import posixpath
 from dataclasses import asdict, dataclass, field
 
+from .ecosystems import CVE_ECOSYSTEMS
 from .models import Hold, Level, Override, Recipe
 from .scan import Finding, Package, ScanReport
 from .versions import Version, level_between, pick_fix, try_parse, with_style
 
 # ecosystems the source adapters can change (others are reported only)
-PATCHABLE = {"gomod", "cargo", "maven", "npm", "pnpm", "yarn"}
+PATCHABLE = set(CVE_ECOSYSTEMS)
 
 
 @dataclass
@@ -57,6 +58,7 @@ class Plan:
     bumps: list[Bump] = field(default_factory=list)
     unresolved: list[Unresolved] = field(default_factory=list)
     toolchain: dict[str, str] = field(default_factory=dict)  # e.g. {"go": "1.27.5"}
+    notes: list[str] = field(default_factory=list)
 
     @property
     def empty(self) -> bool:
@@ -84,7 +86,7 @@ def _unresolved(f: Finding, why: str) -> Unresolved:
     return Unresolved(f.ecosystem, f.target, f.name, f.installed, f.vuln_id, f.severity, f.fixed, why)
 
 
-def build_plan(report: ScanReport, recipe: Recipe, ecosystems: set[str] | None = None) -> Plan:
+def build_plan(report: ScanReport, recipe: Recipe, ecosystems: set[str] | None = None, gate=None) -> Plan:
     plan = Plan()
     active = (ecosystems or PATCHABLE) & PATCHABLE
     stdlib_picks: list[Version] = []
@@ -128,10 +130,17 @@ def build_plan(report: ScanReport, recipe: Recipe, ecosystems: set[str] | None =
             if hold and not hold.max:
                 plan.unresolved.append(_unresolved(f, f"held: {hold.reason}"))
                 continue
-            pick = pick_fix(eco, installed, f.fixed, cap)
+            allow = None
+            if gate is not None:
+                allow = lambda v, f=f, eco=eco, name=name, installed=installed: gate.check(
+                    eco, name, _styled(eco, v.raw, installed), f.severity, f.vuln_id)[0]
+            pick = pick_fix(eco, installed, f.fixed, cap, allow)
             if pick is None:
                 why = "needs-human: fix requires a bump beyond the `%s` policy" % cap.value
-                if pick_fix(eco, installed, f.fixed, None) is None:
+                capped = pick_fix(eco, installed, f.fixed, cap)
+                if capped is not None and gate is not None:
+                    why = gate.check(eco, name, _styled(eco, capped[0].raw, installed), f.severity, f.vuln_id)[1]
+                elif pick_fix(eco, installed, f.fixed, None) is None:
                     why = f"no fixed version above installed (fixed: {f.fixed})"
                 plan.unresolved.append(_unresolved(f, why))
                 continue
@@ -155,6 +164,8 @@ def build_plan(report: ScanReport, recipe: Recipe, ecosystems: set[str] | None =
 
     _apply_overrides(report.packages, recipe, active, bumps)
     plan.bumps = sorted(bumps.values(), key=lambda b: (b.ecosystem, b.target, b.name))
+    if gate is not None:
+        plan.notes = sorted(gate.notes)
     return plan
 
 

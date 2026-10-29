@@ -153,5 +153,5 @@ jobs:
           title: "[${{ matrix.recipe }}] ${{ steps.collect.outputs.tag }}: dependency updates (${{ steps.collect.outputs.status }})"
           body-path: ${{ steps.collect.outputs.body }}
           draft: ${{ steps.collect.outputs.draft }}
-          labels: security, automated, ${{ matrix.recipe }}
+          labels: security, automated, ${{ matrix.recipe }}${{ steps.collect.outputs.status == 'tests-preexisting' && ', preexisting-test-failures' || '' }}
           sign-commits: true

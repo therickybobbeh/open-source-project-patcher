@@ -121,7 +121,7 @@ def _apply_file(ctx: Ctx, eco: DockerfileEco, path: Path, ignore) -> Result:
         if beyond:
             res.failures.append(Failure("dockerfile", rel, ref.original_name, beyond,
                                         f"newer tag {beyond} exists beyond the `{eco.level.value}` level for base images "
-                                        f"(set `level: minor` on this dockerfile ecosystem, or bump it in patches/)"))
+                                        f"(set `level: minor` on this dockerfile ecosystem, or bump it in patches/)", hint=True))
         new_ref = ref.with_tag(new_tag, digest)
         if new_ref != image_str:
             lines[i] = f"{m.group('lead')}{m.group('flags')}{new_ref}{m.group('rest')}" + ("\n" if line.endswith("\n") else "")

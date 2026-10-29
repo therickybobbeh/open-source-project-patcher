@@ -12,6 +12,12 @@ policy:
   default: minor
   ecosystems:
     go-toolchain: minor   # Go stdlib fixes may move the build to the next supported Go minor
+  # Only bump to versions published at least this long ago (a hijacked release is usually caught within
+  # days). CRITICAL findings and CVEs on CISA's Known Exploited Vulnerabilities list skip the wait.
+  minReleaseAgeDays: 7
+  cooldownBypass:
+    severities: [CRITICAL]
+    kev: true
 
 # Expired skips warn; this many days after expiry they fail the run.
 skipGraceDays: 30

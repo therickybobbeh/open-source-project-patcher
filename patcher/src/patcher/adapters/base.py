@@ -27,6 +27,7 @@ class Failure:
     name: str
     wanted: str
     error: str
+    hint: bool = False  # not a failed bump: a newer release exists beyond the policy (reported separately)
 
 
 @dataclass

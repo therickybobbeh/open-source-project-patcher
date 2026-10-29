@@ -9,11 +9,18 @@ configuration see [recipes.md](recipes.md); for day-to-day operation see [runboo
 
 Copacetic (Copa) patches OS packages inside an existing image. Most findings in these images are
 elsewhere:
-- in **language dependencies** (Go modules, Rust crates, Maven jars, npm packages),
-- in the **Go standard library** compiled into binaries.
+- in **language dependencies** (Go modules, Rust crates, Maven and Gradle jars, npm and Python packages),
+- in the **Go standard library** compiled into binaries,
+- in **third-party binaries the image bundles** (helm, kustomize, git-lfs, gomplate, credential helpers).
 
 Only a rebuild fixes those. The pipeline does the rebuild, and keeps Copa for the OS packages that
-remain.
+remain. What can't be rebuilt gets what is possible:
+
+| Image | What the pipeline does |
+|---|---|
+| Open source, buildable | Rebuild with bumped dependencies, upstream tests, then Copa |
+| Bundles open-source binaries it doesn't build | Each binary is a **component**: rebuilt from its own source at the same version, tested, and swapped into the image |
+| Closed source (`mode: image-only`) | Components for any open-source helpers it ships; Copa for OS packages, optionally Python and npm packages too (`copa: {libraries: true}`); VEX and vendor-release tracking for the rest |
 
 ## Components
 
@@ -34,9 +41,14 @@ remain.
 | `models.py`, `config.py` | Recipe, skip, VEX and state models (these generate `schema/`); loading and merging `_global.yaml` |
 | `upstream.py` | Resolving release lines (tags or branch heads) and shallow checkout. Applies patches, commits locally, re-tags, and produces the diff |
 | `scan.py`, `planner.py`, `versions.py` | Trivy wrappers. The planner picks the smallest fixed version within policy, then applies overrides and holds. Version ordering for semver, Maven and Go |
-| `adapters/` | One adapter per ecosystem: `gomod`, `cargo`, `maven`, `node` (npm/pnpm/yarn), `dockerfile`, `files` |
-| `toolchain.py` | mise-installed toolchains for each recipe (or the upstream repo's own mise pins) |
-| `tests_runner.py` | Runs the upstream tests, translates skips per framework, handles quarantine via JUnit, optionally runs as non-root |
+| `ecosystems.py` | One row per ecosystem: Trivy types, lockfiles, toolchain needs, version-level rules. The other modules derive their per-ecosystem tables from it |
+| `adapters/` | One adapter per ecosystem: `gomod`, `cargo`, `maven`, `gradle`, `node` (npm/pnpm/yarn), `python` (uv/poetry/pipenv/pip-tools/pinned), `dockerfile`, `files` |
+| `toolchain.py`, `detect.py` | mise-installed toolchains for each recipe (or the upstream repo's own mise pins); versions the checkout declares fill unset fields |
+| `tests_runner.py` | Runs the upstream tests, translates skips per framework, handles quarantine via JUnit, optionally runs as non-root, extracts comparable failing-test ids |
+| `releases.py` | Publish times per registry, the release-age gate, the CISA KEV list, and the install cutoff for test environments |
+| `reach.py` | govulncheck reachability (draft VEX) and the osv-scanner malicious-package check |
+| `components.py` | Bundled binaries: find the version, patch and test it with its component recipe, overlay it into the image |
+| `onboarding.py`, `inventory.py` | `patcher init` drafts; `inventory.yaml` coverage |
 | `build.py`, `copa.py`, `registry.py` | buildx or custom builds, smoke tests, Copa per platform, anonymous registry lookups |
 | `report.py`, `vex.py` | Before/after report (the PR body), and OpenVEX documents for each image |
 | `pipeline.py` | Stage orchestration for `run`, `release-build`, `publish`, `rescan`, `refresh`, `plan` and `collect` |
@@ -64,19 +76,48 @@ flowchart TD
 3. **Check out** the source, apply `patches/<project>/*.patch`, copy `patches/<project>/files/`.
 4. **Install toolchains** with mise, then run the recipe's `prepare` commands.
 5. **Scan the source** with `trivy fs`, plan the bumps, apply them, and scan again (up to `maxRounds`).
+   A fix is only planned when its release is at least `minReleaseAgeDays` old, unless the finding is
+   CRITICAL or on CISA's KEV list.
 6. **Refresh base images** and edit pinned versions in files. The Go builder images are raised to the
    Go version the plan requires.
 7. **Regenerate** code if the recipe says so, then **commit locally**. The upstream tag is moved to
    that commit, so version stamping still reports the upstream version.
-8. **Run the upstream tests** with skips applied. If they fail and any bump was above patch level,
-   retry once with patch-level bumps only.
-9. **Build** each image for the native platform and run the smoke commands.
-10. **Copa** any fixable OS packages, then scan the result ("after").
-11. **Write** `report.md`, `deps.patch`, `bump-plan.json`, `summary.json` and OpenVEX.
+8. **Check the bumped versions** against OSV's malicious-package advisories (osv-scanner). A hit stops
+   the run here, before any upstream code runs with the new packages.
+9. **Run the upstream tests** with skips applied. Installs the test setup does from version ranges
+   only see releases older than the release-age rule (`UV_EXCLUDE_NEWER`, `PIP_UPLOADED_PRIOR_TO`,
+   npm `before`), or the upstream release time if that is later. If tests fail:
+   - the same tests run on the unpatched source (the **baseline**). If every failure is also there,
+     the run is `tests-preexisting`;
+   - otherwise, if any bump was above patch level, the run retries once with patch-level bumps only.
+10. **Build** each image for the native platform.
+11. **Components:** the built image is scanned, each bundled binary's version is found, its component
+    recipe is patched and tested at that version, and the binaries are swapped in with an overlay
+    build. The binaries are cross-compiled per platform in buildx stages.
+12. **Smoke** commands, then **Copa** for fixable OS packages (and libraries if enabled), then the
+    "after" scan.
+13. **Plan from the image** (`scan.image`, default for Gradle and Python): fixable findings in the
+    image's own jars, Python packages or node_modules that the source scan couldn't see become bumps
+    in the matching ecosystem. One more attempt runs; if its tests fail, the first pass is kept.
+14. **Reachability** (Go): govulncheck drafts VEX suggestions for what remains.
+15. **Write** `report.md`, `deps.patch`, `bump-plan.json`, `summary.json`, `vex-suggestions.yaml`,
+    OpenVEX, and each component's own outputs under `components/`.
 
 `deps.patch` is the full diff from the upstream commit. It includes the hand-written patches and
 files, so the release flow rebuilds exactly what was reviewed: it re-applies `deps.patch` to the
-verified upstream commit and nothing else.
+verified upstream commit and nothing else. Components work the same way: their reviewed
+`components/<name>/deps.patch` is applied to their own verified commit and overlaid.
+
+### Why the baseline and the cutoffs
+
+Upstream suites fail for reasons that have nothing to do with our bumps. Seen in this repo:
+- tests that need the internet, a cloud account, or a binary we don't install;
+- a test dependency that upstream doesn't pin, released days ago and incompatible. For example,
+  pytest-asyncio 1.4.1 broke all 857 JupyterHub tests three days after JupyterHub 6.1.1 shipped.
+
+The baseline separates "broken upstream" from "broken by us" without anyone reading logs. The install
+cutoff keeps test environments close to what upstream's CI saw when it released. It also keeps a
+freshly published, possibly malicious package out of the test run.
 
 ## Trust boundaries
 
@@ -95,6 +136,10 @@ Supply-chain rules for the pipeline itself:
 - New releases of anything the pipeline uses are only adopted once they are **14 days old**:
   Dependabot's `cooldown` and `patcher pins --min-age-days`. Trivy's release channels were
   compromised in March 2026 (GHSA-69fq-xp46-6x23); a waiting period gives such incidents time to surface.
+
+The same idea protects the images we build: bumps must be **7 days old** (CRITICAL and KEV fixes
+excepted), bumped versions are checked against malicious-package advisories, and test installs are
+held to the same cutoff.
 
 ## Tags and revisions
 
@@ -128,7 +173,7 @@ only on fixable findings that are **new** and not covered by a VEX statement:
 | GitHub Actions (workflows + composite action) | Dependabot `github-actions` | daily 07:00 America/New_York, 14-day cooldown |
 | Patcher Python dependencies (`patcher/uv.lock`) | Dependabot `uv` | same |
 | Patcher image bases (`python`, `uv` stages) | Dependabot `docker` | same |
-| Tool downloads in `patcher/Dockerfile` (mise, trivy, copa, cosign, yq) | `tool-pins.yml` → `patcher pins --write` | weekly, Monday 07:00 ET |
+| Tool downloads in `patcher/Dockerfile` (mise, trivy, copa, cosign, osv-scanner, yq) | `tool-pins.yml` → `patcher pins --write` | weekly, Monday 07:00 ET |
 
 The upstream projects themselves are **not** handled by Dependabot. Their dependencies are bumped
 by the patch flow above. Dependabot only acts on repositories you host, and the Dependabot CLI's job

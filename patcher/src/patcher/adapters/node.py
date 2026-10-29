@@ -34,6 +34,42 @@ def _pnpm_major(env) -> int:
         return 0
 
 
+def _major(version: str) -> int:
+    m = re.match(r"v?(\d+)", version)
+    return int(m.group(1)) if m else -1
+
+
+def _yarn_majors(lockfile: Path, name: str) -> set[int]:
+    """Major versions of `name` installed per yarn.lock (classic and berry formats)."""
+    majors: set[int] = set()
+    if not lockfile.exists():
+        return majors
+    header = re.compile(rf'^"?{re.escape(name)}@')
+    current = False
+    for line in lockfile.read_text().splitlines():
+        if line and not line.startswith(" "):
+            current = any(header.match(part.strip()) for part in line.rstrip(":").split(","))
+        elif current:
+            m = re.match(r'^\s+version:?\s+"?([^"\s]+)"?', line)
+            if m:
+                majors.add(_major(m.group(1)))
+    return majors
+
+
+def _yarn_install_cmd(cwd: Path, ctx: Ctx) -> list[str]:
+    if (cwd / ".yarnrc.yml").exists():  # yarn berry
+        return ["yarn", "install", "--mode=update-lockfile"]
+    rc = cwd / ".yarnrc"
+    if rc.exists():
+        # classic: projects often set `--install.frozen-lockfile true` in .yarnrc, which would refuse the
+        # regeneration; keep every other setting (registry, ...) through a copy without that line
+        kept = [l for l in rc.read_text().splitlines() if "frozen-lockfile" not in l]
+        tmp = ctx.log.parent / "yarnrc.patcher"
+        tmp.write_text("\n".join(kept) + "\n")
+        return ["yarn", "install", "--ignore-scripts", "--non-interactive", "--no-default-rc", "--use-yarnrc", str(tmp)]
+    return ["yarn", "install", "--ignore-scripts", "--non-interactive"]
+
+
 def apply(ctx: Ctx, eco: NodeEco) -> Result:
     res = Result()
     kind = eco.type
@@ -62,16 +98,30 @@ def apply(ctx: Ctx, eco: NodeEco) -> Result:
             cmd = ["pnpm", "install", "--lockfile-only", "--ignore-scripts"]
         else:
             section = pkg.setdefault("resolutions", {})
-            cmd = ["yarn", "install", "--mode=update-lockfile"] if (cwd / ".yarnrc.yml").exists() else ["yarn", "install", "--ignore-scripts", "--frozen-lockfile=false"]
+            cmd = _yarn_install_cmd(cwd, ctx)
+        applied = []
         for b in mine:
-            if section.get(b.name) == b.installed or kind == "yarn":
-                # upstream already pins this package (to the vulnerable version): move its pin; yarn
-                # resolutions don't take installed-version selectors portably
+            if kind == "yarn":
+                # yarn resolutions can't target one installed version portably, so `name: to` moves
+                # every copy: only safe when all installed copies share the fix's major version
+                majors = _yarn_majors(cwd / lock, b.name)
+                if len(majors) > 1 or (majors and _major(b.to) not in majors):
+                    res.failures.append(Failure(kind, b.target, b.name, b.to,
+                                                f"needs-human: yarn.lock has {b.name} on majors {sorted(majors)}; a yarn resolution "
+                                                f"would force all of them to {b.to}"))
+                    continue
+                section[b.name] = b.to
+            elif section.get(b.name) == b.installed:
+                # upstream already pins this package (to the vulnerable version): move its pin
                 section[b.name] = b.to
             else:
                 # pin exactly the vulnerable installed version, so other major lines aren't dragged along
                 section[f"{b.name}@{b.installed}"] = b.to
+            applied.append(b)
             res.changes.append(Change(kind, b.target, b.name, b.installed, b.to, ", ".join(b.reasons)))
+        if not applied:
+            continue
+        mine = applied
         if ws_data is not None:
             ws.write_text(yaml.safe_dump(ws_data, sort_keys=False))
         else:

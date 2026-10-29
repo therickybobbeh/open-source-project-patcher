@@ -36,6 +36,10 @@ ARG COSIGN_VERSION=3.1.3
 ARG COSIGN_SHA256_AMD64=4629c757b7618056f8ddd7e2625ae9fdd94c0372a65049520bc7d9df9efc7f71
 ARG COSIGN_SHA256_ARM64=c5d324e091826b0d7a78eb16fef316450b4eb9aaec045611c08ba06f5e73220a
 
+ARG OSV_SCANNER_VERSION=2.7.0
+ARG OSV_SCANNER_SHA256_AMD64=160c6253e2922e9e0a6a9771c5c4c40a4b3c6090b34a3cdd5e80c96cc2e4218b
+ARG OSV_SCANNER_SHA256_ARM64=4061ef4c021ed3c47f203b818f337e351336cc5cd67c0274fc36bd1dfc728dd7
+
 ARG YQ_VERSION=4.54.1
 ARG YQ_SHA256_AMD64=8e34fc298390875de416e6a4afcb8cabeceb25d9aa8506c1a2f9353cf702ea5f
 ARG YQ_SHA256_ARM64=189088da0c6429ec5178dfaab1a114805f6cab0b61b165ab236efedf1d57a71b
@@ -75,6 +79,9 @@ RUN ARCH="${TARGETARCH:-$(dpkg --print-architecture)}" \
  && fetch "https://github.com/sigstore/cosign/releases/download/v${COSIGN_VERSION}/cosign-linux-${ARCH}" \
       cosign "$(pick "$COSIGN_SHA256_AMD64" "$COSIGN_SHA256_ARM64")" \
  && install -m 0755 cosign /usr/local/bin/cosign \
+ && fetch "https://github.com/google/osv-scanner/releases/download/v${OSV_SCANNER_VERSION}/osv-scanner_linux_${ARCH}" \
+      osv-scanner "$(pick "$OSV_SCANNER_SHA256_AMD64" "$OSV_SCANNER_SHA256_ARM64")" \
+ && install -m 0755 osv-scanner /usr/local/bin/osv-scanner \
  && fetch "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${ARCH}" \
       yq "$(pick "$YQ_SHA256_AMD64" "$YQ_SHA256_ARM64")" \
  && install -m 0755 yq /usr/local/bin/yq \
@@ -107,7 +114,8 @@ RUN useradd -m -u 1001 -s /bin/bash tester \
 # Third-party Python packages come from uv.lock (uv verifies its hashes; Dependabot keeps it current).
 # The project itself isn't installed (that would fetch an unpinned build backend): the CLI runs from
 # /opt/patcher/src through a small wrapper.
-COPY --from=uv /uv /usr/local/bin/uv
+# uvx runs the pinned poetry / pipenv / pip-tools versions the Python adapter uses
+COPY --from=uv /uv /uvx /usr/local/bin/
 COPY pyproject.toml uv.lock /opt/patcher/
 RUN cd /opt/patcher \
  && UV_PROJECT_ENVIRONMENT=/opt/venv UV_PYTHON_DOWNLOADS=never uv sync --frozen --no-dev --no-install-project

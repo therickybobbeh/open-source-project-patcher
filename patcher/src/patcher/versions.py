@@ -13,6 +13,7 @@ import functools
 import re
 from dataclasses import dataclass, field
 
+from .ecosystems import ECOSYSTEMS
 from .models import Level
 
 _SEMVER = re.compile(r"^v?(?P<nums>\d+(?:\.\d+)*)(?:-(?P<pre>[0-9A-Za-z.\-]+))?(?:\+(?P<build>[0-9A-Za-z.\-]+))?$")
@@ -135,9 +136,21 @@ class _MavenKey:
         return 0
 
 
+def parse_pep440(s: str) -> Version:
+    from packaging.version import InvalidVersion as _Invalid, Version as _V
+
+    try:
+        v = _V(s.strip())
+    except _Invalid as e:
+        raise InvalidVersion(s) from e
+    return Version(raw=s.strip(), nums=tuple(v.release), key=v)  # packaging's Version orders per PEP 440
+
+
 def parse(ecosystem: str, s: str) -> Version:
     if ecosystem in ("maven", "pom", "jar", "gradle"):
         return parse_maven(s)
+    if ecosystem in ("python", "pip", "pipenv", "poetry", "uv", "python-pkg"):
+        return parse_pep440(s)
     if ecosystem == "gomod" and s.startswith("go"):  # toolchain directive "go1.27.3"
         s = s[2:]
     return parse_semver(s)
@@ -153,7 +166,7 @@ def try_parse(ecosystem: str, s: str | None) -> Version | None:
 
 
 # package managers whose caret ranges treat a 0.x minor bump as breaking (^0.18 excludes 0.25)
-ZERO_MAJOR_STRICT = {"npm", "pnpm", "yarn", "cargo"}
+ZERO_MAJOR_STRICT = {k for k, e in ECOSYSTEMS.items() if e.zero_major_strict}
 
 
 def level_between(old: Version, new: Version, ecosystem: str | None = None) -> Level:
@@ -176,9 +189,11 @@ def split_fixed(fixed: str | None) -> list[str]:
     return out
 
 
-def pick_fix(ecosystem: str, installed: str, fixed: str | None, cap: Level | None = None) -> tuple[Version, Level] | None:
+def pick_fix(ecosystem: str, installed: str, fixed: str | None, cap: Level | None = None,
+             allow=None) -> tuple[Version, Level] | None:
     """Smallest fixed version above `installed`, preferring the same major.minor, then the same
-    major, then anything. If `cap` is set, candidates beyond the cap are ignored."""
+    major, then anything. If `cap` is set, candidates beyond the cap are ignored; `allow(version)`
+    can veto candidates (the minimum-release-age rule)."""
     cur = try_parse(ecosystem, installed)
     if cur is None:
         return None
@@ -189,7 +204,7 @@ def pick_fix(ecosystem: str, installed: str, fixed: str | None, cap: Level | Non
         if cap is not None and want.rank > cap.rank:
             break
         for c in cands:
-            if level_between(cur, c, ecosystem) == want:
+            if level_between(cur, c, ecosystem) == want and (allow is None or allow(c)):
                 return c, want
     return None
 

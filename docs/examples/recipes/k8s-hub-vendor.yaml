@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=../../../schema/recipe.schema.json
+# Stand-in for a closed-source image: no rebuild, only Copa (OS packages + pip packages in the image).
+name: k8s-hub-vendor
+description: quay.io/jupyterhub/k8s-hub treated as a vendor image (Copa library patching)
+mode: image-only
+source:
+  repo: https://quay.io/repository/jupyterhub/k8s-hub
+  lines:
+    - name: v4
+      tagPattern: '^4\.4\.\d+$'
+build:
+  platforms: [linux/amd64, linux/arm64]
+  images:
+    - name: k8s-hub-vendor
+      upstream: quay.io/jupyterhub/k8s-hub
+      copa: { libraries: true, level: minor }

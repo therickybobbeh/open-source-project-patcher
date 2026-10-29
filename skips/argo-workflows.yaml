@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../schema/skips.schema.json
+# Tests skipped when running argo-workflows's upstream suite. `match` is a Go test regex (passed to go test -skip).
+# Every entry needs a reason and an owner; set `expires` so skips get revisited.
+skips:
+  - match: '^TestArtifactoryArtifactDriver_Load$'
+    reason: Downloads https://github.com/argoproj/argo-workflows over the live network (failed with `unexpected EOF` after 33s); unrelated to dependency updates
+    owner: platform-team
+    expires: 2027-04-30
+quarantine: []

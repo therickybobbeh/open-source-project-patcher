@@ -134,3 +134,19 @@ def digest(image: str, tag: str) -> str:
 
         d = headers.get("docker-content-digest") or "sha256:" + hashlib.sha256(body).hexdigest()
     return d
+
+
+@lru_cache(maxsize=128)
+def config_labels(image: str, tag: str, platform: str = "linux/amd64") -> dict[str, str]:
+    """OCI config labels of `image:tag` (for an index, the `platform` entry, else the first one)."""
+    ref = parse_ref(image)
+    _, body = _call(ref, "GET", f"manifests/{tag}", accept=ACCEPT)
+    manifest = json.loads(body)
+    if "manifests" in manifest:  # index / manifest list
+        os_, arch = platform.split("/", 1)
+        entries = [m for m in manifest["manifests"] if (m.get("platform") or {}).get("os") == os_
+                   and (m.get("platform") or {}).get("architecture") == arch] or manifest["manifests"]
+        _, body = _call(ref, "GET", f"manifests/{entries[0]['digest']}", accept=ACCEPT)
+        manifest = json.loads(body)
+    _, cfg = _call(ref, "GET", f"blobs/{manifest['config']['digest']}")
+    return (json.loads(cfg).get("config") or {}).get("Labels") or {}

@@ -17,6 +17,16 @@ build:
       upstream: docker.io/apollograph/bundle-loader
       tagPattern: '^0\.\d+\.\d+$'   # versions separately from the operator
       platforms: [linux/amd64]        # published for amd64 only
+# The operator binary is closed source, but the two credential helpers it ships are open source: they are
+# rebuilt from source (same version, patched dependencies) and swapped into the vendor image.
+components:
+  - recipe: docker-credential-ecr-login
+    path: /usr/bin/docker-credential-ecr-login
+    versionCommand: [version]          # its Go build info carries no version
+    images: [apollo-operator]
+  - recipe: docker-credential-gcr
+    path: /usr/bin/docker-credential-gcr  # version from Go build info
+    images: [apollo-operator]
 notes:
-  - The images contain only copied files (operator binary, docker-credential-ecr-login, docker-credential-gcr, /etc/ssl) and no OS package database, so Copa has nothing to patch. Findings are reported and tracked in vex/apollo-operator.yaml until upstream releases fixes.
+  - The images have no OS package database, so Copa has nothing to patch. The credential helpers are rebuilt and swapped in (components); findings in the closed-source operator binary are reported and tracked in vex/apollo-operator.yaml until the vendor releases fixes.
   - To run a patched Apollo Router under the operator, set `spec.deployment.podTemplate.image` on the Supergraph to the apollo-router image from this repo.

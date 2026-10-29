@@ -256,3 +256,29 @@ def test_maven_pins_follow_file_indentation_and_reactor_roots(tmp_path):
     assert _root_for("cluster-operator/pom.xml", roots) == "pom.xml"
     assert _root_for("docker-images/artifacts/kafka-thirdparty-libs/4.3.x/pom.xml", roots) == roots[1]
     assert _root_for("x/pom.xml", ["sub/pom.xml"]) is None
+
+
+def test_yarn_classic_majors_and_frozen_lockfile_rc(tmp_path):
+    from patcher.adapters import node
+
+    lock = tmp_path / "yarn.lock"
+    lock.write_text('''# yarn lockfile v1
+
+
+"minimist@^1.2.0", minimist@^1.2.5:
+  version "1.2.6"
+  resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.6.tgz"
+
+minimist@0.0.8:
+  version "0.0.8"
+
+qs@6.15.2:
+  version "6.15.2"
+''')
+    assert node._yarn_majors(lock, "minimist") == {0, 1}
+    assert node._yarn_majors(lock, "qs") == {6}
+    (tmp_path / ".yarnrc").write_text('registry "https://registry.example"\n--install.frozen-lockfile true\n')
+    cmd = node._yarn_install_cmd(tmp_path, ctx(tmp_path))
+    assert "--no-default-rc" in cmd
+    rc = Path(cmd[cmd.index("--use-yarnrc") + 1]).read_text()
+    assert "frozen-lockfile" not in rc and "registry.example" in rc

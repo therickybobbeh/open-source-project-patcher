@@ -27,6 +27,10 @@ class SkipRender:
 
 FAILURE_PATTERNS = {
     "go": r"^\s*--- FAIL: |^FAIL\s|^panic: ",
+    "gradle": r"^\S.* > .* FAILED$|^FAILURE: |^\d+ tests? completed, \d+ failed",
+    "pytest": r"^FAILED |^ERROR |^=+ .*(failed|error)",
+    "vitest": r"^\s*(×|FAIL) ",
+    "mocha": r"^\s+\d+\) ",
     "nextest": r"^\s*FAIL \[|^\s*(TIMEOUT|SIGSEGV|SIGABRT) \[",
     "surefire": r"\[ERROR\] (Tests run:.*(Failures: [1-9]|Errors: [1-9])|  \S+[.#:]\S+)|^\[ERROR\] Failed tests|BUILD FAILURE",
     "redis": r"^\[err\]|^\[exception\]",
@@ -44,6 +48,7 @@ def failure_summary(framework: str, text: str, limit: int = 40) -> str:
 
 @dataclass
 class TestOutcome:
+    __test__ = False  # not a pytest test class
     ran: bool
     passed: bool
     seconds: float = 0.0
@@ -53,6 +58,8 @@ class TestOutcome:
     junit: list[str] = field(default_factory=list)
     tail: str = ""
     failures: str = ""
+    failed: list[str] = field(default_factory=list)  # failing test ids (JUnit, else parsed from the log)
+    preexisting: list[str] = field(default_factory=list)  # failing tests that also fail on the unpatched source
     note: str = ""
 
 
@@ -96,8 +103,36 @@ def render_skips(framework: str, skips: SkipFile, workdir: Path) -> SkipRender:
         f.write_text("\n".join(e.match for e in entries) + "\n")
         r.file = str(f)
         r.args = f"--skipfile {shlex.quote(str(f))}"
-    elif framework == "jest":
-        r.args = "--testPathIgnorePatterns " + " ".join(shlex.quote(e.match) for e in entries)
+    elif framework == "gradle":
+        # an init script excludes the tests in every Test task (Gradle filters can't be negated on the CLI)
+        from .adapters.gradle import init_script_for_skips
+
+        f = workdir / "gradle-skips.init.gradle"
+        f.write_text(init_script_for_skips([e.match for e in entries]))
+        r.file = str(f)
+        r.args = f"--init-script {shlex.quote(str(f))}"
+    elif framework == "pytest":
+        # node ids (path::Class::test) are deselected exactly; anything else is a -k keyword expression
+        ids = [e.match for e in entries if "::" in e.match]
+        exprs = [e.match for e in entries if "::" not in e.match]
+        parts = [f"--deselect {shlex.quote(i)}" for i in ids]
+        if exprs:
+            parts.append("-k " + shlex.quote("not (" + " or ".join(f"({x})" for x in exprs) + ")"))
+        r.args = " ".join(parts)
+    elif framework in ("jest", "vitest"):
+        # `match` = test-name regex (JS regex: negative lookahead works), `filter` = test-path pattern
+        names = [e.match for e in entries if not e.filter]
+        paths = [e.filter for e in entries if e.filter]
+        parts = []
+        if names:
+            parts.append("--testNamePattern " + shlex.quote("^(?!.*(" + "|".join(f"(?:{n})" for n in names) + "))"))
+        if paths and framework == "jest":
+            parts.append("--testPathIgnorePatterns " + " ".join(shlex.quote(x) for x in paths))
+        elif paths:
+            parts += [f"--exclude {shlex.quote(x)}" for x in paths]
+        r.args = " ".join(parts)
+    elif framework == "mocha":
+        r.args = f"--grep {shlex.quote(r.regex)} --invert"
     elif framework == "bats":
         # bats --filter is a positive POSIX ERE (no lookahead) and 1.8 has no negative filter
         r.unsupported = "bats can only select tests, not exclude them; skip by tagging tests upstream or narrowing tests.command"
@@ -184,8 +219,42 @@ def run_tests(src: Path, tests: Tests, skips: SkipFile, out: Path, env: dict[str
         failing = failed_cases(junit)
         if failing and all(_quarantined(c, skips.quarantine) for c in failing):
             passed, note = True, f"{len(failing)} failing test(s) are all quarantined: " + ", ".join(sorted(failing)[:20])
+    failed = [] if passed else (sorted(failed_cases(junit)) if junit else failed_ids(tests.framework, failures))
     return TestOutcome(ran=True, passed=passed, seconds=seconds, command=command, skipped=skips.skips,
-                       junit=[j.name for j in junit], tail=tail, failures=failures, note=note)
+                       junit=[j.name for j in junit], tail=tail, failures=failures, failed=failed, note=note)
+
+
+def failed_ids(framework: str, failure_lines: str) -> list[str]:
+    """Stable ids from the failure summary when there's no JUnit, comparable between the patched and the
+    baseline run: test names without durations, counts, numbering or panic addresses."""
+    return sorted({i for i in (_stable_id(framework, line.strip()) for line in failure_lines.splitlines()) if i})
+
+
+def _stable_id(framework: str, s: str) -> str | None:
+    if framework == "go":
+        m = re.match(r"--- FAIL: (\S+)", s)
+        if m:
+            return m.group(1)
+        m = re.match(r"FAIL\s+(\S+)", s)  # "FAIL\tpkg\t1.2s", gotestsum "FAIL pkg.TestX (0.01s)"
+        return f"FAIL {m.group(1)}" if m else None  # bare FAIL / panic lines: the package line identifies them
+    if framework == "pytest":
+        m = re.match(r"(FAILED|ERROR) (\S+)", s)  # node id, without the assertion message
+        return f"{m.group(1)} {m.group(2)}" if m else None
+    if framework == "nextest":
+        m = re.match(r"(FAIL|TIMEOUT|SIGSEGV|SIGABRT) \[[^\]]*\]\s*(.+)", s)
+        return f"{m.group(1)} {m.group(2)}" if m else None
+    if re.search(r"\d+ tests? completed, \d+ failed|Tests run: \d+", s):
+        return None  # counts change whenever anything else fails
+    s = re.sub(r"^(not ok)\s+\d+\s+", r"\1 ", s)  # bats numbering
+    s = re.sub(r"^\d+\)\s+", "", s)  # mocha numbering
+    s = re.sub(r"\s*\(?\d+(?:\.\d+)?\s?m?s\)?$", "", s)  # trailing durations (jest, vitest)
+    return s or None
+
+
+def only_preexisting(patched: TestOutcome | None, baseline: TestOutcome | None) -> bool:
+    """Every failing test of the patched run also fails on the unpatched source."""
+    return bool(patched and baseline and patched.ran and baseline.ran and not patched.passed and not baseline.passed
+                and patched.failed and set(patched.failed) <= set(baseline.failed))
 
 
 def failed_cases(files: list[Path]) -> set[str]:

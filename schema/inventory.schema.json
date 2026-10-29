@@ -1,0 +1,63 @@
+{
+  "$defs": {
+    "InventoryImage": {
+      "additionalProperties": false,
+      "properties": {
+        "image": {
+          "description": "Image reference as deployed, e.g. `quay.io/argoproj/argocd:v3.5.6`",
+          "title": "Image",
+          "type": "string"
+        },
+        "usedBy": {
+          "description": "Where it runs (clusters, apps, charts)",
+          "items": {
+            "type": "string"
+          },
+          "title": "Usedby",
+          "type": "array"
+        },
+        "owner": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Owner"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        }
+      },
+      "required": [
+        "image"
+      ],
+      "title": "InventoryImage",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "images": {
+      "items": {
+        "$ref": "#/$defs/InventoryImage"
+      },
+      "title": "Images",
+      "type": "array"
+    }
+  },
+  "title": "Inventory",
+  "type": "object"
+}

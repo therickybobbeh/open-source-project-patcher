@@ -3,29 +3,17 @@
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Iterable
 
-from .proc import run
+from .ecosystems import ARTIFACT_TYPES, ECOSYSTEMS
+from .proc import CommandError, log, run
 
 # Trivy `Type` -> our ecosystem key. Anything not listed is treated as an OS package type.
-LANG_TYPES = {
-    "gomod": "gomod",
-    "gobinary": "gobinary",
-    "cargo": "cargo",
-    "rustbinary": "rustbinary",
-    "pom": "maven",
-    "jar": "jar",
-    "gradle": "gradle",
-    "npm": "npm",
-    "pnpm": "pnpm",
-    "yarn": "yarn",
-    "node-pkg": "node-pkg",
-    "pip": "pip",
-    "python-pkg": "python-pkg",
-    "conan": "conan",
-}
+# Trivy result type -> ecosystem (source manifests per ecosystems.py; built artifacts keep their own type)
+LANG_TYPES = {t: e.key for e in ECOSYSTEMS.values() for t in e.trivy} | {t: t for t in ARTIFACT_TYPES}
 
 
 @dataclass
@@ -81,6 +69,7 @@ class ScanReport:
     findings: list[Finding] = field(default_factory=list)
     packages: list[Package] = field(default_factory=list)
     os: str | None = None
+    degraded: str = ""  # why this scan saw less than usual (shown in the report)
 
     def fixable(self) -> list[Finding]:
         return [f for f in self.findings if f.fixable]
@@ -147,8 +136,32 @@ def load_report(path: Path) -> ScanReport:
     return parse_report(json.loads(path.read_text()))
 
 
+_db_ready = False
+
+
+def ensure_db(attempts: int = 3) -> None:
+    """Download Trivy's vulnerability and Java DBs once per process, retrying flaky registry pulls. Later
+    scans skip DB updates, so every before/after comparison in a run uses the same advisories."""
+    global _db_ready
+    if _db_ready:
+        return
+    for what in ("--download-db-only", "--download-java-db-only"):
+        for i in range(attempts):
+            try:
+                run(["trivy", "image", what, "--quiet", "--timeout", "15m"])
+                break
+            except CommandError as e:
+                if i == attempts - 1:
+                    raise
+                wait = 30 * (i + 1)
+                log(f"trivy {what} failed ({e.tail.strip().splitlines()[-1][:160] if e.tail.strip() else e}); retrying in {wait}s")
+                time.sleep(wait)
+    _db_ready = True
+
+
 def _common(severities: list[str], extra: list[str] | None = None) -> list[str]:
-    args = ["--scanners", "vuln", "--format", "json", "--list-all-pkgs", "--quiet"]
+    ensure_db()
+    args = ["--scanners", "vuln", "--format", "json", "--list-all-pkgs", "--quiet", "--skip-db-update", "--skip-java-db-update"]
     if severities:
         args += ["--severity", ",".join(severities)]
     return args + (extra or [])
@@ -165,7 +178,26 @@ def scan_fs(path: Path, out: Path, *, severities: list[str], skip_dirs: list[str
         args += ["--skip-files", f]
     if vex:
         args += ["--vex", str(vex)]
-    run([*args, str(path)])
+    try:
+        run([*args, str(path)])
+    except CommandError as e:
+        if offline or "429" not in e.tail:
+            raise
+        # Maven Central rate-limits by IP (shared CI runners hit it): wait once, then scan offline
+        log("trivy fs: Maven Central answered 429 (rate limited); retrying in 60s")
+        time.sleep(60)
+        try:
+            run([*args, str(path)])
+        except CommandError as e2:
+            if "429" not in e2.tail:
+                raise
+            log("trivy fs: still rate limited; scanning with --offline-scan")
+            run([*args, "--offline-scan", str(path)])
+            report = load_report(out)
+            report.degraded = ("Maven Central rate-limited the source scan (HTTP 429), so it ran offline: POMs not in the local "
+                               "~/.m2 weren't resolved and transitive Maven dependencies may be missing. Consider `scan.offline` "
+                               "with a `prepare` step that fills ~/.m2")
+            return report
     return load_report(out)
 
 

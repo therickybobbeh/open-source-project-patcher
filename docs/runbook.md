@@ -28,6 +28,15 @@ Each PR is titled `[<recipe>] <tag>: dependency updates (<status>)`. The body is
 report; the same files are in `generated/<recipe>/<tag>/`. The PR is a **draft** when tests, the
 build or a smoke test failed.
 
+| Status | Meaning |
+|---|---|
+| `success` / `no-changes` | Bumps applied (or none needed), tests passed, images built |
+| `tests-preexisting` | Tests failed, but the same tests also fail on the unpatched upstream source. Ready for review; labeled `preexisting-test-failures` |
+| `tests-failed` | Tests failed only after the bumps, even with patch-level bumps. Draft |
+| `malicious-dependency` | A bumped version has an OSV malicious-package advisory. Draft; nothing is built. See [below](#malicious-package-check) |
+| `build-failed` / `smoke-failed` | The image didn't build or didn't start. Draft |
+| `scan-failed` | Image-only recipes: the vendor image couldn't be scanned (wrong tag or platform). Draft |
+
 What to check, section by section:
 
 1. **Fixable vulnerabilities:** counts before and after, for the source tree and each image.
@@ -40,7 +49,8 @@ What to check, section by section:
    |---|---|
    | `needs-human: … beyond the policy` | Choose one: raise `policy` for that ecosystem in the recipe; add an `override` with a reason; write a patch in `patches/<recipe>/` (e.g. a `Cargo.toml` change); or accept it with a VEX statement |
    | `held: …` | Intentional (see `holds`). Revisit the hold if the fix matters |
-   | `in bundled artifact …` | The finding is in a binary this source doesn't build (Argo CD's helm/kustomize/git-lfs, Dex's gomplate). Bump that tool's pin with a `patches/` patch or a `files` edit, or record a VEX decision |
+   | `in bundled artifact …` | The finding is in a binary this source doesn't build. If it's open source, add it as a [component](recipes.md#components) so it's rebuilt with patched dependencies (helm, kustomize, git-lfs, gomplate and the credential helpers already are). Otherwise bump its pin with a `patches/` patch or a `files` edit, or record a VEX decision |
+   | `cooldown: <ver> released N day(s) ago (eligible <date>)` | The fix is newer than the 7-day release-age rule allows. Nothing to do: a nightly run after `<date>` applies it. If it can't wait, add an `override` with a reason, or run with `--no-cooldown` |
    | `the Go toolchain used for the build is older than the fix` | No patched Go release of that line exists yet. The next run picks it up automatically |
    | `Copa failed: …` / `OS package not patched` | Check the image base. Copa can't patch some distroless images (see troubleshooting); a base-image bump may be needed |
    | `bump failed: …` | Read the error under *Bumps that could not be applied*. Usually conflicting requirements, so a code change or patch is needed |
@@ -53,12 +63,38 @@ What to check, section by section:
      the full attempt failed, a minor bump broke a test, and the PR contains the patch-level result.
      If both attempts fail with the **same** tests, suspect the environment or a pre-existing upstream
      failure before suspecting the bumps (see [troubleshooting.md](troubleshooting.md)).
+   - **Pre-existing failures:** when the patched tests fail, they also run on the unpatched source.
+     If every failing test fails there too, the report says so ("also fail on the unpatched source")
+     and lists them, and the status is `tests-preexisting`. They are broken upstream, or in our
+     environment, regardless of the bumps. Consider skipping them with a reason so the next PR is clean.
 5. **Images:** smoke results and what Copa did.
-6. **`deps.patch`:** skim it. Lockfile churn is expected; unexpected source changes are not.
+6. **Components:** for each bundled binary, the version found in the image, how it was found, the
+   component's status and tests, and whether it was swapped in. The component's own report and diff
+   are under `components/<name>/`.
+7. **VEX suggestions** (Go): drafts for remaining findings whose vulnerable code is never reached.
+   See [below](#vex-suggestions-from-reachability).
+8. **`deps.patch`:** skim it. Lockfile churn is expected; unexpected source changes are not.
 
-**Merging releases the line.** `release.yml` refuses patch sets whose status isn't `success` or
-`no-changes`, so a draft can't be released by accident. Afterwards, merge the `state/` PR it opens:
-`rescan` depends on it.
+**Merging releases the line.** `release.yml` refuses patch sets whose status isn't `success`,
+`no-changes` or `tests-preexisting`, so a draft can't be released by accident. Afterwards, merge the
+`state/` PR it opens: `rescan` depends on it.
+
+### Malicious-package check
+
+After the bumps, `osv-scanner` checks the changed lockfiles against OSV's malicious-package advisories
+(`MAL-*`). A hit stops the run before any test or build executes the package, and the report names
+the package, version and lockfile. Don't merge. Hold the package at a known-good version (`holds`,
+`max:`), and report the advisory upstream if it isn't known there yet. The 7-day release-age rule
+(see [recipes.md](recipes.md#policy)) is the first line of defense: most malicious releases are
+pulled within days.
+
+### VEX suggestions from reachability
+
+For Go recipes, `govulncheck` runs on the patched source. For each remaining Go finding whose
+vulnerable function is never called (or whose vulnerable package is never imported), the report
+drafts a `not_affected` statement, also written to `vex-suggestions.yaml` next to the report. They
+are **never applied automatically**. To accept one, check the reasoning (govulncheck only sees the
+code paths in this build), then copy it into `vex/<recipe>.yaml` with an `expires` date.
 
 ## Skipping upstream tests
 
@@ -124,7 +160,7 @@ IMG=ghcr.io/<owner>/dex:v2.46.1-patched.1
 
 # signature, made by this repository's release workflow
 cosign verify "$IMG" \
-  --certificate-identity-regexp '^https://github.com/<owner>/support-images/\.github/workflows/release\.yml@' \
+  --certificate-identity-regexp '^https://github.com/<owner>/<repo>/\.github/workflows/release\.yml@' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 
 # SLSA build provenance
@@ -132,7 +168,7 @@ gh attestation verify "oci://$IMG" --owner <owner>
 
 # our VEX decisions, applied to a fresh scan
 cosign verify-attestation "$IMG" --type openvex \
-  --certificate-identity-regexp '^https://github.com/<owner>/support-images/' \
+  --certificate-identity-regexp '^https://github.com/<owner>/<repo>/' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
   | jq -r '.payload' | base64 -d | jq '.predicate' > vex.json
 trivy image --vex vex.json "$IMG"
@@ -161,10 +197,37 @@ findings instead trigger a `patch.yml` run, which ends in a normal patch PR.
 - **Line:** add it to `source.lines` in the recipe and merge. The push triggers `patch.yml` for that
   recipe.
 - **Project:**
-  1. Write a recipe; start from the closest example in [recipes.md](recipes.md#worked-examples).
-  2. Run `patcher validate`, then a local `patcher run <name> --skip-tests --skip-build`, then a full
+  1. Draft the recipe:
+     - **Open source:** `patcher init owner/repo [--image quay.io/org/app:1.2.3]`. It detects the
+       release line, ecosystems, toolchain, Dockerfile targets and test framework, and lists the test
+       commands upstream CI runs as comments.
+     - **Only an image:** `patcher init --image registry/org/app:1.2.3`. The source repo is read from
+       the image's `org.opencontainers.image.source` label. Without one, an `image-only` draft is
+       written.
+  2. Resolve every `TODO` in `recipes/<name>.yaml`. Compare with the closest example in
+     [recipes.md](recipes.md#worked-examples). The test command and its setup need the most care:
+     mirror the upstream CI job, and install test dependencies into the checkout.
+  3. Run `patcher validate`, then a local `patcher run <name> --skip-tests --skip-build`, then a full
      local run.
-  3. Merge, then dispatch `patch.yml` with `recipe=<name>`.
+  4. Add the image to `inventory.yaml`, merge, then dispatch `patch.yml` with `recipe=<name>`.
+- **Bundled binaries:** if the report lists findings `in bundled artifact`, add a component recipe
+  (`mode: component`, see [recipes.md](recipes.md#components)) and reference it from the parent.
+
+## Coverage of the images we run
+
+`inventory.yaml` lists the images our clusters actually run (`image`, optional `usedBy` and `owner`).
+`patcher coverage` reports, for each one:
+
+| Status | Meaning |
+|---|---|
+| `patched` | A recipe line covers this version and a patched image exists: use the ref shown |
+| `newer release patched` | We patch a newer release of this image; upgrade to it |
+| `pending first release` | The recipe and line exist, but nothing has been released yet |
+| `version not tracked` | A recipe exists, but no line matches this version: add a line, or upgrade |
+| `no recipe` | Nothing covers it: `patcher init` (see above) |
+
+`rescan.yml` posts the table to its run summary every night. Keep the inventory current when
+deployments change; `patcher coverage --fail-on-uncovered` can gate a CI job on it.
 
 ## Dependency hygiene of this repo
 
@@ -173,7 +236,8 @@ findings instead trigger a `patch.yml` run, which ends in a normal patch PR.
 | GitHub Actions | Dependabot (`github-actions`) | daily 07:00 ET | Review the grouped PR; the `# vX.Y.Z` comments next to each SHA are updated too |
 | Patcher Python packages (`patcher/uv.lock`) | Dependabot (`uv`) | daily 07:00 ET | Review; CI runs the unit tests |
 | Patcher image bases (`python`, `uv`) | Dependabot (`docker`) | daily 07:00 ET | Review; digest-pinned |
-| mise, trivy, copa, cosign, yq downloads | `tool-pins.yml` → `patcher pins --write` | Mondays 07:00 ET | Review the version table. The workflow already built the image, so every sha256 was checked |
+| mise, trivy, copa, cosign, osv-scanner, yq downloads | `tool-pins.yml` → `patcher pins --write` | Mondays 07:00 ET | Review the version table. The workflow already built the image, so every sha256 was checked |
+| govulncheck, gotestsum, poetry / pipenv / pip-tools | Pinned in code (`reach.py`, recipes, `adapters/python.py`) | When you choose | Bump deliberately, to releases at least 14 days old |
 
 - **Cooldown:** version updates wait until a release is **14 days old** (Dependabot `cooldown`,
   `patcher pins --min-age-days 14`). If you enable Dependabot *security updates*, those aren't held
@@ -187,7 +251,9 @@ findings instead trigger a `patch.yml` run, which ends in a normal patch PR.
 | `patcher validate` | Check every recipe, skip, VEX and state file |
 | `patcher schema --out schema` | Regenerate the JSON schemas after model changes (CI checks for drift) |
 | `patcher plan [--recipe X] [--all] [--changed-files F]` | Matrix of lines that need a run |
-| `patcher run <recipe> [--line L] [--skip-tests] [--skip-build] [--no-copa] [--no-retry]` | The PR flow, locally. Never pushes. Report in `out/<recipe>/<line>/generated/report.md` |
+| `patcher run <recipe> [--line L] [--skip-tests] [--skip-build] [--no-copa] [--no-retry] [--no-cooldown]` | The PR flow, locally. Never pushes. Report in `out/<recipe>/<line>/generated/report.md` |
+| `patcher init [owner/repo] [--image REF] [--name N]` | Draft a recipe for a new project or image |
+| `patcher coverage [--json] [--fail-on-uncovered]` | Which inventory images are covered and patched |
 | `patcher collect --out out` | Copy run outputs into `generated/` (what the PR job commits) |
 | `patcher release-build <recipe> --line L --platform P` / `patcher publish <recipe> --line L` | Release flow |
 | `patcher rescan` / `patcher refresh <recipe> --line L` | Nightly re-scan and the Copa-only refresh |

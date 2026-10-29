@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import json
 from collections import Counter
 from dataclasses import dataclass, field
 
 from .adapters.base import Change, Failure
-from .models import Recipe, SkipEntry, VexFile
+from .models import RELEASABLE_STATUSES, Recipe, SkipEntry, VexFile
 from .planner import Unresolved
 from .scan import Finding, ScanReport
 from .tests_runner import TestOutcome
@@ -15,6 +16,9 @@ from . import vex as vexmod
 SEVERITIES = ["CRITICAL", "HIGH", "MEDIUM", "LOW", "UNKNOWN"]
 MAX_ROWS = 60
 BUNDLED = {"gobinary", "rustbinary", "jar", "node-pkg", "python-pkg"}
+# packaging tools that come with a language base image, not with the project's dependencies
+BASE_TOOLING = {"python-pkg": {"pip", "setuptools", "wheel"}}
+GLOBAL_NODE_PREFIX = "usr/local/lib/node_modules/"
 
 
 @dataclass
@@ -41,8 +45,8 @@ def bundled_paths(img: ImageOutcome, fs_after: ScanReport | None) -> set[str]:
         if p.ecosystem in BUNDLED:
             paths.setdefault(p.location, []).append(p)
     if img.own_binaries:
-        own = {o.strip("/") for o in img.own_binaries}
-        return {t for t in paths if t.strip("/") not in own}
+        own = [o.strip("/") for o in img.own_binaries]  # paths or directory prefixes
+        return {t for t in paths if not any(t.strip("/") == o or t.strip("/").startswith(o + "/") for o in own)}
     src = {(p.name, p.version.lstrip("v")) for p in (fs_after.packages if fs_after else [])}
     bundled = set()
     for target, pkgs in paths.items():
@@ -72,6 +76,11 @@ class Summary:
     attempts: list[str] = field(default_factory=list)
     vex: VexFile = field(default_factory=VexFile)
     notes: list[str] = field(default_factory=list)
+    malicious: list[dict] = field(default_factory=list)
+    vex_suggestions: list[dict] = field(default_factory=list)
+    components: list[dict] = field(default_factory=list)
+    component_runs: list = field(default_factory=list)  # Component objects (their generated/ is copied into ours)
+    src: str = ""  # the kept attempt's checkout (components build from it)
 
 
 def _fixable_keys(r: ScanReport | None) -> dict[tuple[str, str], Finding]:
@@ -89,14 +98,24 @@ def reason_for(f: Finding, s: Summary, bundled: set[str] = frozenset(), copa: st
     st = vexmod.match(s.vex, f)
     if st:
         return f"VEX {st.status}: {st.impact or st.justification or st.action or ''}".strip()
+    comp = _component_reason(f, s)
+    if comp:
+        return comp
+    if f.name in BASE_TOOLING.get(f.ecosystem, set()) or f.location.startswith(GLOBAL_NODE_PREFIX):
+        return f"base-image tooling (`{f.name}` ships with the base image): newer base, or Copa `copa: {{libraries: true}}`"
     if f.ecosystem in BUNDLED and f.location in bundled:
         return f"in bundled artifact `{f.location}` (not built from this source)"
     for u in s.unresolved:
         if u.vuln_id == f.vuln_id and u.name == f.name:
             return u.why
-    for fl in s.failures:
-        if fl.name == f.name:
-            return f"bump failed: {fl.error.splitlines()[0][:160] if fl.error else ''}"
+    if f.ecosystem in BUNDLED:  # an image finding we did bump: the build didn't pick the new version up
+        for c in s.changes:
+            if c.name == f.name and c.old.lstrip("v") == f.installed.lstrip("v"):
+                return (f"bumped to {c.new} in `{c.target}`, but the image still has {f.installed}: the build didn't use "
+                        "the new version (check how the build resolves it)")
+    failed = [fl for fl in s.failures if fl.name == f.name and not fl.hint]
+    for fl in sorted(failed, key=lambda fl: fl.target != f.location):  # the failure for this file first
+        return f"bump failed: {fl.error.splitlines()[0][:160] if fl.error else ''}"
     if f.name == "stdlib":
         return "the Go toolchain used for the build is older than the fix (no newer patch release of that Go line yet?)"
     if f.ecosystem == "os":
@@ -106,8 +125,26 @@ def reason_for(f: Finding, s: Summary, bundled: set[str] = frozenset(), copa: st
     return "not addressed - investigate"
 
 
+def _component_reason(f: Finding, s: Summary) -> str | None:
+    """Findings in a bundled binary that a component replaces: why the rebuilt one still has them."""
+    loc = f.location.strip("/")
+    for row in s.components:
+        if row["path"].strip("/") != loc:
+            continue
+        if row["status"] not in RELEASABLE_STATUSES:
+            return f"component `{row['recipe']}` not swapped in ({row['status']}): the original binary is still shipped"
+        for c in s.component_runs:
+            if c.ref.recipe == row["recipe"] and c.out and (c.out / "generated" / "bump-plan.json").exists():
+                doc = json.loads((c.out / "generated" / "bump-plan.json").read_text())
+                for u in doc.get("unresolved", []):
+                    if u.get("vuln_id") == f.vuln_id and u.get("name") == f.name:
+                        return f"component `{row['recipe']}` (rebuilt from source): {u.get('why')}"
+        return f"component `{row['recipe']}` (rebuilt from source): not fixed there, see `components/{row['recipe']}/report.md`"
+    return None
+
+
 def render_markdown(s: Summary) -> str:
-    icon = {"success": "✅", "no-changes": "➖"}.get(s.status, "❌")
+    icon = {"success": "✅", "no-changes": "➖", "tests-preexisting": "⚠️"}.get(s.status, "❌")
     out = [f"## {icon} {s.recipe.name} `{s.tag}` — {s.status}", ""]
     out.append(f"Upstream: {s.recipe.source.url if s.recipe.source else 'n/a'} @ `{s.commit[:12]}` (line `{s.line}`)")
     if s.attempts:
@@ -127,6 +164,11 @@ def render_markdown(s: Summary) -> str:
         new = [a[k] for k in a.keys() - b.keys()]
         out.append(f"| {label} | {_sev_counts(b.values()) if before else 'n/a'} | {_sev_counts(a.values()) if after else 'n/a'} | {len(fixed)} | {len(new)} |")
     out.append("")
+
+    if s.malicious:
+        out += ["### ⛔ Malicious-package advisories for bumped versions", "",
+                "The run stopped before tests and build. Hold or override these versions:", ""]
+        out += [f"- `{m['package']}` {m['version']} in `{m['lockfile']}`: {m['id']}" for m in s.malicious] + [""]
 
     # --- applied changes
     if s.changes:
@@ -156,14 +198,18 @@ def render_markdown(s: Summary) -> str:
         remaining.sort(key=lambda x: (sev_rank.get(x[1].severity, 9), x[1].name))
         out += ["### Still fixable after patching", "", "| Severity | Vulnerability | Package | Installed | Fixed in | Where | Reason |", "|---|---|---|---|---|---|---|"]
         for label, f in remaining[:MAX_ROWS]:
-            out.append(f"| {f.severity} | {f.vuln_id} | `{f.name}` | `{f.installed}` | `{f.fixed}` | {label} | {reason_for(f, s, bundled, copa_by_label.get(label, ''))[:160]} |")
+            where = f"{label}: `{f.location}`" if label.startswith("source") and f.location else label
+            out.append(f"| {f.severity} | {f.vuln_id} | `{f.name}` | `{f.installed}` | `{f.fixed}` | {where} | {reason_for(f, s, bundled, copa_by_label.get(label, ''))[:160]} |")
         if len(remaining) > MAX_ROWS:
             out.append(f"| | | | | | | {len(remaining) - MAX_ROWS} more in `summary.json` |")
         out.append("")
 
-    if s.failures:
-        out += ["### Bumps that could not be applied", ""]
-        uniq = list({(fl.ecosystem, fl.target, fl.name, fl.wanted, fl.error): fl for fl in s.failures}.values())
+    for title, rows in (("Bumps that could not be applied", [fl for fl in s.failures if not fl.hint]),
+                        ("Newer releases beyond the policy (not applied)", [fl for fl in s.failures if fl.hint])):
+        if not rows:
+            continue
+        out += [f"### {title}", ""]
+        uniq = list({(fl.ecosystem, fl.target, fl.name, fl.wanted, fl.error): fl for fl in rows}.values())
         for fl in uniq[:MAX_ROWS]:
             first = (fl.error or "").strip().splitlines()
             out.append(f"- `{fl.name}` → `{fl.wanted}` in `{fl.target}`: {first[-1][:200] if first else ''}")
@@ -180,7 +226,10 @@ def render_markdown(s: Summary) -> str:
         out.append(f"{'✅ passed' if t.passed else '❌ failed'} in {t.seconds / 60:.1f} min — `{t.command[:300]}`")
         if t.note:
             out.append(f"\n> {t.note}")
-        if not t.passed and t.failures:
+        if t.preexisting:
+            out += ["", f"⚠️ All {len(t.preexisting)} failing test(s) **also fail on the unpatched source**, so they are "
+                    "upstream's, not caused by these bumps:", "", "```", "\n".join(t.preexisting[:50]), "```"]
+        elif not t.passed and t.failures:
             out += ["", "Failing tests:", "", "```", t.failures[-6000:], "```"]
         if not t.passed and t.tail:
             out += ["", "<details><summary>last lines of the test log</summary>", "", "```", t.tail[-6000:], "```", "</details>"]
@@ -198,6 +247,20 @@ def render_markdown(s: Summary) -> str:
         for i in s.images:
             smoke = ", ".join(("✅ " if x["ok"] else "❌ ") + f"`{x['cmd']}`" for x in i.smoke) or "-"
             out.append(f"| {i.name} | `{i.ref}` | {smoke} | {i.copa or '-'} |")
+        out.append("")
+
+    if s.vex_suggestions:
+        out += ["### VEX suggestions (govulncheck reachability)", "",
+                f"Draft statements in `vex-suggestions.yaml`; review, then copy what you accept into `vex/{s.recipe.name}.yaml`.", "",
+                "| Vulnerability | Package | Suggested | Evidence |", "|---|---|---|---|"]
+        out += [f"| {v['vulnerability']} | `{v['packages'][0]}` | {v['justification']} | {v['impact']} |" for v in s.vex_suggestions[:MAX_ROWS]]
+        out.append("")
+
+    if s.components:
+        out += ["### Bundled components (rebuilt from source and swapped in)", "",
+                "| Image | Component | Path | Version | Status | Bumps | Tests | Notes |", "|---|---|---|---|---|---|---|---|"]
+        out += [f"| {c.get('image', '')} | {c['recipe']} | `{c['path']}` | {c['version'] or '-'} | {c['status']} | {c['changes']} | "
+                f"{c['tests'] or '-'} | {c['note']} |" for c in s.components]
         out.append("")
 
     notes = s.recipe.notes + s.notes
