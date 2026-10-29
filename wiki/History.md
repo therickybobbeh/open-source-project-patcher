@@ -2,11 +2,12 @@
 
 This page is generated from git history by [`build_wiki_history.py`](../scripts/build_wiki_history.py). The complete machine-readable snapshot is [`history.parquet`](history.parquet).
 
-Snapshot through: 2026-10-29T14:10:56-04:00
+Snapshot through: 2026-10-29T14:12:58-04:00
 
 | Date | Commit | Change | Patch artifacts |
 | --- | --- | --- | --- |
-| 2026-10-29 | [`809be7fb7f`](../commit/809be7fb7f6376ae1a0ff0fbeef27e9d02a2563b) | Merge pull request #36 from therickybobbeh/state/copacetic/v0 | state/apollo-router/v2.yaml |
+| 2026-10-29 | [`809be7fb7f`](../commit/809be7fb7f6376ae1a0ff0fbeef27e9d02a2563b) | Merge pull request #36 from therickybobbeh/state/copacetic/v0 | state/maven/maven3.yaml |
+| 2026-10-29 | [`8370962d92`](../commit/8370962d92862eb1ba458e75c55f27ea0d930a67) | state: released apollo-router v2 | state/apollo-router/v2.yaml |
 | 2026-10-29 | [`aa8147bcc7`](../commit/aa8147bcc714f22951d38300060c31bc23ec3cf4) | state: released copacetic v0 | state/copacetic/v0.yaml |
 | 2026-10-29 | [`ac46f5fda8`](../commit/ac46f5fda80363377aa9065cba6d084689533b64) | apollo-router v2.19.0: dependency updates | generated/apollo-router/v2.19.0/bump-plan.json<br>generated/apollo-router/v2.19.0/deps.patch<br>generated/apollo-router/v2.19.0/report.md |
 | 2026-10-29 | [`a44168440d`](../commit/a44168440d61c9cc1cba7bc529ca18a321c8d166) | strimzi 1.3.0: dependency updates | generated/strimzi/1.3.0/bump-plan.json<br>generated/strimzi/1.3.0/deps.patch<br>generated/strimzi/1.3.0/report.md |
