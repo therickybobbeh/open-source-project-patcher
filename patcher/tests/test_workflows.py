@@ -63,12 +63,16 @@ def test_jobs_that_run_upstream_code_hold_no_credentials(path):
 @pytest.mark.parametrize("path", WORKFLOWS, ids=lambda p: p.name)
 def test_jobs_that_can_write_read_no_cache(path):
     for name, job, perms in jobs(path):
-        if not writes(perms):
+        if not (writes(perms) or logs_in(job)):  # a write permission, a registry login or a secret (the App's key)
             continue
         for s in steps(job):
-            if s.get("uses") == RUN_PATCHER:
-                assert s["with"].get("image-cache") == "false" and not s["with"].get("cache-key"), f"{path.name}/{name}"
-            assert "actions/cache@" not in s.get("uses", ""), f"{path.name}/{name}"
+            uses, opts = s.get("uses", ""), s.get("with") or {}
+            if uses == RUN_PATCHER:
+                assert opts.get("image-cache") == "false" and not opts.get("cache-key"), f"{path.name}/{name}"
+            if "/setup-uv@" in uses:
+                assert opts.get("enable-cache") in (False, "false"), f"{path.name}/{name}: setup-uv needs enable-cache: false"
+            assert "actions/cache@" not in uses, f"{path.name}/{name}"
+            assert "type=gha" not in s.get("run", ""), f"{path.name}/{name}: no BuildKit cache from GitHub Actions"
 
 
 def test_release_jobs():
@@ -83,3 +87,8 @@ def test_release_jobs():
     # what it builds is released: it reads no cache another project's job could have written either
     assert all(s["with"].get("image-cache") == "false" and not s["with"].get("cache-key") for s in steps(build) if s.get("uses") == RUN_PATCHER)
     assert release["push"][1] == {"contents": "read", "packages": "write"}
+    # `push` is skipped when a run builds nothing; a job after it with a plain condition would be skipped as well
+    for name in ("publish", "attest", "state"):
+        assert "!cancelled()" in str(release[name][0]["if"]), name
+    # the state PR is made from publish's outputs, never from an artifact (any job of the run can write those)
+    assert not any("download-artifact" in s.get("uses", "") for s in steps(release["state"][0]))

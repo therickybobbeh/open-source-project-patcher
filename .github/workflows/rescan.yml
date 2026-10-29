@@ -34,7 +34,7 @@ jobs:
       - uses: ./.github/actions/run-patcher
         with:
           args: rescan --out out/rescan
-          cache-key: rescan
+          image-cache: "false"  # its results decide refreshes: no cache patch jobs can write (Trivy DB, patcher image)
       - name: Image coverage (inventory.yaml) to the run summary
         if: always()
         run: docker run --rm -v "$PWD:$PWD" -w "$PWD" patcher:ci coverage >> "$GITHUB_STEP_SUMMARY"
@@ -56,6 +56,8 @@ jobs:
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          enable-cache: false  # no shared cache: patch jobs, which run upstream code, can write it
       - name: Report and track new release lines
         env:
           GH_TOKEN: ${{ github.token }}

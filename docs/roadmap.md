@@ -65,11 +65,15 @@ easy to extend**. Items are ordered by priority within each section.
      - `patcher-image.yml` builds the published patcher image with the layer cache and then signs it. Build it
        without the cache (as `run-patcher` does with `image-cache: "false"`).
      - `setup-uv` restores its cache by default. Turn it off (`enable-cache: false`) in jobs with a write token:
-       `patch.yml`'s `pr` job and `wiki-history.yml`.
+       `patch.yml`'s `pr` job, `rescan.yml`'s `new-lines` job and `wiki-history.yml` (which pushes to `main`, so this
+       one first).
      - The patch jobs share toolchain caches across projects, so one project's tests could plant something in
        another's patch run. Their output is reviewed in the PR, but a per-project scope can't be enforced with the
        GitHub cache: drop the cache there too, or verify module caches (`go mod verify`) before use.
      - `docker/setup-buildx-action` runs the unpinned `moby/buildkit:buildx-stable-1`; pin it by digest.
+     - Image-only releases build their components' overlay in the `publish` job (BuildKit build steps, without the
+       Docker socket, but in the job that holds the credentials). Build it in a credential-free job instead, and hand
+       it over as a multi-platform archive (no image-only recipe is published today).
 2. **Upstream authenticity.**
    - **Today:** tags are pinned to the commit `ls-remote` reports and re-checked after checkout.
    - **Not verified:**

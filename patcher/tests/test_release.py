@@ -318,16 +318,57 @@ def test_copa_refresh_takes_a_free_revision_and_each_image_s_platforms(tmp_path,
         ReleasedImage(name="app-debug", ref=f"{REG}:v1.2.3-debug-patched.2", digest=DIGEST)]})
     repo.save_state("app", st)
     # 3 holds a release attempt's per-arch images: a refresh there would be taken for that release by `rebuild: false`
-    registry(monkeypatch, staging(3, "arm64"))
+    existing = registry(monkeypatch, staging(3, "arm64"))
     calls = []
     monkeypatch.setattr(pipeline.copa, "for_image", lambda spec, image, out_tag, out, **k: calls.append((out_tag, k["platforms"]))
                         or CopaResult(f"{REG}:{out_tag}", 1))
-    monkeypatch.setattr(pipeline, "run", lambda cmd, **k: None)
+    monkeypatch.setattr(pipeline, "run", lambda cmd, **k: calls.append(cmd[4:]))  # imagetools create -t <to> <from>
     monkeypatch.setattr(pipeline, "image_digest", lambda ref: DIGEST)
     monkeypatch.setattr(pipeline, "scan_image", lambda ref, path, **k: ScanReport(ref))
     pipeline.refresh(repo, repo.load_recipe("app"), "v1", None, tmp_path / "out")
-    assert calls == [("v1.2.3-patched.4", ["linux/amd64", "linux/arm64"]), ("v1.2.3-debug-patched.4", ["linux/amd64"])]
+    # Copa writes to a scratch tag, never to a release's own names; the result is then tagged as the revision
+    assert calls == [("v1.2.3-patched.4-refresh", ["linux/amd64", "linux/arm64"]),
+                     ["-t", f"{REG}:v1.2.3-patched.4", f"{REG}:v1.2.3-patched.4-refresh"],
+                     ["-t", f"{REG}:v1.2.3-patched", f"{REG}:v1.2.3-patched.4"],
+                     ("v1.2.3-debug-patched.4-refresh", ["linux/amd64"]),
+                     ["-t", f"{REG}:v1.2.3-debug-patched.4", f"{REG}:v1.2.3-debug-patched.4-refresh"],
+                     ["-t", f"{REG}:v1.2.3-debug-patched", f"{REG}:v1.2.3-debug-patched.4"]]
     assert repo.state("app").lines["v1"].revision == 4
+
+    # a release takes the revision while Copa runs: the refresh stops, and nothing of the release is overwritten
+    calls.clear()
+    monkeypatch.setattr(pipeline.copa, "for_image", lambda spec, image, out_tag, out, **k: existing.add(staging(5, "amd64"))
+                        or calls.append(out_tag) or CopaResult(f"{REG}:{out_tag}", 1))
+    with pytest.raises(RuntimeError, match="revision 5 was taken while Copa ran"):
+        pipeline.refresh(repo, repo.load_recipe("app"), "v1", None, tmp_path / "out")
+    assert calls == ["v1.2.3-patched.5-refresh"] and repo.state("app").lines["v1"].revision == 4
+
+
+def test_publish_only_keeps_an_existing_final_tag_when_finishing(tmp_path, monkeypatch):
+    repo = make_repo(tmp_path)
+    final = f"{REG}:v1.2.3-patched.5"
+    # push just took revision 5, and a Copa refresh has published it in the meantime
+    registry(monkeypatch, staging(5, "amd64"), staging(5, "arm64"), staging(5, "amd64", True), final)
+    cmds = fake_publish_tools(monkeypatch)
+    with pytest.raises(RuntimeError, match="something else .* published it since"):
+        pipeline.publish(repo, repo.load_recipe("app"), "v1", None, tmp_path / "out", revision=5)
+    assert cmds == [] and repo.state("app").lines["v1"].revision == 2  # nothing published, nothing recorded
+    # a re-run of the same publish job (--finish-existing) finishes what its first attempt pushed
+    pipeline.publish(repo, repo.load_recipe("app"), "v1", None, tmp_path / "out", revision=5, finish_existing=True)
+    assert cmds[0] == ["-t", f"{REG}:v1.2.3-patched", final] and repo.state("app").lines["v1"].revision == 5
+
+
+def test_built_revision_asks_for_each_tag_once(tmp_path, monkeypatch):
+    repo = make_repo(tmp_path)
+    existing = {staging(3, "amd64"), staging(3, "arm64"), staging(3, "amd64", True), staging(4, "amd64")}
+    asked = []
+    monkeypatch.setattr(pipeline, "_tag_exists", lambda ref: asked.append(ref) or ref in existing)
+    assert pipeline.built_revision(repo, repo.load_recipe("app"), "v1", "v1.2.3") == 3
+    assert len(asked) == len(set(asked))
+    # revision 3 is complete after its three per-arch tags; 4 stops at its first missing one, then shows it was used; 5 is
+    # empty, which ends the search
+    assert asked[:3] == [staging(3, "amd64"), staging(3, "arm64"), staging(3, "amd64", True)]
+    assert asked[3:5] == [staging(4, "amd64"), staging(4, "arm64")]
 
 
 def test_publish_never_publishes_a_recorded_revision(tmp_path, monkeypatch):
@@ -359,7 +400,7 @@ def test_release_plan_follows_the_recipe_platforms(tmp_path):
     plan = pipeline.release_plan(repo, [("app", "v1"), ("amd", "v1"), ("arm", "v1"), ("vendor", "v1"), ("private", "v1"),
                                         ("helm", "v1"), ("app", "v1")])
     rows = {r["recipe"]: r for r in plan["include"]}
-    assert list(rows) == ["app", "amd", "arm", "vendor"]  # once each
+    assert list(rows) == ["app", "amd", "arm", "vendor"] and plan["errors"] == []  # once each
     assert rows["app"]["platforms"] == ["linux/amd64", "linux/arm64"] and rows["app"]["build"]  # the default: both
     assert rows["app"]["arches"] == [{"platform": "linux/amd64", "arch": "amd64", "runner": "ubuntu-24.04"},
                                      {"platform": "linux/arm64", "arch": "arm64", "runner": "ubuntu-24.04-arm"}]
@@ -368,10 +409,12 @@ def test_release_plan_follows_the_recipe_platforms(tmp_path):
     assert not rows["vendor"]["build"]  # image-only: publish overlays the vendor image itself
     assert [(s["recipe"], s["reason"]) for s in plan["skipped"]] == [("private", "publish: false"),
                                                                      ("helm", "a component: it ships inside its parents' images")]
-    with pytest.raises(ValueError, match="no native runner for linux/s390x"):
-        pipeline.release_plan(repo, [("mainframe", "v1")])
-    with pytest.raises(LookupError, match="no line 'v9'"):
-        pipeline.release_plan(repo, [("app", "v9")])
+    # what can't be released is an error of its own: the other lines of the same push still go out
+    plan = pipeline.release_plan(repo, [("mainframe", "v1"), ("app", "v9"), ("gone", "v1"), ("amd", "v1")])
+    assert [r["recipe"] for r in plan["include"]] == ["amd"]
+    errors = {e["recipe"]: e["error"] for e in plan["errors"]}
+    assert "no native runner for linux/s390x" in errors["mainframe"] and "no line 'v9'" in errors["app"]
+    assert "no recipe 'gone'" in errors["gone"]
 
 
 def test_release_targets_are_the_patch_sets_a_push_changed(tmp_path):
@@ -379,11 +422,17 @@ def test_release_targets_are_the_patch_sets_a_push_changed(tmp_path):
     comp = tmp_path / "generated" / "app" / "v1.2.3" / "components" / "helm"
     comp.mkdir(parents=True)
     (comp / "bump-plan.json").write_text(json.dumps({"recipe": "helm", "line": "helm-4.2.1"}))
+    broken = tmp_path / "generated" / "other" / "1.0"
+    broken.mkdir(parents=True)
+    (broken / "bump-plan.json").write_text("{not json")
     changed = ["generated/app/v1.2.3/bump-plan.json", "generated/app/v1.2.3/report.md",
                "generated/app/v1.2.3/components/helm/bump-plan.json",  # a component's own plan is not a release
                "generated/app/v1.2.2/bump-plan.json",  # gone (the push deleted it again)
+               "generated/other/1.0/bump-plan.json",  # unreadable: an error row, the others still count
                "generated/app/v1.2.3/bump-plan.json"]
-    assert pipeline.release_targets(repo, changed) == [("app", "v1")]
+    targets, errors = pipeline.release_targets(repo, changed)
+    assert targets == [("app", "v1")]
+    assert [e["recipe"] for e in errors] == ["other"] and "unreadable patch set" in errors[0]["error"]
 
 
 def test_image_platforms_must_be_among_the_build_platforms():

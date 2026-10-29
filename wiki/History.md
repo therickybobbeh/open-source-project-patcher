@@ -2,10 +2,11 @@
 
 This page is generated from git history by [`build_wiki_history.py`](../scripts/build_wiki_history.py). The complete machine-readable snapshot is [`history.parquet`](history.parquet).
 
-Snapshot through: 2026-10-29T15:21:18-04:00
+Snapshot through: 2026-10-29T16:06:34-04:00
 
 | Date | Commit | Change | Patch artifacts |
 | --- | --- | --- | --- |
+| 2026-10-29 | [`2ceb3f494a`](../commit/2ceb3f494ae6702da9666142da7d683dcb095f56) | Merge pull request #54 from therickybobbeh/state/maven/maven3 | state/maven/maven3.yaml |
 | 2026-10-29 | [`3ef40ad8e8`](../commit/3ef40ad8e8ba37eeab7c0d61cd2ec6a6be06894a) | state: released strimzi 1 | state/strimzi/1.yaml |
 | 2026-10-29 | [`809be7fb7f`](../commit/809be7fb7f6376ae1a0ff0fbeef27e9d02a2563b) | Merge pull request #36 from therickybobbeh/state/copacetic/v0 | state/argo-rollouts/v1.10.yaml |
 | 2026-10-29 | [`4067c98ad4`](../commit/4067c98ad49847d0e1b6f60c9e36f2616f89644d) | state: released argo-cd v3.5 | state/argo-cd/v3.5.yaml |
