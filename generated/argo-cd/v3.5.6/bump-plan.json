@@ -1,0 +1,762 @@
+{
+  "recipe": "argo-cd",
+  "line": "v3.5",
+  "tag": "v3.5.6",
+  "commit": "c2b1e3017e2cec86b122172e861dcd026453ae44",
+  "status": "success",
+  "requires": {},
+  "plan": {
+    "bumps": [
+      {
+        "ecosystem": "gomod",
+        "target": "gitops-engine/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.49.0",
+        "to": "v0.60.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-25680",
+          "CVE-2026-25681",
+          "CVE-2026-27136",
+          "CVE-2026-33814",
+          "CVE-2026-39821",
+          "CVE-2026-42502",
+          "CVE-2026-42506",
+          "CVE-2026-46600",
+          "CVE-2026-78659",
+          "CVE-2026-78660",
+          "CVE-2026-78663",
+          "CVE-2026-78669",
+          "CVE-2026-97032"
+        ],
+        "direct": false,
+        "dir": "gitops-engine"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "gitops-engine/go.mod",
+        "name": "golang.org/x/sys",
+        "installed": "v0.40.0",
+        "to": "v0.44.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-39824"
+        ],
+        "direct": false,
+        "dir": "gitops-engine"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "gitops-engine/go.mod",
+        "name": "golang.org/x/text",
+        "installed": "v0.33.0",
+        "to": "v0.41.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-56851",
+          "CVE-2026-56852"
+        ],
+        "direct": false,
+        "dir": "gitops-engine"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/go-jose/go-jose/v4",
+        "installed": "v4.1.4",
+        "to": "v4.1.6",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-116585",
+          "CVE-2026-116586",
+          "CVE-2026-116587"
+        ],
+        "direct": true,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/klauspost/compress",
+        "installed": "v1.18.0",
+        "to": "v1.18.7",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-63209"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/slack-go/slack",
+        "installed": "v0.16.0",
+        "to": "v0.23.1",
+        "level": "minor",
+        "reasons": [
+          "GHSA-gxhx-2686-5h9g"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace",
+        "installed": "v1.44.0",
+        "to": "v1.45.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-81870"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc",
+        "installed": "v1.44.0",
+        "to": "v1.45.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-81870"
+        ],
+        "direct": true,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/sdk",
+        "installed": "v1.44.0",
+        "to": "v1.45.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-81870"
+        ],
+        "direct": true,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.59.0",
+        "to": "v0.60.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78659",
+          "CVE-2026-78660",
+          "CVE-2026-78663",
+          "CVE-2026-78669",
+          "CVE-2026-97032"
+        ],
+        "direct": true,
+        "dir": "."
+      },
+      {
+        "ecosystem": "pnpm",
+        "target": "ui/pnpm-lock.yaml",
+        "name": "brace-expansion",
+        "installed": "1.1.14",
+        "to": "1.1.21",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-102276",
+          "CVE-2026-102277",
+          "CVE-2026-102278",
+          "CVE-2026-13149",
+          "CVE-2026-14257",
+          "CVE-2026-69152"
+        ],
+        "direct": false,
+        "dir": "ui"
+      },
+      {
+        "ecosystem": "pnpm",
+        "target": "ui/pnpm-lock.yaml",
+        "name": "brace-expansion",
+        "installed": "2.1.0",
+        "to": "2.1.7",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-102276",
+          "CVE-2026-102277",
+          "CVE-2026-102278",
+          "CVE-2026-13149",
+          "CVE-2026-14257",
+          "CVE-2026-69152"
+        ],
+        "direct": false,
+        "dir": "ui"
+      },
+      {
+        "ecosystem": "pnpm",
+        "target": "ui/pnpm-lock.yaml",
+        "name": "dompurify",
+        "installed": "3.4.13",
+        "to": "3.4.17",
+        "level": "patch",
+        "reasons": [
+          "GHSA-6688-9rhm-gjv2",
+          "GHSA-c6gr-qvv4-5v3f",
+          "GHSA-cg2g-xh64-v4q7",
+          "GHSA-mrv2-3pqr-j5jr",
+          "GHSA-p98j-92pf-mc4p"
+        ],
+        "direct": false,
+        "dir": "ui"
+      },
+      {
+        "ecosystem": "pnpm",
+        "target": "ui/pnpm-lock.yaml",
+        "name": "form-data",
+        "installed": "4.0.5",
+        "to": "4.0.6",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-12143"
+        ],
+        "direct": false,
+        "dir": "ui"
+      },
+      {
+        "ecosystem": "pnpm",
+        "target": "ui/pnpm-lock.yaml",
+        "name": "js-yaml",
+        "installed": "4.1.1",
+        "to": "4.3.2",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-53550",
+          "CVE-2026-59869",
+          "CVE-2026-84375",
+          "GHSA-5p4m-2wfm-xmqj"
+        ],
+        "direct": false,
+        "dir": "ui"
+      },
+      {
+        "ecosystem": "pnpm",
+        "target": "ui/pnpm-lock.yaml",
+        "name": "js-yaml",
+        "installed": "4.3.0",
+        "to": "4.3.2",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-84375",
+          "GHSA-5p4m-2wfm-xmqj"
+        ],
+        "direct": true,
+        "dir": "ui"
+      },
+      {
+        "ecosystem": "pnpm",
+        "target": "ui/pnpm-lock.yaml",
+        "name": "moment",
+        "installed": "2.30.1",
+        "to": "2.31.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-17495"
+        ],
+        "direct": true,
+        "dir": "ui"
+      },
+      {
+        "ecosystem": "pnpm",
+        "target": "ui/pnpm-lock.yaml",
+        "name": "qs",
+        "installed": "6.15.2",
+        "to": "6.16.1",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-110816",
+          "CVE-2026-82417",
+          "CVE-2026-82562"
+        ],
+        "direct": false,
+        "dir": "ui"
+      }
+    ],
+    "unresolved": [
+      {
+        "ecosystem": "gomod",
+        "target": "gitops-engine/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.49.0",
+        "vuln_id": "CVE-2026-78661",
+        "severity": "UNKNOWN",
+        "fixed": "0.62.0",
+        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "gitops-engine/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.49.0",
+        "vuln_id": "CVE-2026-97045",
+        "severity": "UNKNOWN",
+        "fixed": "0.62.0",
+        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/go-jose/go-jose/v3",
+        "installed": "v3.0.5",
+        "vuln_id": "CVE-2026-116587",
+        "severity": "HIGH",
+        "fixed": null,
+        "why": "no fixed version"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/go-jose/go-jose/v3",
+        "installed": "v3.0.5",
+        "vuln_id": "CVE-2026-116585",
+        "severity": "MEDIUM",
+        "fixed": null,
+        "why": "no fixed version"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/go-jose/go-jose/v3",
+        "installed": "v3.0.5",
+        "vuln_id": "CVE-2026-116586",
+        "severity": "MEDIUM",
+        "fixed": null,
+        "why": "no fixed version"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.57.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": null,
+        "why": "no fixed version"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.59.0",
+        "vuln_id": "CVE-2026-78661",
+        "severity": "UNKNOWN",
+        "fixed": "0.62.0",
+        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.59.0",
+        "vuln_id": "CVE-2026-97045",
+        "severity": "UNKNOWN",
+        "fixed": "0.62.0",
+        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      },
+      {
+        "ecosystem": "pnpm",
+        "target": "ui/pnpm-lock.yaml",
+        "name": "deepmerge",
+        "installed": "4.3.1",
+        "vuln_id": "CVE-2026-93753",
+        "severity": "LOW",
+        "fixed": null,
+        "why": "no fixed version"
+      },
+      {
+        "ecosystem": "pnpm",
+        "target": "ui/pnpm-lock.yaml",
+        "name": "esbuild",
+        "installed": "0.18.20",
+        "vuln_id": "GHSA-67mh-4wv8-2f99",
+        "severity": "MEDIUM",
+        "fixed": "0.25.0",
+        "why": "needs-human: fix requires a bump beyond the `minor` policy"
+      },
+      {
+        "ecosystem": "pnpm",
+        "target": "ui/pnpm-lock.yaml",
+        "name": "linkify-it",
+        "installed": "3.0.3",
+        "vuln_id": "CVE-2026-48801",
+        "severity": "HIGH",
+        "fixed": "5.0.1",
+        "why": "needs-human: fix requires a bump beyond the `minor` policy"
+      },
+      {
+        "ecosystem": "pnpm",
+        "target": "ui/pnpm-lock.yaml",
+        "name": "linkify-it",
+        "installed": "3.0.3",
+        "vuln_id": "CVE-2026-59887",
+        "severity": "HIGH",
+        "fixed": "5.0.2",
+        "why": "needs-human: fix requires a bump beyond the `minor` policy"
+      },
+      {
+        "ecosystem": "pnpm",
+        "target": "ui/pnpm-lock.yaml",
+        "name": "uuid",
+        "installed": "9.0.1",
+        "vuln_id": "CVE-2026-41907",
+        "severity": "MEDIUM",
+        "fixed": "11.1.1, 12.0.1, 13.0.1",
+        "why": "needs-human: fix requires a bump beyond the `minor` policy"
+      }
+    ],
+    "toolchain": {}
+  },
+  "changes": [
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/go-jose/go-jose/v4",
+      "old": "v4.1.4",
+      "new": "v4.1.6",
+      "note": "CVE-2026-116585, CVE-2026-116586, CVE-2026-116587"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace",
+      "old": "v1.44.0",
+      "new": "v1.45.0",
+      "note": "CVE-2026-81870"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc",
+      "old": "v1.44.0",
+      "new": "v1.45.0",
+      "note": "CVE-2026-81870"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/sdk",
+      "old": "v1.44.0",
+      "new": "v1.45.0",
+      "note": "CVE-2026-81870"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/klauspost/compress",
+      "old": "v1.18.0",
+      "new": "v1.18.7",
+      "note": "CVE-2026-63209"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.59.0",
+      "new": "v0.60.0",
+      "note": "CVE-2026-78659, CVE-2026-78660, CVE-2026-78663, CVE-2026-78669, CVE-2026-97032"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/slack-go/slack",
+      "old": "v0.16.0",
+      "new": "v0.23.1",
+      "note": "GHSA-gxhx-2686-5h9g"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "gitops-engine/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.49.0",
+      "new": "v0.60.0",
+      "note": "CVE-2026-25680, CVE-2026-25681, CVE-2026-27136, CVE-2026-33814, CVE-2026-39821, CVE-2026-42502, CVE-2026-42506, CVE-2026-46600, CVE-2026-78659, CVE-2026-78660, CVE-2026-78663, CVE-2026-78669, CVE-2026-97032"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "gitops-engine/go.mod",
+      "name": "golang.org/x/sys",
+      "old": "v0.40.0",
+      "new": "v0.44.0",
+      "note": "CVE-2026-39824"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "gitops-engine/go.mod",
+      "name": "golang.org/x/text",
+      "old": "v0.33.0",
+      "new": "v0.41.0",
+      "note": "CVE-2026-56851, CVE-2026-56852"
+    },
+    {
+      "ecosystem": "pnpm",
+      "target": "ui/pnpm-lock.yaml",
+      "name": "brace-expansion",
+      "old": "1.1.14",
+      "new": "1.1.21",
+      "note": "CVE-2026-102276, CVE-2026-102277, CVE-2026-102278, CVE-2026-13149, CVE-2026-14257, CVE-2026-69152"
+    },
+    {
+      "ecosystem": "pnpm",
+      "target": "ui/pnpm-lock.yaml",
+      "name": "brace-expansion",
+      "old": "2.1.0",
+      "new": "2.1.7",
+      "note": "CVE-2026-102276, CVE-2026-102277, CVE-2026-102278, CVE-2026-13149, CVE-2026-14257, CVE-2026-69152"
+    },
+    {
+      "ecosystem": "pnpm",
+      "target": "ui/pnpm-lock.yaml",
+      "name": "dompurify",
+      "old": "3.4.13",
+      "new": "3.4.17",
+      "note": "GHSA-6688-9rhm-gjv2, GHSA-c6gr-qvv4-5v3f, GHSA-cg2g-xh64-v4q7, GHSA-mrv2-3pqr-j5jr, GHSA-p98j-92pf-mc4p"
+    },
+    {
+      "ecosystem": "pnpm",
+      "target": "ui/pnpm-lock.yaml",
+      "name": "form-data",
+      "old": "4.0.5",
+      "new": "4.0.6",
+      "note": "CVE-2026-12143"
+    },
+    {
+      "ecosystem": "pnpm",
+      "target": "ui/pnpm-lock.yaml",
+      "name": "js-yaml",
+      "old": "4.1.1",
+      "new": "4.3.2",
+      "note": "CVE-2026-53550, CVE-2026-59869, CVE-2026-84375, GHSA-5p4m-2wfm-xmqj"
+    },
+    {
+      "ecosystem": "pnpm",
+      "target": "ui/pnpm-lock.yaml",
+      "name": "js-yaml",
+      "old": "4.3.0",
+      "new": "4.3.2",
+      "note": "CVE-2026-84375, GHSA-5p4m-2wfm-xmqj"
+    },
+    {
+      "ecosystem": "pnpm",
+      "target": "ui/pnpm-lock.yaml",
+      "name": "moment",
+      "old": "2.30.1",
+      "new": "2.31.0",
+      "note": "CVE-2026-17495"
+    },
+    {
+      "ecosystem": "pnpm",
+      "target": "ui/pnpm-lock.yaml",
+      "name": "qs",
+      "old": "6.15.2",
+      "new": "6.16.1",
+      "note": "CVE-2026-110816, CVE-2026-82417, CVE-2026-82562"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "docker.io/library/golang",
+      "old": "golang:1.26.10@sha256:5c3f3f28a273c9b61698b2d34f18375929790ab1f1d3835d032d21e2b31eae0c",
+      "new": "golang:1.26.10@sha256:670bb5aa5349ae03b8516764718486f4f16399134bdc9acd0c46a23f043ab05c",
+      "note": "base image refresh"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "ARG BASE_IMAGE",
+      "old": "ubuntu:26.04@sha256:f3d28607ddd78734bb7f71f117f3c6706c666b8b76cbff7c9ff6e5718d46ff64",
+      "new": "ubuntu:26.04@sha256:0e73b71479e7bc5f006bca872e25c3cd680dc052a0116f90d63ae363537db0dd",
+      "note": "base image refresh"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "docker.io/library/golang",
+      "old": "golang:1.26.10@sha256:5c3f3f28a273c9b61698b2d34f18375929790ab1f1d3835d032d21e2b31eae0c",
+      "new": "golang:1.26.10@sha256:670bb5aa5349ae03b8516764718486f4f16399134bdc9acd0c46a23f043ab05c",
+      "note": "base image refresh"
+    }
+  ],
+  "failures": [
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "docker.io/library/golang",
+      "wanted": "1.27.3",
+      "error": "newer tag 1.27.3 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)",
+      "hint": true
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "docker.io/library/node",
+      "wanted": "24.22.2",
+      "error": "newer tag 24.22.2 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)",
+      "hint": true
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "docker.io/library/golang",
+      "wanted": "1.27.3",
+      "error": "newer tag 1.27.3 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)",
+      "hint": true
+    }
+  ],
+  "unresolved": [
+    {
+      "ecosystem": "gomod",
+      "target": "gitops-engine/go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.60.0",
+      "vuln_id": "CVE-2026-78661",
+      "severity": "UNKNOWN",
+      "fixed": "0.62.0",
+      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "gitops-engine/go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.60.0",
+      "vuln_id": "CVE-2026-97045",
+      "severity": "UNKNOWN",
+      "fixed": "0.62.0",
+      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/go-jose/go-jose/v3",
+      "installed": "v3.0.5",
+      "vuln_id": "CVE-2026-116587",
+      "severity": "HIGH",
+      "fixed": null,
+      "why": "no fixed version"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/go-jose/go-jose/v3",
+      "installed": "v3.0.5",
+      "vuln_id": "CVE-2026-116585",
+      "severity": "MEDIUM",
+      "fixed": null,
+      "why": "no fixed version"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/go-jose/go-jose/v3",
+      "installed": "v3.0.5",
+      "vuln_id": "CVE-2026-116586",
+      "severity": "MEDIUM",
+      "fixed": null,
+      "why": "no fixed version"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.57.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": null,
+      "why": "no fixed version"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.60.0",
+      "vuln_id": "CVE-2026-78661",
+      "severity": "UNKNOWN",
+      "fixed": "0.62.0",
+      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.60.0",
+      "vuln_id": "CVE-2026-97045",
+      "severity": "UNKNOWN",
+      "fixed": "0.62.0",
+      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+    },
+    {
+      "ecosystem": "pnpm",
+      "target": "ui/pnpm-lock.yaml",
+      "name": "deepmerge",
+      "installed": "4.3.1",
+      "vuln_id": "CVE-2026-93753",
+      "severity": "LOW",
+      "fixed": null,
+      "why": "no fixed version"
+    },
+    {
+      "ecosystem": "pnpm",
+      "target": "ui/pnpm-lock.yaml",
+      "name": "esbuild",
+      "installed": "0.18.20",
+      "vuln_id": "GHSA-67mh-4wv8-2f99",
+      "severity": "MEDIUM",
+      "fixed": "0.25.0",
+      "why": "needs-human: fix requires a bump beyond the `minor` policy"
+    },
+    {
+      "ecosystem": "pnpm",
+      "target": "ui/pnpm-lock.yaml",
+      "name": "linkify-it",
+      "installed": "3.0.3",
+      "vuln_id": "CVE-2026-48801",
+      "severity": "HIGH",
+      "fixed": "5.0.1",
+      "why": "needs-human: fix requires a bump beyond the `minor` policy"
+    },
+    {
+      "ecosystem": "pnpm",
+      "target": "ui/pnpm-lock.yaml",
+      "name": "linkify-it",
+      "installed": "3.0.3",
+      "vuln_id": "CVE-2026-59887",
+      "severity": "HIGH",
+      "fixed": "5.0.2",
+      "why": "needs-human: fix requires a bump beyond the `minor` policy"
+    },
+    {
+      "ecosystem": "pnpm",
+      "target": "ui/pnpm-lock.yaml",
+      "name": "uuid",
+      "installed": "9.0.1",
+      "vuln_id": "CVE-2026-41907",
+      "severity": "MEDIUM",
+      "fixed": "11.1.1, 12.0.1, 13.0.1",
+      "why": "needs-human: fix requires a bump beyond the `minor` policy"
+    }
+  ],
+  "skips": [
+    {
+      "match": "^TestIndex$",
+      "reason": "Downloads the live argo-helm index (argoproj.github.io); fails on network flakes, unrelated to dependency updates",
+      "owner": "platform-team",
+      "expires": "2027-04-30",
+      "filter": null
+    },
+    {
+      "match": "^Test_nativeHelmChart_ExtractChart$",
+      "reason": "Pulls a chart from the live argo-helm repository",
+      "owner": "platform-team",
+      "expires": "2027-04-30",
+      "filter": null
+    }
+  ]
+}

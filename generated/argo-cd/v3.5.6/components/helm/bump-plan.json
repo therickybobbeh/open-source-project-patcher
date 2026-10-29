@@ -1,0 +1,389 @@
+{
+  "recipe": "helm",
+  "line": "helm-4.2.1",
+  "tag": "v4.2.1",
+  "commit": "d591a19b953bd9cfdf7d9ddd83c2f4ffdaeafb29",
+  "status": "success",
+  "requires": {},
+  "plan": {
+    "bumps": [
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/distribution/distribution/v3",
+        "installed": "v3.1.1",
+        "to": "v3.1.2",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-85747"
+        ],
+        "direct": true,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/klauspost/compress",
+        "installed": "v1.18.4",
+        "to": "v1.18.7",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-63209"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc",
+        "installed": "v0.18.0",
+        "to": "v0.21.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-81871"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace",
+        "installed": "v1.43.0",
+        "to": "v1.45.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-81870"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc",
+        "installed": "v1.42.0",
+        "to": "v1.45.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-81870"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp",
+        "installed": "v1.43.0",
+        "to": "v1.45.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-81870"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/sdk",
+        "installed": "v1.43.0",
+        "to": "v1.45.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-81870"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/sdk/log",
+        "installed": "v0.19.0",
+        "to": "v0.21.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-81872"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.53.0",
+        "to": "v0.56.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-56854",
+          "CVE-2026-56855",
+          "CVE-2026-78662"
+        ],
+        "direct": true,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/mod",
+        "installed": "v0.36.0",
+        "to": "v0.40.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-56864",
+          "CVE-2026-56865"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.55.0",
+        "to": "v0.60.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-46600",
+          "CVE-2026-78659",
+          "CVE-2026-78660",
+          "CVE-2026-78663",
+          "CVE-2026-78669",
+          "CVE-2026-97032"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/text",
+        "installed": "v0.38.0",
+        "to": "v0.41.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-56851",
+          "CVE-2026-56852"
+        ],
+        "direct": true,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "google.golang.org/grpc",
+        "installed": "v1.80.0",
+        "to": "v1.83.1",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-84303",
+          "CVE-2026-84304",
+          "CVE-2026-84445",
+          "GHSA-hrxh-6v49-42gf"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "oras.land/oras-go/v2",
+        "installed": "v2.6.1",
+        "to": "v2.6.2",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-50163",
+          "CVE-2026-85731",
+          "CVE-2026-85732"
+        ],
+        "direct": true,
+        "dir": "."
+      }
+    ],
+    "unresolved": [
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.53.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": null,
+        "why": "no fixed version"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.55.0",
+        "vuln_id": "CVE-2026-78661",
+        "severity": "UNKNOWN",
+        "fixed": "0.62.0",
+        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.55.0",
+        "vuln_id": "CVE-2026-97045",
+        "severity": "UNKNOWN",
+        "fixed": "0.62.0",
+        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      }
+    ],
+    "toolchain": {}
+  },
+  "changes": [
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/distribution/distribution/v3",
+      "old": "v3.1.1",
+      "new": "v3.1.2",
+      "note": "CVE-2026-85747"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "oras.land/oras-go/v2",
+      "old": "v2.6.1",
+      "new": "v2.6.2",
+      "note": "CVE-2026-50163, CVE-2026-85731, CVE-2026-85732"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "google.golang.org/grpc",
+      "old": "v1.80.0",
+      "new": "v1.83.1",
+      "note": "CVE-2026-84303, CVE-2026-84304, CVE-2026-84445, GHSA-hrxh-6v49-42gf"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace",
+      "old": "v1.43.0",
+      "new": "v1.45.0",
+      "note": "CVE-2026-81870"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc",
+      "old": "v1.42.0",
+      "new": "v1.45.0",
+      "note": "CVE-2026-81870"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp",
+      "old": "v1.43.0",
+      "new": "v1.45.0",
+      "note": "CVE-2026-81870"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/sdk",
+      "old": "v1.43.0",
+      "new": "v1.45.0",
+      "note": "CVE-2026-81870"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/klauspost/compress",
+      "old": "v1.18.4",
+      "new": "v1.18.7",
+      "note": "CVE-2026-63209"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.55.0",
+      "new": "v0.60.0",
+      "note": "CVE-2026-46600, CVE-2026-78659, CVE-2026-78660, CVE-2026-78663, CVE-2026-78669, CVE-2026-97032"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/crypto",
+      "old": "v0.53.0",
+      "new": "v0.56.0",
+      "note": "CVE-2026-56854, CVE-2026-56855, CVE-2026-78662"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/text",
+      "old": "v0.38.0",
+      "new": "v0.41.0",
+      "note": "CVE-2026-56851, CVE-2026-56852"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/mod",
+      "old": "v0.36.0",
+      "new": "v0.40.0",
+      "note": "CVE-2026-56864, CVE-2026-56865"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc",
+      "old": "v0.18.0",
+      "new": "v0.21.0",
+      "note": "CVE-2026-81871"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/sdk/log",
+      "old": "v0.19.0",
+      "new": "v0.21.0",
+      "note": "CVE-2026-81872"
+    }
+  ],
+  "failures": [],
+  "unresolved": [
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.57.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": null,
+      "why": "no fixed version"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.60.0",
+      "vuln_id": "CVE-2026-78661",
+      "severity": "UNKNOWN",
+      "fixed": "0.62.0",
+      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.60.0",
+      "vuln_id": "CVE-2026-97045",
+      "severity": "UNKNOWN",
+      "fixed": "0.62.0",
+      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+    }
+  ],
+  "skips": []
+}
