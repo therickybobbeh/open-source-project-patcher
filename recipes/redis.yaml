@@ -26,12 +26,14 @@ scan:
   skipDirs: [release-automation]  # release tooling (uv.lock), not shipped in the image
 tests:
   framework: redis
-  # Redis' own test suite against the exact tarball the Dockerfile builds (core only, no modules)
+  # Redis' own test suite against the exact tarball the Dockerfile builds, core only: since Redis 8 the
+  # top-level `make` also builds every bundled module (RediSearch, RedisJSON, ...; cmake, autotools and
+  # Rust), so build src/ directly. runtest only needs src/redis-server and friends.
   setup:
     - >-
       rm -rf .redis-src && mkdir .redis-src &&
       curl -fsSL "$(sed -n 's/^ARG REDIS_DOWNLOAD_URL=//p' debian/Dockerfile)" | tar -xz -C .redis-src --strip-components=1 &&
-      make -C .redis-src -j"$(nproc)" BUILD_TLS=no
+      make -C .redis-src/src -j"$(nproc)" BUILD_TLS=no
   command: cd .redis-src && ./runtest --clients 8 --tags -slow --dump-logs {{skip_args}}
   timeoutMinutes: 60
 build:

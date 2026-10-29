@@ -154,7 +154,14 @@ jobs:
           path: releases
       - id: m
         run: |
-          echo "matrix=$(jq -sc '{include: [.[][] | {repository, digest, image}]}' releases/*/release.json)" >> "$GITHUB_OUTPUT"
+          # download-artifact extracts a single matching artifact straight into releases/, several into
+          # releases/<name>/: find them wherever they landed, and fail loudly if there are none
+          files=()
+          while IFS= read -r f; do files+=("$f"); done < <(find releases -name release.json)
+          [ "${#files[@]}" -gt 0 ] || { echo "::error::no release.json in the release-* artifacts"; exit 1; }
+          matrix=$(jq -sc '{include: [.[][] | {repository, digest, image}]}' "${files[@]}")
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+          jq . <<<"$matrix"
 
   attest:
     needs: subjects

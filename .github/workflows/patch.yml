@@ -34,6 +34,9 @@ concurrency:
 jobs:
   plan:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      actions: read          # scheduled runs skip lines another run is patching right now
     outputs:
       matrix: ${{ steps.plan.outputs.matrix }}
       count: ${{ steps.plan.outputs.count }}
@@ -50,6 +53,7 @@ jobs:
           LINE: ${{ inputs.line }}
           ALL: ${{ inputs.all }}
           BEFORE: ${{ github.event.before }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           args=()
           if [ "$EVENT" = workflow_dispatch ] && [ -n "$RECIPE" ]; then args+=(--recipe "$RECIPE");
@@ -57,6 +61,18 @@ jobs:
           elif [ "$EVENT" = push ]; then git diff --name-only "$BEFORE" HEAD > "$RUNNER_TEMP/changed"; args+=(--changed-files "$RUNNER_TEMP/changed"); fi
           matrix=$(uv run --project patcher --frozen patcher plan "${args[@]}")
           if [ -n "$LINE" ]; then matrix=$(jq -c --arg l "$LINE" '{include: [.include[] | select(.line == $l)]}' <<<"$matrix"); fi
+          if [ "$EVENT" = schedule ]; then
+            # lines another patch run is working on right now: the nightly run doesn't start duplicates
+            # (lines whose patch PR already holds the upstream tag were skipped by `patcher plan`)
+            busy=$(for s in queued in_progress; do
+                     gh api "repos/$GITHUB_REPOSITORY/actions/workflows/patch.yml/runs?status=$s&per_page=50" \
+                       --jq ".workflow_runs[] | select(.id != $GITHUB_RUN_ID) | .id"; done \
+                   | xargs -r -I{} gh api "repos/$GITHUB_REPOSITORY/actions/runs/{}/jobs?per_page=100" \
+                       --jq '.jobs[] | select(.status != "completed") | .name' \
+                   | sed -n 's/^patch //p' | jq -Rsc 'split("\n") | map(select(length > 0))')
+            matrix=$(jq -c --argjson busy "${busy:-[]}" \
+              '{include: [.include[] | select((.recipe + " " + .line) as $k | $busy | index($k) | not)]}' <<<"$matrix")
+          fi
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
           echo "count=$(jq '.include | length' <<<"$matrix")" >> "$GITHUB_OUTPUT"
           jq . <<<"$matrix"
@@ -71,6 +87,10 @@ jobs:
       max-parallel: 4
       matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     name: patch ${{ matrix.recipe }} ${{ matrix.line }}
+    # one patch job per line at a time, across runs (a dispatch while the nightly run is on the same line)
+    concurrency:
+      group: patch-line-${{ matrix.recipe }}-${{ matrix.line }}
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

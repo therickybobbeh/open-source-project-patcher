@@ -274,3 +274,26 @@ def test_hung_build_is_killed_and_retried_once(monkeypatch, tmp_path):
     build.build_image(tmp_path, spec, spec.images[0], "local/app:1", "linux/arm64", {"commit": "c", "tag": "v1"}, {},
                       tmp_path / "build.log", push=False)
     assert calls == [3600, 3600]  # default build.timeoutMinutes, then one retry
+
+
+def test_collect_keeps_one_patch_set_per_line(tmp_path):
+    import json
+
+    from patcher.config import Repo
+    from patcher.pipeline import collect
+
+    (tmp_path / "recipes").mkdir()
+    (tmp_path / "recipes" / "_global.yaml").write_text("registry: ghcr.io/me\n")
+    gen = tmp_path / "generated" / "argo-cd"
+    for tag, line in (("v3.5.5", "v3.5"), ("v3.4.12", "v3.4")):  # an older patch set of v3.5, and another line
+        (gen / tag).mkdir(parents=True)
+        (gen / tag / "bump-plan.json").write_text(json.dumps({"line": line, "tag": tag}))
+    out = tmp_path / "out" / "argo-cd" / "v3.5"
+    (out / "generated").mkdir(parents=True)
+    (out / "generated" / "bump-plan.json").write_text(json.dumps({"line": "v3.5", "tag": "v3.5.6"}))
+    (out / "summary.json").write_text(json.dumps({"recipe": "argo-cd", "line": "v3.5", "tag": "v3.5.6", "status": "success",
+                                                  "draft": False}))
+    (out / "pr-body.md").write_text("report")
+    items = collect(Repo(tmp_path), tmp_path / "out")
+    assert [i["tag"] for i in items] == ["v3.5.6"]
+    assert sorted(p.name for p in gen.iterdir()) == ["v3.4.12", "v3.5.6"]  # v3.5.5 replaced; the v3.4 line untouched

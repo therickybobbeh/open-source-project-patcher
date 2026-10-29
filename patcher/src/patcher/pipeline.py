@@ -957,7 +957,8 @@ def plan_matrix(repo: Repo, *, recipes: list[str] | None = None, changed_files: 
                 for line in recipe.source.lines:
                     key = line_key(line)
                     cur = state.lines.get(key)
-                    if include_all or cur is None or cur.upstreamTag != _image_only_targets(recipe, line)[0][1]:
+                    tag = _image_only_targets(recipe, line)[0][1]
+                    if include_all or ((cur is None or cur.upstreamTag != tag) and not _pr_pending(repo, name, key, tag)):
                         selected.setdefault(name, set()).add(key)
                 continue
             tags = upstream.list_tags(recipe.source.url) if any(not l.branch for l in recipe.source.lines) else {}
@@ -965,7 +966,8 @@ def plan_matrix(repo: Repo, *, recipes: list[str] | None = None, changed_files: 
                 key = line_key(line)
                 tag, commit = upstream.resolve_line(recipe.source, line, tags)
                 cur = state.lines.get(key)
-                if include_all or cur is None or cur.upstreamTag != tag or (line.branch and cur.commit != commit):
+                new = cur is None or cur.upstreamTag != tag or (line.branch and cur.commit != commit)
+                if include_all or (new and not _pr_pending(repo, name, key, tag)):
                     selected.setdefault(name, set()).add(key)
     matrix = []
     for name, keys in sorted(selected.items()):
@@ -980,6 +982,13 @@ def plan_matrix(repo: Repo, *, recipes: list[str] | None = None, changed_files: 
             if keys is None or k in keys:
                 matrix.append({"recipe": name, "line": k})
     return matrix
+
+
+def _pr_pending(repo: Repo, name: str, key: str, tag: str) -> bool:
+    """A patch PR for exactly this upstream tag is already waiting for review (its branch holds the tag's patch set),
+    so the nightly run doesn't redo it. Needs the PR branches fetched (patch.yml checks out with fetch-depth 0)."""
+    ref = f"refs/remotes/origin/patch/{name}/{key}:generated/{name}/{tag}/bump-plan.json"
+    return run(["git", "-C", str(repo.root), "cat-file", "-e", ref], check=False, quiet=True).code == 0
 
 
 def collect(repo: Repo, out: Path) -> list[dict]:
