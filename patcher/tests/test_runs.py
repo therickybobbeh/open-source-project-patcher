@@ -106,3 +106,30 @@ def test_the_nightly_run_skips_a_tag_whose_patch_set_is_merged(tmp_path, monkeyp
     assert pipeline.plan_matrix(repo) == [{"recipe": "other", "line": "v1.2"}]
     monkeypatch.setattr(upstream, "list_tags", lambda url: {"v1.2.3": "c0ffee", "v1.2.4": "decade"})
     assert pipeline.plan_matrix(repo) == [{"recipe": "app", "line": "v1.2"}, {"recipe": "other", "line": "v1.2"}]
+
+
+def test_an_edit_to_comments_or_prose_runs_nothing(tmp_path):
+    import subprocess
+
+    def git(*args):
+        return subprocess.run(["git", "-C", str(tmp_path), "-c", "user.name=t", "-c", "user.email=t@t", *args],
+                              check=True, capture_output=True, text=True).stdout.strip()
+
+    (tmp_path / "recipes").mkdir()
+    (tmp_path / "recipes" / "_global.yaml").write_text("registry: ghcr.io/me\n")
+    recipe = {"name": "app", "description": "an app", "source": {"repo": "o/app", "lines": [{"tagPattern": r"^v1\.2\.\d+$"}]},
+              "build": {"images": [{"name": "app"}]}}
+    (tmp_path / "recipes" / "app.yaml").write_text(yaml.safe_dump(recipe))
+    git("init", "-q")
+    git("add", "-A")
+    git("commit", "-qm", "one")
+    before = git("rev-parse", "HEAD")
+    (tmp_path / "recipes" / "app.yaml").write_text("# why we track this\n" + yaml.safe_dump(
+        {**recipe, "description": "the app", "notes": ["a note"]}))
+    (tmp_path / "recipes" / "_global.yaml").write_text("# org-wide policy\nregistry: ghcr.io/me\n")  # would re-run every line
+    repo = Repo(tmp_path)
+    assert pipeline.plan_matrix(repo, changed_files=["recipes/app.yaml", "recipes/_global.yaml"], before=before) == []
+    # without the commit before the push, every change counts
+    assert pipeline.plan_matrix(repo, changed_files=["recipes/app.yaml"]) == [{"recipe": "app", "line": "v1.2"}]
+    (tmp_path / "recipes" / "app.yaml").write_text(yaml.safe_dump({**recipe, "build": {"images": [{"name": "app", "target": "prod"}]}}))
+    assert pipeline.plan_matrix(repo, changed_files=["recipes/app.yaml"], before=before) == [{"recipe": "app", "line": "v1.2"}]

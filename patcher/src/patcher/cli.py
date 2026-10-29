@@ -77,6 +77,8 @@ def schema(out: Path = typer.Option(Path("schema"), help="Directory for the JSON
 def plan(
     recipe: list[str] = typer.Option([], "--recipe", "-r", help="Only these recipes (all lines)"),
     changed_files: Optional[Path] = typer.Option(None, help="File listing changed paths (push trigger); `-` = stdin"),
+    before: Optional[str] = typer.Option(None, help="The commit before the push: changed config files that only differ in "
+                                                    "comments, `description` or `notes` run nothing"),
     all_lines: bool = typer.Option(False, "--all", help="Every line of every recipe"),
     repo: Optional[Path] = RepoOpt,
 ) -> None:
@@ -86,7 +88,7 @@ def plan(
     if changed_files:
         text = sys.stdin.read() if str(changed_files) == "-" else changed_files.read_text()
         changed = [l.strip() for l in text.splitlines() if l.strip()]
-    matrix = pipeline.plan_matrix(r, recipes=recipe or None, changed_files=changed, include_all=all_lines)
+    matrix = pipeline.plan_matrix(r, recipes=recipe or None, changed_files=changed, include_all=all_lines, before=before)
     typer.echo(json.dumps({"include": matrix}))
 
 
