@@ -140,6 +140,45 @@ easy to extend**. Items are ordered by priority within each section.
     patch, a bundled binary without a component) still gets a full run every night. Saving a fingerprint
     of the last check (tag, plan, image findings) would let those stop early too.
 
+## Later: running behind an artifact proxy (Nexus, Artifactory)
+
+Not implemented, and deliberately kept out of the core. This is how a proxy would plug in when there
+is an environment to test it in.
+
+**Principle:** *discovery* stays upstream, *retrieval* may go through the proxy. A proxy is a lazy
+cache: a tag it cached yesterday can be behind upstream, and a negative cache can hide a new release.
+So it must never decide what is newest. The pipeline already discovers upstream:
+- release lines from upstream git tags (`git ls-remote`);
+- image-only tags from the upstream registry;
+- fix versions from the Trivy DB;
+- release ages from the upstream package registries.
+
+Retrieval is safe through a proxy because everything fetched is pinned:
+- base images by digest (the dockerfile adapter writes `@sha256:`), and a digest is the same through a
+  proxy;
+- packages by lockfile checksums (`go.sum`, npm `integrity`, `Cargo.lock`, uv/poetry hashes).
+
+A stale or tampered cache then fails the build instead of quietly supplying something older.
+
+**Hook points, all configuration rather than code:**
+- **Language packages** (builds and tests): the tools' own settings, e.g. `GOPROXY`,
+  `npm_config_registry`, `UV_INDEX_URL`/`PIP_INDEX_URL`, a Maven `settings.xml` mirror, a Gradle init
+  script, Cargo source replacement. They need one passthrough into the patcher container (an env file
+  for `scripts/patcher-docker.sh`).
+- **Base images:** BuildKit registry mirrors (`buildkitd.toml`). Before building, compare
+  `crane digest` from upstream with the proxy's, and fail on a mismatch.
+- **Dockerfile `RUN` steps** that download from the internet: they only see the proxy through an
+  HTTP proxy or build args. This is the hard part; decide per recipe.
+- **Trivy DB:** `--db-repository` / `--java-db-repository` pointing at a mirror. Check the DB's
+  `UpdatedAt` and fail when it is older than a day, or new CVEs go unseen.
+- **Publishing:** `registry:` in `_global.yaml` (or `PATCHER_REGISTRY`) set to a hosted repository.
+  Signatures, SBOM and VEX attestations go to the same registry. Provenance can be pushed there too
+  (`push-to-registry`).
+- **Clusters** pull only from the hosted repository, by digest.
+
+Rescans of published images keep running against a fresh DB, so new CVEs in unchanged images still
+surface.
+
 ## Suggested order
 
 1. Isolate release credentials (gap 1): a small workflow change with the largest risk reduction.
