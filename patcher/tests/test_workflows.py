@@ -83,3 +83,8 @@ def test_release_jobs():
     # what it builds is released: it reads no cache another project's job could have written either
     assert all(s["with"].get("image-cache") == "false" and not s["with"].get("cache-key") for s in steps(build) if s.get("uses") == RUN_PATCHER)
     assert release["push"][1] == {"contents": "read", "packages": "write"}
+    # `push` is skipped when a run builds nothing; a job after it with a plain condition would be skipped as well
+    for name in ("publish", "attest", "state"):
+        assert "!cancelled()" in str(release[name][0]["if"]), name
+    # the state PR is made from publish's outputs, never from an artifact (any job of the run can write those)
+    assert not any("download-artifact" in s.get("uses", "") for s in steps(release["state"][0]))

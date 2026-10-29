@@ -311,11 +311,13 @@ def test_image_only_release_swaps_the_recorded_jars_on_every_platform(monkeypatc
     monkeypatch.setattr(pipeline.copa, "for_image", lambda *a, **k: None)
     monkeypatch.setattr(pipeline, "image_digest", lambda ref: "sha256:abc")
     monkeypatch.setattr(pipeline, "scan_image", lambda ref, path, **k: scan())
+    # an earlier attempt pushed revision 1's -build, then failed: it is never overwritten, this run takes revision 2
+    monkeypatch.setattr(pipeline, "_tag_exists", lambda ref: ref == "ghcr.io/me/kafka:0.48.0-kafka-4.1.0-patched.1-build")
     plats = ["linux/amd64", "linux/arm64"]
     released = pipeline.publish(repo, r, "k4", plats, tmp_path / "out")
     # the vendor image is checked and overlaid for every platform at once: COPY layers, no emulation
     assert calls == [("restage", "quay.io/strimzi/kafka:0.48.0-kafka-4.1.0", plats, [KAFKA]),
-                     ("overlay", "quay.io/strimzi/kafka:0.48.0-kafka-4.1.0", plats, "ghcr.io/me/kafka:0.48.0-kafka-4.1.0-patched.1-build")]
+                     ("overlay", "quay.io/strimzi/kafka:0.48.0-kafka-4.1.0", plats, "ghcr.io/me/kafka:0.48.0-kafka-4.1.0-patched.2-build")]
     assert released[0]["jars"] == ["/opt/kafka/libs/jackson-databind-2.19.0.jar: com.fasterxml.jackson.core:jackson-databind 2.19.1"]
 
 
