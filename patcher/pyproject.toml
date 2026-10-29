@@ -14,10 +14,10 @@ dependencies = [
 patcher = "patcher.cli:app"
 
 [dependency-groups]
-dev = ["pytest>=8.3,<9"]
+dev = ["pytest>=9.1.1,<10"]
 
 [build-system]
-requires = ["hatchling>=1.27"]
+requires = ["hatchling>=1.32.4"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
