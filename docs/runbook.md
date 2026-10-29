@@ -274,6 +274,13 @@ The full walk-through for a new project, with a checklist, is [onboarding.md](on
 `rescan.yml` posts the table to its run summary every night. Keep the inventory current when
 deployments change; `patcher coverage --fail-on-uncovered` can gate a CI job on it.
 
+**New upstream release lines.** A recipe follows the lines you list. When upstream ships a newer line
+(Argo CD v3.6 while the recipe tracks v3.5 and v3.4), the daily rescan reports it (`patcher
+new-lines`) and opens one issue per line, labelled `new-release-line`. A prerelease, a Go submodule tag
+and a tag the recipe's `exclude` patterns match don't count. Add the line to track it, and the issue closes
+itself. To stay where you are, close the issue: it isn't reopened, and the next major or minor opens a
+new one.
+
 ## Dependency hygiene of this repo
 
 | What | Mechanism | When | Your part |
@@ -299,6 +306,7 @@ deployments change; `patcher coverage --fail-on-uncovered` can gate a CI job on 
 | `patcher run <recipe> [--line L] [--skip-tests] [--skip-build] [--no-copa] [--no-retry] [--no-cooldown]` | The PR flow, locally. Never pushes. Report in `out/<recipe>/<line>/generated/report.md` |
 | `patcher init [owner/repo] [--image REF] [--name N]` | Draft a recipe for a new project or image |
 | `patcher coverage [--json] [--fail-on-uncovered]` | Which inventory images are covered and patched |
+| `patcher new-lines [--json]` | Upstream release lines newer than every line a recipe tracks |
 | `patcher collect --out out` | Copy run outputs into `generated/` (what the PR job commits) |
 | `patcher release-build <recipe> --line L --platform P` / `patcher publish <recipe> --line L` | Release flow |
 | `patcher rescan` / `patcher refresh <recipe> --line L` | Nightly re-scan and the Copa-only refresh |

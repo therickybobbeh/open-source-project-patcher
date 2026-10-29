@@ -249,6 +249,27 @@ def coverage(
         raise typer.Exit(1)
 
 
+@app.command("new-lines")
+def new_lines(
+    json_out: bool = typer.Option(False, "--json", help="JSON instead of Markdown"),
+    repo: Optional[Path] = RepoOpt,
+) -> None:
+    """Upstream release lines newer than every line a recipe tracks (v3.6 shipped, recipes follow v3.5)."""
+    from dataclasses import asdict
+
+    from . import inventory
+
+    found = inventory.new_lines(_repo(repo))
+    if json_out:
+        typer.echo(json.dumps([asdict(x) for x in found], indent=2))
+        return
+    typer.echo("| Recipe | New line | Newest release | Tracked lines |\n|---|---|---|---|")
+    for x in found:
+        typer.echo(f"| {x.recipe} | {x.line} | `{x.tag}` | {', '.join(x.tracked)} |")
+    if not found:
+        typer.echo("| — | every recipe tracks the newest upstream release | | |")
+
+
 @app.command()
 def pins(
     write: bool = typer.Option(False, "--write", help="Rewrite the ARGs (default: only report)"),
