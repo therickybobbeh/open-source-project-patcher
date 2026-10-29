@@ -126,6 +126,15 @@ updated in place.
 
 Two runs never patch the same line at once: the second one waits.
 
+### Failure alerts
+
+`ci-alerts.yml` follows every run on `main` of patch, release, rescan, patcher-image, tool-pins
+and wiki history. Each failed or timed-out job opens an issue labelled `ci-failure`, titled
+`CI failure: <workflow> / <job>`. The issue names the failed step and links the job log. Another
+failure of the same job adds a comment. The issue closes itself the next time that job passes, so the
+open `ci-failure` issues are exactly what is broken now. Watch the label, or subscribe to it, to get
+notified.
+
 ## Skipping upstream tests
 
 Skip a test only if it needs infrastructure the pipeline doesn't have (cloud credentials, a live
