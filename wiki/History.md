@@ -2,7 +2,7 @@
 
 This page is generated from git history by [`build_wiki_history.py`](../scripts/build_wiki_history.py). The complete machine-readable snapshot is [`history.parquet`](history.parquet).
 
-Snapshot through: 2026-10-29T00:51:30-04:00
+Snapshot through: 2026-10-29T04:51:42Z
 
 | Date | Commit | Change | Patch artifacts |
 | --- | --- | --- | --- |
