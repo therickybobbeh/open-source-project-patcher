@@ -135,7 +135,10 @@ easy to extend**. Items are ordered by priority within each section.
     rebuilding the same patch set gives identical digests.
 13. **Cost.** Test durations per recipe vary from about 1 minute (spring-petclinic) to about 25
     (Argo Workflows). Record them in `summary.json`. Heavy suites may need larger or self-hosted
-    runners.
+    runners. A `no-changes` line stops after its scans only when its images hold nothing but findings
+    the source plan left. One whose images keep findings nothing here fixes (an OS package Copa can't
+    patch, a bundled binary without a component) still gets a full run every night. Saving a fingerprint
+    of the last check (tag, plan, image findings) would let those stop early too.
 
 ## Suggested order
 

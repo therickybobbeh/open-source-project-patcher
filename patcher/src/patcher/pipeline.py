@@ -24,7 +24,7 @@ from . import copa
 from .models import RELEASABLE_STATUSES, Level, Line, LineState, Recipe, ReleasedImage
 from .planner import Plan, Unresolved, build_plan
 from .proc import CommandError, first_error, log, output, run
-from .report import BASE_TOOLING, GLOBAL_NODE_PREFIX, ImageOutcome, Summary, render_markdown
+from .report import BASE_TOOLING, GLOBAL_NODE_PREFIX, ImageOutcome, Summary, bundled_paths, render_markdown
 from .scan import ScanReport, scan_fs, scan_image
 from .tests_runner import TestOutcome, only_preexisting, run_tests, same_setup_failure, setup_error
 from .versions import parse_semver, try_parse
@@ -61,6 +61,7 @@ class Attempt:
     tests: TestOutcome | None
     malicious: list[dict] = field(default_factory=list)
     install_env: dict[str, str] = field(default_factory=dict)  # release-age cutoff for test installs
+    settled: bool = False  # nothing a test run or a rebuild could change (see _settled): tests didn't run
 
 
 def _lines(recipe: Recipe, only: str | None) -> list[Line]:
@@ -108,7 +109,8 @@ def _scan_fs(repo: Repo, recipe: Recipe, src: Path, out: Path) -> ScanReport:
 
 
 def _attempt(repo: Repo, recipe: Recipe, tag: str, commit: str, out: Path, opts: RunOptions, cap: Level | None,
-             fs_before: ScanReport | None, extra: ScanReport | None = None) -> tuple[Attempt, ScanReport]:
+             fs_before: ScanReport | None, extra: ScanReport | None = None,
+             upstream_images: dict | None = None) -> tuple[Attempt, ScanReport]:
     key = out.name
     label = ("full plan" if cap is None else f"capped at {cap.value}") + (" + image findings" if extra else "")
     log(f"== {recipe.name} {tag}: attempt ({label})")
@@ -188,7 +190,8 @@ def _attempt(repo: Repo, recipe: Recipe, tag: str, commit: str, out: Path, opts:
 
     tests = None
     install_env = _install_cutoff(gate, src, commit)
-    if recipe.tests and not opts.skip_tests:
+    settled = upstream_images is not None and _settled(recipe, upstream_images, total.changes, ctx.requires, unresolved, fs_after)
+    if recipe.tests and not opts.skip_tests and not settled:
         test_dir = "tests" + ("" if cap is None else f"-{cap.value}") + ("-image" if extra else "")
         tests = run_tests(src, recipe.tests, repo.skips(recipe.name), out / test_dir, {**env, **install_env},
                           grace_days=repo.global_config().skipGraceDays)
@@ -198,8 +201,43 @@ def _attempt(repo: Repo, recipe: Recipe, tag: str, commit: str, out: Path, opts:
         plan_notes |= gate.notes
     (first_plan or Plan()).notes = sorted(plan_notes)
     att = Attempt(label, src, env, first_plan or Plan(), total, unresolved, dict(ctx.requires), fs_after, patch, tests,
-                  install_env=install_env)
+                  install_env=install_env, settled=settled)
     return att, fs_before
+
+
+def _settled(recipe: Recipe, upstream_images: dict, changes: list, requires: dict, unresolved: list[Unresolved],
+             fs: ScanReport | None) -> bool:
+    """Nothing a test run or a rebuild could change: no dependency changes, and every fixable finding in upstream's
+    images is a dependency of the project's own binaries that the source plan left unresolved (held, deferred by the
+    release-age rule, no fix in range), so the rebuilt image would ship it again. OS packages (Copa, a newer base),
+    Go's stdlib (the toolchain), bundled binaries (components) and Copa library patching keep the full run."""
+    specs = recipe.build.images if recipe.build else []
+    if changes or requires or not specs:
+        return False
+    left = {(u.name, u.vuln_id, u.installed.lstrip("v")) for u in unresolved}
+    for spec in specs:
+        ref, scan = upstream_images.get(spec.key, (None, None))
+        if scan is None:
+            return False
+        fixable = scan.fixable()
+        if fixable and spec.copa_enabled and spec.copa_options.libraries:
+            return False
+        bundled = bundled_paths(ImageOutcome(spec.key, ref, ref, scan, scan, own_binaries=spec.ownBinaries), fs)
+        if any(f.ecosystem == "os" or f.name == "stdlib" or f.location in bundled
+               or (f.name, f.vuln_id, f.installed.lstrip("v")) not in left for f in fixable):
+            return False
+    return True
+
+
+def _rebuild_delta(images: list[ImageOutcome]) -> tuple[int, int]:
+    """(fixed, new): fixable findings in upstream's images that ours don't have, and the reverse (the report's columns).
+    A binary at another path than in upstream's image counts as both, so only fixed > new means a better image."""
+    fixed = new = 0
+    for i in images:
+        if i.before and i.after:
+            b, a = {f.key for f in i.before.fixable()}, {f.key for f in i.after.fixable()}
+            fixed, new = fixed + len(b - a), new + len(a - b)
+    return fixed, new
 
 
 def _install_cutoff(gate: releases.AgeGate | None, src: Path, commit: str) -> dict[str, str]:
@@ -260,8 +298,16 @@ def run_line(repo: Repo, recipe: Recipe, line: Line, opts: RunOptions) -> Summar
             log(f"warning: could not scan upstream image {ref}: {e.tail[-300:]}")
             images_before[spec.key] = (ref, None)
 
-    att, fs_before, attempts = _attempt_with_retry(repo, recipe, tag, commit, out, opts, None)
+    att, fs_before, attempts = _attempt_with_retry(repo, recipe, tag, commit, out, opts, None, upstream_images=images_before)
     summary = _summarize(repo, recipe, key, tag, commit, fs_before, att, attempts)
+    if att.settled:
+        # the nightly run re-checks a line with nothing to change every night: this keeps that to a clone and the scans
+        summary.notes.append("Nothing to change: no dependency bumps, and upstream's images have no fixable findings except "
+                             "ones the source plan left unresolved, so the tests and the image build were skipped.")
+        summary.images = [ImageOutcome(k, ref, ref, scan, scan, copa="not run: nothing to fix") for k, (ref, scan) in images_before.items()]
+        summary.src = str(att.src)
+        _write_outputs(repo, summary, att, out)
+        return summary
     summary.images = _build_and_scan(repo, recipe, att, summary, out, opts, tctx, images_before)
     if summary.status in ("build-failed", "smoke-failed") and opts.retry_patch_level and att.label.startswith("full plan") \
             and any(c.ecosystem in CVE_ECOSYSTEMS and _level(c) != "patch" for c in att.result.changes):
@@ -297,6 +343,14 @@ def run_line(repo: Repo, recipe: Recipe, line: Line, opts: RunOptions) -> Summar
                 summary.notes.append("Bumps planned from image findings broke the upstream tests; the first pass is kept "
                                      f"({len(extra.findings)} image finding(s) remain).")
 
+    fixed, new = _rebuild_delta(summary.images)
+    if summary.status == "no-changes" and fixed > new:
+        # no dependency bumps, but our images are better than upstream's (Copa, rebuilt components, a newer base):
+        # released like an image-only line's Copa patch set, instead of dropped
+        summary.status = "success"
+        summary.notes.append(f"No dependency bumps: this patch set is a rebuild of upstream's source, whose image(s) fix "
+                             f"{fixed} finding(s) that upstream's have" + (f" (and have {new} that upstream's don't)." if new else "."))
+
     if recipe.scan.reachability and summary.status != "malicious-dependency":
         summary.vex_suggestions = _reachability(recipe, att)
 
@@ -319,8 +373,8 @@ def _reachability(recipe: Recipe, att: Attempt) -> list[dict]:
 
 
 def _attempt_with_retry(repo: Repo, recipe: Recipe, tag: str, commit: str, out: Path, opts: RunOptions,
-                        fs_before: ScanReport | None, extra: ScanReport | None = None):
-    att, fs_before = _attempt(repo, recipe, tag, commit, out, opts, None, fs_before, extra)
+                        fs_before: ScanReport | None, extra: ScanReport | None = None, upstream_images: dict | None = None):
+    att, fs_before = _attempt(repo, recipe, tag, commit, out, opts, None, fs_before, extra, upstream_images)
     attempts = [f"{att.label}: {_test_word(att.tests)}"]
     if not (att.tests and att.tests.ran and not att.tests.passed):
         return att, fs_before, attempts
@@ -968,7 +1022,8 @@ def plan_matrix(repo: Repo, *, recipes: list[str] | None = None, changed_files: 
                     key = line_key(line)
                     cur = state.lines.get(key)
                     tag = _image_only_targets(recipe, line)[0][1]
-                    if include_all or ((cur is None or cur.upstreamTag != tag) and not _pr_pending(repo, name, key, tag)):
+                    if include_all or ((cur is None or cur.upstreamTag != tag) and not _pr_pending(repo, name, key, tag)
+                                       and not _merged(repo, name, key, tag)):
                         selected.setdefault(name, set()).add(key)
                 continue
             tags = upstream.list_tags(recipe.source.url) if any(not l.branch for l in recipe.source.lines) else {}
@@ -977,7 +1032,7 @@ def plan_matrix(repo: Repo, *, recipes: list[str] | None = None, changed_files: 
                 tag, commit = upstream.resolve_line(recipe.source, line, tags)
                 cur = state.lines.get(key)
                 new = cur is None or cur.upstreamTag != tag or (line.branch and cur.commit != commit)
-                if include_all or (new and not _pr_pending(repo, name, key, tag)):
+                if include_all or (new and not _pr_pending(repo, name, key, tag) and not _merged(repo, name, key, tag, commit)):
                     selected.setdefault(name, set()).add(key)
     matrix = []
     for name, keys in sorted(selected.items()):
@@ -999,6 +1054,17 @@ def _pr_pending(repo: Repo, name: str, key: str, tag: str) -> bool:
     so the nightly run doesn't redo it. Needs the PR branches fetched (patch.yml checks out with fetch-depth 0)."""
     ref = f"refs/remotes/origin/patch/{name}/{key}:generated/{name}/{tag}/bump-plan.json"
     return run(["git", "-C", str(repo.root), "cat-file", "-e", ref], check=False, quiet=True).code == 0
+
+
+def _merged(repo: Repo, name: str, key: str, tag: str, commit: str = "n/a") -> bool:
+    """This tag's patch set is merged already: its release ran, failed (re-run release.yml for it) or never runs
+    (`publish: false`). Re-running the line would only open the same PR again, and the PR branch that `_pr_pending`
+    sees may be gone. A branch line's new head commit is a new patch set."""
+    plan_file = repo.root / "generated" / name / tag / "bump-plan.json"
+    if not plan_file.is_file():
+        return False
+    doc = json.loads(plan_file.read_text())
+    return doc.get("line") == key and doc.get("commit") == commit
 
 
 def collect(repo: Repo, out: Path) -> list[dict]:

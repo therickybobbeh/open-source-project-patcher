@@ -63,7 +63,7 @@ jobs:
           if [ -n "$LINE" ]; then matrix=$(jq -c --arg l "$LINE" '{include: [.include[] | select(.line == $l)]}' <<<"$matrix"); fi
           if [ "$EVENT" = schedule ]; then
             # lines another patch run is working on right now: the nightly run doesn't start duplicates
-            # (lines whose patch PR already holds the upstream tag were skipped by `patcher plan`)
+            # (lines whose patch set for the upstream tag is in a PR, open or merged, were skipped by `patcher plan`)
             busy=$(for s in queued in_progress; do
                      gh api "repos/$GITHUB_REPOSITORY/actions/workflows/patch.yml/runs?status=$s&per_page=50" \
                        --jq ".workflow_runs[] | select(.id != $GITHUB_RUN_ID) | .id"; done \
