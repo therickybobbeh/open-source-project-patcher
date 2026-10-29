@@ -19,7 +19,7 @@ from dataclasses import asdict, dataclass, field
 from .ecosystems import CVE_ECOSYSTEMS
 from .models import Hold, Level, Override, Recipe
 from .scan import Finding, Package, ScanReport
-from .versions import Version, level_between, pick_fix, try_parse, with_style
+from .versions import Version, level_between, pick_fix, split_fixed, try_parse, with_style
 
 # ecosystems the source adapters can change (others are reported only)
 PATCHABLE = set(CVE_ECOSYSTEMS)
@@ -134,10 +134,15 @@ def build_plan(report: ScanReport, recipe: Recipe, ecosystems: set[str] | None =
             if gate is not None:
                 allow = lambda v, f=f, eco=eco, name=name, installed=installed: gate.check(
                     eco, name, _styled(eco, v.raw, installed), f.severity, f.vuln_id)[0]
-            pick = pick_fix(eco, installed, f.fixed, cap, allow)
+            fixed = f.fixed
+            if gate is not None:  # a withdrawn fix version (npm-deprecated, yanked) is replaced by the next good one
+                subs = [s for v in split_fixed(f.fixed) if (s := gate.replacement(eco, name, v))]
+                if subs:
+                    fixed = ", ".join([*split_fixed(f.fixed), *subs])
+            pick = pick_fix(eco, installed, fixed, cap, allow)
             if pick is None:
                 why = "needs-human: fix requires a bump beyond the `%s` policy" % cap.value
-                capped = pick_fix(eco, installed, f.fixed, cap)
+                capped = pick_fix(eco, installed, fixed, cap)
                 if capped is not None and gate is not None:
                     why = gate.check(eco, name, _styled(eco, capped[0].raw, installed), f.severity, f.vuln_id)[1]
                 elif pick_fix(eco, installed, f.fixed, None) is None:

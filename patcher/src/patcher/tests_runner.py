@@ -160,6 +160,9 @@ def _as_test_user(command: str, src: Path, env: dict[str, str]) -> tuple[str, di
     if sock.exists():
         groups.append(str(sock.stat().st_gid))
     env = {**env, "HOME": f"/home/{TEST_USER}", "USER": TEST_USER, "GOCACHE": f"/home/{TEST_USER}/.cache/go-build"}
+    # `go install` (Argo CD's test script installs go-junit-report) must land in the shared, writable $GOPATH/bin,
+    # never in a toolchain's root-owned install dir that a GOBIN might point at
+    env.pop("GOBIN", None)
     wrapped = f"setpriv --reuid={TEST_UID} --regid={TEST_UID} --groups={','.join(groups)} bash -euo pipefail -c {shlex.quote(command)}"
     return wrapped, env
 
@@ -249,6 +252,36 @@ def _stable_id(framework: str, s: str) -> str | None:
     s = re.sub(r"^\d+\)\s+", "", s)  # mocha numbering
     s = re.sub(r"\s*\(?\d+(?:\.\d+)?\s?m?s\)?$", "", s)  # trailing durations (jest, vitest)
     return s or None
+
+
+def error_signature(text: str) -> list[str]:
+    """The error lines of a failed run without what differs between two checkouts of the same code (checkout dirs,
+    temp dirs, numbers), so the same setup failure in the patched and the baseline run compares equal."""
+    sig = []
+    for line in text.splitlines():
+        if not re.search(r"(?i)\b(error|fatal|denied|panic|not found|no such file)", line):
+            continue
+        s = re.sub(r"/(?:src(?:-[\w-]+)?|baseline-src)(?=/|\s|$)", "/SRC", line)
+        s = re.sub(r"/tmp/[^\s/]+", "/tmp/X", s)
+        sig.append(re.sub(r"\d+", "N", s).strip())
+    return sig[-10:]
+
+
+def setup_error(text: str) -> str:
+    """The most specific error line of a run that failed before any test: the cause, not `make: *** … Error 1`."""
+    lines = [l.strip() for l in text.splitlines() if re.search(r"(?i)\b(error|fatal|denied|panic|not found|no such file)", l)]
+    specific = [l for l in lines if not l.startswith("make: ***")]
+    return (specific or lines or ["unknown error"])[0][:200]
+
+
+def same_setup_failure(patched: TestOutcome | None, baseline: TestOutcome | None) -> bool:
+    """Both runs failed before any test failed by name (the suite didn't start), with the same errors."""
+    if not (patched and baseline and patched.ran and baseline.ran and not patched.passed and not baseline.passed):
+        return False
+    if patched.failed or baseline.failed:
+        return False
+    sig = error_signature(patched.tail)
+    return bool(sig) and sig == error_signature(baseline.tail)
 
 
 def only_preexisting(patched: TestOutcome | None, baseline: TestOutcome | None) -> bool:

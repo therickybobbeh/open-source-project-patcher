@@ -164,3 +164,44 @@ def test_run_timeout_kills_a_silent_process_tree():
         run("echo started; sleep 30 & wait", timeout=1, capture=True)
     assert time.monotonic() - start < 10
     assert "timed out after 1s" in e.value.tail and "started" in e.value.tail
+
+
+def test_same_setup_failure_on_both_sides_is_an_environment_problem():
+    from patcher.tests_runner import same_setup_failure
+
+    def failed_run(tail):
+        return TestOutcome(ran=True, passed=False, failed=[], tail=tail)
+
+    patched = failed_run("go: copying /tmp/go-build2206174378/b001/exe/a.out: open /opt/mise/installs/go/1.26.10/bin/x: "
+                         "permission denied\nmake: *** [Makefile:449: test-local] Error 1")
+    baseline = failed_run("go: copying /tmp/go-build99/b001/exe/a.out: open /opt/mise/installs/go/1.26.10/bin/x: "
+                          "permission denied\nmake: *** [Makefile:449: test-local] Error 1")
+    assert same_setup_failure(patched, baseline)
+    from patcher.tests_runner import setup_error
+
+    assert setup_error(patched.tail).endswith("permission denied")  # the cause, not make's summary line
+    # a compile error only the bumps cause is a different signature
+    broken = failed_run("/work/argo-cd/v3.5/src/util/x.go:12: undefined: jose.Foo\nmake: *** [Makefile:449: test-local] Error 1")
+    assert not same_setup_failure(broken, baseline)
+    assert not same_setup_failure(TestOutcome(ran=True, passed=False, failed=["TestA"], tail="x error"), baseline)
+
+
+def test_withdrawn_fix_versions_are_replaced():
+    # lodash 4.18.0 was marked "Bad release" on npm the day after it shipped; 4.18.1 fixed it
+    doc = {"versions": {"4.17.21": {}, "4.18.0": {"deprecated": "Bad release. Please use lodash@4.17.21 instead."},
+                        "4.18.1": {}, "5.0.0-beta.1": {}},
+           "time": {"4.17.21": "2021-02-20T15:42:16Z", "4.18.0": "2026-03-31T18:18:42Z", "4.18.1": "2026-04-01T21:01:20Z"}}
+
+    def fetch(url, method="GET"):
+        assert url == "https://registry.npmjs.org/lodash"
+        return {}, json.dumps(doc).encode()
+
+    g = releases.AgeGate(7, {"CRITICAL"}, set(), releases.ReleaseAges(fetch=fetch), now=NOW)
+    rep = parse_report({"Results": [{"Target": "ui/pnpm-lock.yaml", "Class": "lang-pkgs", "Type": "pnpm", "Packages": [],
+                                     "Vulnerabilities": [{"VulnerabilityID": "CVE-2026-4800", "PkgName": "lodash",
+                                                          "InstalledVersion": "4.17.21", "FixedVersion": "4.18.0",
+                                                          "Status": "fixed", "Severity": "CRITICAL"}]}]})
+    plan = build_plan(rep, recipe(ecosystems=[{"type": "pnpm", "dirs": ["ui"]}]), gate=g)
+    assert [(b.name, b.to) for b in plan.bumps] == [("lodash", "4.18.1")]  # even CRITICAL never gets the withdrawn one
+    assert any("withdrawn" in n and "4.18.1" in n for n in plan.notes)
+    assert g.check("pnpm", "lodash", "4.18.0", "CRITICAL", "CVE-2026-4800")[1].startswith("4.18.0 was withdrawn by its registry")

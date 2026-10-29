@@ -113,6 +113,10 @@ policy:
   - `cooldownBypass`: findings of these severities, and CVEs on CISA's Known Exploited Vulnerabilities
     list (fetched once per run), are fixed immediately.
   - `patcher run --no-cooldown` turns the rule off for one local run.
+- **Withdrawn releases are never used**, whatever the severity: a version npm marks deprecated, or
+  PyPI or crates.io marks yanked, is replaced by the next release in the same major line that
+  stands. For example, lodash 4.18.0 ("Bad release" on npm, it broke `lodash/template`) becomes
+  4.18.1. The report notes the substitution.
 
 ## Ecosystems
 
@@ -352,7 +356,10 @@ When the patched tests fail, the same tests run on the **unpatched** source (ups
 `patches/`, no bumps). If every failing test also fails there, the run is `tests-preexisting`: the
 PR is ready for review and labeled `preexisting-test-failures`. Otherwise the run retries with
 patch-level bumps only, and the PR is a draft if failures remain. Failing tests are compared using
-JUnit when available, otherwise by test ids parsed from the log (durations and counts removed).
+JUnit when available, otherwise by test ids parsed from the log (durations and counts removed). The
+same patch-level retry happens when the image **build** or a smoke test fails. If the suite fails
+before any test runs, with the same error on the unpatched source, the report calls it an
+environment problem and skips the retry.
 
 Install test dependencies into the checkout, never into the shared toolchain. For Python, use a
 project `.venv`, `uv sync` or `poetry install` with `POETRY_VIRTUALENVS_IN_PROJECT=true`; see

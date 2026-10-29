@@ -39,10 +39,42 @@ def go_escape(path: str) -> str:
 
 @dataclass
 class ReleaseAges:
-    """Publish time of `name@version` per ecosystem, cached for the run."""
+    """Publish time and withdrawal status of `name@version` per ecosystem, cached for the run."""
 
     fetch: object = field(default=_get, repr=False)
     _cache: dict = field(default_factory=dict, repr=False)
+    _docs: dict = field(default_factory=dict, repr=False)  # whole-package registry documents
+
+    def _doc(self, url: str) -> dict:
+        if url not in self._docs:
+            _, body = self.fetch(url)
+            self._docs[url] = json.loads(body)
+        return self._docs[url]
+
+    def releases(self, eco: str, name: str) -> dict[str, str | None] | None:
+        """Every release of a package -> why the registry withdrew it (npm `deprecated`, PyPI/crates.io yanked), or
+        None if it stands. None when the registry can't say (Go, Maven: no withdrawal metadata to read here)."""
+        try:
+            if eco in ("npm", "pnpm", "yarn"):
+                doc = self._doc("https://registry.npmjs.org/" + name.replace("/", "%2f"))
+                return {v: (m.get("deprecated") or None) for v, m in doc.get("versions", {}).items()}
+            if eco == "python":
+                doc = self._doc(f"https://pypi.org/pypi/{urllib.parse.quote(name)}/json")
+                out = {}
+                for v, files in doc.get("releases", {}).items():
+                    yanked = files and all(f.get("yanked") for f in files)
+                    out[v] = (files[0].get("yanked_reason") or "yanked") if yanked else None
+                return out
+            if eco == "cargo":
+                doc = self._doc(f"https://crates.io/api/v1/crates/{name}")
+                return {v["num"]: ("yanked" if v.get("yanked") else None) for v in doc.get("versions", [])}
+        except (urllib.error.URLError, OSError, ValueError, KeyError, json.JSONDecodeError):
+            return None
+        return None
+
+    def withdrawn(self, eco: str, name: str, version: str) -> str | None:
+        rel = self.releases(eco, name)
+        return rel.get(version.lstrip("v")) if rel else None
 
     def published(self, eco: str, name: str, version: str) -> dt.datetime | None:
         key = (eco, name, version)
@@ -60,8 +92,7 @@ class ReleaseAges:
             _, body = get(f"https://proxy.golang.org/{go_escape(name)}/@v/{go_escape(v)}.info")
             return _iso(json.loads(body)["Time"])
         if eco in ("npm", "pnpm", "yarn"):
-            _, body = get("https://registry.npmjs.org/" + name.replace("/", "%2f"))
-            t = json.loads(body).get("time", {}).get(version)
+            t = self._doc("https://registry.npmjs.org/" + name.replace("/", "%2f")).get("time", {}).get(version)
             return _iso(t) if t else None
         if eco == "python":
             _, body = get(f"https://pypi.org/pypi/{urllib.parse.quote(name)}/{urllib.parse.quote(version)}/json")
@@ -101,6 +132,9 @@ class AgeGate:
     bypassed_fresh: bool = False  # a bypass let in a version younger than min_days (test installs must see it too)
 
     def check(self, eco: str, name: str, version: str, severity: str, vuln_id: str) -> tuple[bool, str]:
+        why = self.ages.withdrawn(eco, name, version)
+        if why:  # never, whatever the severity: the registry itself says don't use it
+            return False, f"{version} was withdrawn by its registry: {why[:120]}"
         if severity in self.bypass_severities or vuln_id in self.kev:
             published = self.ages.published(eco, name, version)
             if published is None or self.now - published < dt.timedelta(days=self.min_days):
@@ -116,6 +150,23 @@ class AgeGate:
         eligible = published + dt.timedelta(days=self.min_days)
         return False, f"cooldown: {version} released {age.days} day(s) ago (eligible {eligible:%Y-%m-%d})"
 
+    def replacement(self, eco: str, name: str, version: str) -> str | None:
+        """For a withdrawn fix version: the next release in the same major line that stands (lodash 4.18.0, marked
+        "Bad release" on npm, -> 4.18.1). None when `version` stands or nothing replaces it."""
+        from .versions import try_parse
+
+        rel = self.ages.releases(eco, name)
+        if not rel or not rel.get(version.lstrip("v")):
+            return None
+        base = try_parse(eco, version.lstrip("v"))
+        later = sorted((p, v) for v, why in rel.items() if not why and (p := try_parse(eco, v)) is not None
+                       and base is not None and p > base and p.major == base.major and not _prerelease(v))
+        if not later:
+            return None
+        self.notes.add(f"{name} {version} was withdrawn by its registry ({rel[version.lstrip('v')][:80]}); "
+                       f"{later[0][1]} considered instead")
+        return later[0][1]
+
 
 def install_cutoff_env(days: int, released: dt.datetime | None, now: dt.datetime | None = None) -> dict[str, str]:
     """Environment that makes uv, pip and npm resolve only releases published before a cutoff, for the
@@ -128,6 +179,10 @@ def install_cutoff_env(days: int, released: dt.datetime | None, now: dt.datetime
     ts = cutoff.astimezone(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     # pip >= 26.0 reads PIP_UPLOADED_PRIOR_TO; older pips ignore it
     return {"UV_EXCLUDE_NEWER": ts, "PIP_UPLOADED_PRIOR_TO": ts, "npm_config_before": ts}
+
+
+def _prerelease(v: str) -> bool:
+    return bool(re.search(r"-|(?:a|b|rc|alpha|beta|dev|pre)\.?\d*$", v, re.I))
 
 
 _ages = ReleaseAges()
