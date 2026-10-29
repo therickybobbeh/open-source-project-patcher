@@ -159,7 +159,9 @@ def output(cmd: Sequence[str], *, cwd: Path | None = None, env: Mapping[str, str
 # failures that come from fetching something over a flaky network, not from the work itself
 NETWORK_ERRORS = re.compile(r"unexpected EOF|connection reset|i/o timeout|TLS handshake timeout|no such host|Could not resolve host|"
                             r"Temporary failure in name resolution|EAI_AGAIN|ECONNRESET|ETIMEDOUT|502 Bad Gateway|"
-                            r"503 Service Unavailable|429 Too Many Requests", re.I)
+                            r"503 Service Unavailable|429 Too Many Requests|"
+                            # HTTP/2 streams that proxy.golang.org dropped mid-download (otelcol-contrib, ~1,000 modules)
+                            r"stream error: stream ID \d+; [A-Z_]+|GOAWAY", re.I)
 
 
 def retry_on_network(call, *, attempts: int = 2, wait: int = 30, timeouts: bool = False):
