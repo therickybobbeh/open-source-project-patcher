@@ -2,11 +2,12 @@
 
 This page is generated from git history by [`build_wiki_history.py`](../scripts/build_wiki_history.py). The complete machine-readable snapshot is [`history.parquet`](history.parquet).
 
-Snapshot through: 2026-10-29T14:14:52-04:00
+Snapshot through: 2026-10-29T14:15:16-04:00
 
 | Date | Commit | Change | Patch artifacts |
 | --- | --- | --- | --- |
-| 2026-10-29 | [`809be7fb7f`](../commit/809be7fb7f6376ae1a0ff0fbeef27e9d02a2563b) | Merge pull request #36 from therickybobbeh/state/copacetic/v0 | state/argo-workflows/v4.1.yaml |
+| 2026-10-29 | [`809be7fb7f`](../commit/809be7fb7f6376ae1a0ff0fbeef27e9d02a2563b) | Merge pull request #36 from therickybobbeh/state/copacetic/v0 | state/argo-cd/v3.5.yaml |
+| 2026-10-29 | [`fde8a70e83`](../commit/fde8a70e83767b171aa502c1af13543e59eb2a0a) | state: released argo-workflows v4.1 | state/argo-workflows/v4.1.yaml |
 | 2026-10-29 | [`bc2351f0ba`](../commit/bc2351f0ba795ab93884e1b69c4c5e1d2b97d1b8) | state: released argo-cd v3.4 | state/argo-cd/v3.4.yaml |
 | 2026-10-29 | [`f96135e4db`](../commit/f96135e4db717cb0b9ecf27f84a3020eee3d5685) | state: released trivy v0 | state/trivy/v0.yaml |
 | 2026-10-29 | [`a3d4098b96`](../commit/a3d4098b962c8fd5ad01458be73a41435a1568bd) | state: released maven maven3 | state/maven/maven3.yaml |
