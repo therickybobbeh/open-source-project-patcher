@@ -27,8 +27,11 @@ on:
 permissions:
   contents: read
 
+# GitHub keeps only one *pending* run per group, so a shared group for pushes made the newest push cancel the
+# pending run of the previous one (two recipe merges in a minute dropped the first recipe's run). Pushes get a
+# group per commit; same-line work is still serialized by the patch job's per-line group below.
 concurrency:
-  group: patch-${{ github.event_name }}-${{ inputs.recipe || 'all' }}-${{ inputs.line || 'all' }}
+  group: patch-${{ github.event_name }}-${{ github.event_name == 'push' && github.sha || format('{0}-{1}', inputs.recipe || 'all', inputs.line || 'all') }}
   cancel-in-progress: false
 
 jobs:
