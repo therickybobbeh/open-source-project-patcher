@@ -35,6 +35,10 @@ A recipe with `mode: component` and an `artifact` build (copy `recipes/gomplate.
 `components:` entry in each parent recipe that bundles it. Run the component on its own first
 (`patcher run <component> --skip-build`), then the parent.
 
+Jars of a Java distribution that an image unpacks (Maven's `lib/`, Kafka's `libs/`) aren't
+components: set `bundledJars` on the image (see `recipes/maven.yaml` and
+[docs/recipes.md](docs/recipes.md#bundled-jars)), with a smoke command that loads those jars.
+
 ## Adding an ecosystem
 
 1. A row in `patcher/src/patcher/ecosystems.py`: Trivy types, lockfiles, toolchain fields, the 0.x

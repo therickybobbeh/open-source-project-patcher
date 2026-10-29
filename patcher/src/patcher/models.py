@@ -288,6 +288,16 @@ class CopaOptions(_Model):
     level: Level = Field(Level.patch, description="How far Copa may move library versions")
 
 
+class BundledJars(_Model):
+    """A third-party Java distribution the image unpacks (Maven in /usr/share/maven, Kafka's libs/): the image's
+    build doesn't control its jars, so vulnerable ones are swapped for fixed releases from Maven Central."""
+
+    paths: list[str] = Field(min_length=1, description="Directory prefixes (or jar paths) in the image, e.g. `usr/share/maven/` "
+                             "or `opt/kafka/libs/`. Fixable findings in jars under them are swapped after the build")
+    level: Level = Field(Level.patch, description="How far a swapped jar may move (the policy cap for these swaps). The "
+                         "release-age rule and holds (`maven` key) apply as for source bumps")
+
+
 class ImageSpec(_Model):
     name: str = Field(description="Our image repository name, e.g. `argocd`")
     id: str | None = Field(None, description="Unique key when several variants share a repository (defaults to `name`)")
@@ -302,6 +312,9 @@ class ImageSpec(_Model):
     smoke: list[str] = Field(default_factory=list, description="Args passed to `docker run --rm <image>`; each must exit 0")
     ownBinaries: list[str] = Field(default_factory=list, description="Paths or directory prefixes (in the image) of what this source builds, "
                                    "e.g. `usr/local/bin/dex` or `app/`; anything else is a bundled artifact. Empty = guess from the source scan.")
+    bundledJars: BundledJars | None = Field(None, description="Jars of a bundled third-party Java distribution: vulnerable ones are "
+                                            "replaced with the fixed release from Maven Central (pinned by sha256) in an overlay "
+                                            "on the built image, before smoke tests and Copa")
     copa: bool | CopaOptions = Field(True, description="Copa for leftover OS packages; an object enables library patching too")
     tagPattern: str | None = Field(None, description="image-only: this image's own tag regex when it versions separately from the line")
     platforms: list[str] = Field(default_factory=list, description="Platforms this image exists for, when fewer than build.platforms")

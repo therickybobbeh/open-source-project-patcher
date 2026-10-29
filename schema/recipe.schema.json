@@ -74,6 +74,31 @@
       "title": "Build",
       "type": "object"
     },
+    "BundledJars": {
+      "additionalProperties": false,
+      "description": "A third-party Java distribution the image unpacks (Maven in /usr/share/maven, Kafka's libs/): the image's\nbuild doesn't control its jars, so vulnerable ones are swapped for fixed releases from Maven Central.",
+      "properties": {
+        "paths": {
+          "description": "Directory prefixes (or jar paths) in the image, e.g. `usr/share/maven/` or `opt/kafka/libs/`. Fixable findings in jars under them are swapped after the build",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Paths",
+          "type": "array"
+        },
+        "level": {
+          "$ref": "#/$defs/Level",
+          "default": "patch",
+          "description": "How far a swapped jar may move (the policy cap for these swaps). The release-age rule and holds (`maven` key) apply as for source bumps"
+        }
+      },
+      "required": [
+        "paths"
+      ],
+      "title": "BundledJars",
+      "type": "object"
+    },
     "CargoEco": {
       "additionalProperties": false,
       "properties": {
@@ -608,6 +633,18 @@
           },
           "title": "Ownbinaries",
           "type": "array"
+        },
+        "bundledJars": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BundledJars"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Jars of a bundled third-party Java distribution: vulnerable ones are replaced with the fixed release from Maven Central (pinned by sha256) in an overlay on the built image, before smoke tests and Copa"
         },
         "copa": {
           "anyOf": [

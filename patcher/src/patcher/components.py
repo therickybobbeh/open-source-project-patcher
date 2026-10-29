@@ -151,7 +151,9 @@ def prepare(repo: Repo, refs: list[ComponentRef], scan: ScanReport | None, opts,
     return comps
 
 
-def overlay_dockerfile(base_ref: str, comps: list[Component]) -> str:
+def overlay_dockerfile(base_ref: str, comps: list[Component], files: list[tuple[str, str]] = (),
+                       labels: dict[str, str] | None = None) -> str:
+    """`files`: (build-context file, image path) pairs copied as plain 0644 files (bundled jars, see jars.copies)."""
     lines = []
     for i, c in enumerate(comps):
         art = c.recipe.artifact
@@ -164,12 +166,14 @@ def overlay_dockerfile(base_ref: str, comps: list[Component]) -> str:
                   "ARG TARGETOS TARGETARCH", f"RUN {build}", ""]
     lines.append(f"FROM {base_ref}")
     lines += [f"COPY --from=comp{i} {c.recipe.artifact.output} {c.ref.path}" for i, c in enumerate(comps)]
+    lines += [f"COPY --chmod=0644 {src} {dest}" for src, dest in files]
+    lines += [f"LABEL {k}={json.dumps(v)}" for k, v in (labels or {}).items()]
     return "\n".join(lines) + "\n"
 
 
 def overlay(base_ref: str, comps: list[Component], out: Path, *, platforms: list[str], tag_ref: str, push: bool,
-            local_base: bool, timeout: int = 3600) -> None:
-    """Rebuild `base_ref` with the components' binaries swapped in, as `tag_ref`.
+            local_base: bool, timeout: int = 3600, files: list[tuple[str, str]] = (), labels: dict[str, str] | None = None) -> None:
+    """Rebuild `base_ref` with the components' binaries (and `files` from `out`, the build context) swapped in, as `tag_ref`.
 
     `local_base`: the base exists only in the local image store, so use the docker driver (which sees
     it) instead of a docker-container buildx builder."""
@@ -177,7 +181,7 @@ def overlay(base_ref: str, comps: list[Component], out: Path, *, platforms: list
     for c in comps:
         upstream.reset_tree(c.src)
     dockerfile = out / "Dockerfile.overlay"
-    dockerfile.write_text(overlay_dockerfile(base_ref, comps))
+    dockerfile.write_text(overlay_dockerfile(base_ref, comps, files, labels))
     args = ["docker", "buildx", "build", "--platform", ",".join(platforms), "-f", str(dockerfile), "-t", tag_ref, "--provenance=false"]
     for i, c in enumerate(comps):
         args += ["--build-context", f"comp{i}-src={c.src}"]

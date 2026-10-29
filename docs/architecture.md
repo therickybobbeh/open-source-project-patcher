@@ -20,6 +20,7 @@ remain. What can't be rebuilt gets what is possible:
 |---|---|
 | Open source, buildable | Rebuild with bumped dependencies, upstream tests, then Copa |
 | Bundles open-source binaries it doesn't build | Each binary is a **component**: rebuilt from its own source at the same version, tested, and swapped into the image |
+| Unpacks a third-party Java distribution (Maven's `lib/`, Kafka's `libs/`) | Its vulnerable jars are swapped for the fixed releases from Maven Central (**bundled jars**), pinned by sha256, then smoke-tested |
 | Closed source (`mode: image-only`) | Components for any open-source helpers it ships; Copa for OS packages, optionally Python and npm packages too (`copa: {libraries: true}`); VEX and vendor-release tracking for the rest |
 
 ## Components
@@ -30,7 +31,7 @@ remain. What can't be rebuilt gets what is possible:
 | Skips / VEX / patches | `skips/`, `vex/`, `patches/<project>/` | Human decisions: tests to skip, findings accepted with a reason, hand-written patches and extra files |
 | `patcher` CLI | `patcher/src/patcher/` | All of the logic (below). Every workflow job is a thin wrapper around one CLI command |
 | Patcher image | `patcher/Dockerfile` | The CLI plus every tool it shells out to (trivy, copa, mise, cosign, yq, docker CLI, buildx, compose, compilers). All pinned |
-| Generated patch sets | `generated/<project>/<tag>/` | Written by CI and reviewed through PRs: `deps.patch`, `bump-plan.json`, `report.md` |
+| Generated patch sets | `generated/<project>/<tag>/` | Written by CI and reviewed through PRs: `deps.patch`, `bump-plan.json`, `report.md`, and `jars.json` when bundled jars are swapped |
 | Release state | `state/<project>.yaml` | What was published: tag, revision, platforms, digests, and the fixable findings known at release time |
 | Workflows | `.github/workflows/` | `patch`, `release`, `rescan`, `patcher-image`, `tool-pins`, plus Dependabot (`.github/dependabot.yml`) |
 
@@ -48,6 +49,7 @@ remain. What can't be rebuilt gets what is possible:
 | `releases.py` | Publish times per registry, the release-age gate, the CISA KEV list, and the install cutoff for test environments |
 | `reach.py` | govulncheck reachability (draft VEX) and the osv-scanner malicious-package check |
 | `components.py` | Bundled binaries: find the version, patch and test it with its component recipe, overlay it into the image |
+| `jars.py` | Bundled Java distributions: plan jar swaps like Maven bumps, fetch the jars from Maven Central pinned by sha256, overlay them (with the components) and re-apply them at release |
 | `onboarding.py`, `inventory.py` | `patcher init` drafts; `inventory.yaml` coverage |
 | `build.py`, `copa.py`, `registry.py` | buildx or custom builds, smoke tests, Copa per platform, anonymous registry lookups |
 | `report.py`, `vex.py` | Before/after report (the PR body), and OpenVEX documents for each image |
@@ -91,22 +93,26 @@ flowchart TD
      the run is `tests-preexisting`;
    - otherwise, if any bump was above patch level, the run retries once with patch-level bumps only.
 10. **Build** each image for the native platform.
-11. **Components:** the built image is scanned, each bundled binary's version is found, its component
-    recipe is patched and tested at that version, and the binaries are swapped in with an overlay
-    build. The binaries are cross-compiled per platform in buildx stages.
+11. **Components and bundled jars:** the built image is scanned. Each bundled binary's version is
+    found, and its component recipe is patched and tested at that version. Each fixable jar of a
+    bundled Java distribution (`bundledJars`) is planned like a Maven bump and downloaded from Maven
+    Central. One overlay build swaps both in. The binaries are cross-compiled per platform in buildx
+    stages; each jar is copied over the old one, keeping its file name.
 12. **Smoke** commands, then **Copa** for fixable OS packages (and libraries if enabled), then the
     "after" scan.
 13. **Plan from the image** (`scan.image`, default for Gradle and Python): fixable findings in the
     image's own jars, Python packages or node_modules that the source scan couldn't see become bumps
     in the matching ecosystem. One more attempt runs; if its tests fail, the first pass is kept.
 14. **Reachability** (Go): govulncheck drafts VEX suggestions for what remains.
-15. **Write** `report.md`, `deps.patch`, `bump-plan.json`, `summary.json`, `vex-suggestions.yaml`,
-    OpenVEX, and each component's own outputs under `components/`.
+15. **Write** `report.md`, `deps.patch`, `bump-plan.json`, `jars.json`, `summary.json`,
+    `vex-suggestions.yaml`, OpenVEX, and each component's own outputs under `components/`.
 
 `deps.patch` is the full diff from the upstream commit. It includes the hand-written patches and
 files, so the release flow rebuilds exactly what was reviewed: it re-applies `deps.patch` to the
 verified upstream commit and nothing else. Components work the same way: their reviewed
-`components/<name>/deps.patch` is applied to their own verified commit and overlaid.
+`components/<name>/deps.patch` is applied to their own verified commit and overlaid. So do bundled
+jars: the release swaps exactly the jars in `jars.json`. Each download must match its recorded
+sha256, and the image must still contain the exact jar it replaces.
 
 ### Why the baseline and the cutoffs
 

@@ -45,14 +45,17 @@ What to check, section by section:
 1. **Fixable vulnerabilities:** counts before and after, for the source tree and each image.
    **New > 0 needs attention:** a bump pulled in something that's vulnerable.
 2. **Changes applied:** every bump, with the CVEs it fixes. Bumps above the policy cap only appear
-   when you added an override.
+   when you added an override. **Bundled jars swapped** lists each jar replaced in an image: coordinates,
+   from → to, CVEs and the sha256 pin. The jar keeps its old file name. Check that the image's smoke
+   tests passed, and that they actually load those jars.
 3. **Still fixable after patching:** every remaining finding with a reason:
 
    | Reason | What to do |
    |---|---|
    | `needs-human: … beyond the policy` | Choose one: raise `policy` for that ecosystem in the recipe; add an `override` with a reason; write a patch in `patches/<recipe>/` (e.g. a `Cargo.toml` change); or accept it with a VEX statement |
    | `held: …` | Intentional (see `holds`). Revisit the hold if the fix matters |
-   | `in bundled artifact …` | The finding is in a binary this source doesn't build. If it's open source, add it as a [component](recipes.md#components) so it's rebuilt with patched dependencies (helm, kustomize, git-lfs, gomplate and the credential helpers already are). Otherwise bump its pin with a `patches/` patch or a `files` edit, or record a VEX decision |
+   | `in bundled artifact …` | The finding is in a binary this source doesn't build. If it's open source, add it as a [component](recipes.md#components) so it's rebuilt with patched dependencies (helm, kustomize, git-lfs, gomplate and the credential helpers already are). If it's a jar of a Java distribution the image unpacks (Maven, Kafka), add [`bundledJars`](recipes.md#bundled-jars) to the image. Otherwise bump its pin with a `patches/` patch or a `files` edit, or record a VEX decision |
+   | `bundled jar: …` | A jar under `bundledJars.paths` wasn't swapped; the rest says why. A cooldown clears itself. For needs-human beyond `bundledJars.level`, raise `level` if the smoke tests cover the jar, or add a `maven` hold. A jar shaded into another one waits for a release of the distribution |
    | `cooldown: <ver> released N day(s) ago (eligible <date>)` | The fix is newer than the 7-day release-age rule allows. Nothing to do: a nightly run after `<date>` applies it. If it can't wait, add an `override` with a reason, or run with `--no-cooldown` |
    | `the Go toolchain used for the build is older than the fix` | No patched Go release of that line exists yet. The next run picks it up automatically |
    | `Copa failed: …` / `OS package not patched` | Check the image base. Copa can't patch some distroless images (see troubleshooting); a base-image bump may be needed |
@@ -238,6 +241,8 @@ findings instead trigger a `patch.yml` run, which ends in a normal patch PR.
   4. Add the image to `inventory.yaml`, merge, then dispatch `patch.yml` with `recipe=<name>`.
 - **Bundled binaries:** if the report lists findings `in bundled artifact`, add a component recipe
   (`mode: component`, see [recipes.md](recipes.md#components)) and reference it from the parent.
+  For jars of a Java distribution the image unpacks, set [`bundledJars`](recipes.md#bundled-jars) on
+  the image instead, with a smoke command that loads them.
 
 ## Coverage of the images we run
 
