@@ -147,7 +147,7 @@ build:
 | Workflow | Trigger | What it does |
 |---|---|---|
 | `patch.yml` | nightly, dispatch, push to `recipes/` `skips/` `patches/` `vex/` (not `patcher/`: dispatch with `all` to re-run every line) | `plan` → per line `patch` (no secrets, no push) → `pr` opens/updates `patch/<recipe>/<line>`, as a draft when tests fail |
-| `release.yml` | push to `generated/**` (merged PR) | per-arch builds on native runners → merge → Copa → cosign sign + SBOM + OpenVEX attestations → SLSA provenance → `state/` PR |
+| `release.yml` | push to `generated/**` (merged PR); dispatch per line (`rebuild: false` finishes a release that failed after its builds) | one run per line: per-platform builds on native runners, without credentials (images leave as archives) → push per-arch tags → merge → Copa → cosign sign + SBOM + OpenVEX attestations → SLSA provenance → `state/` PR |
 | `rescan.yml` | daily | re-scans published images; new OS-only findings → Copa refresh, new language findings → `patch.yml` |
 | `wiki-history.yml` | patch/release/rescan completion, relevant pushes, dispatch | refreshes the versioned wiki history snapshot and commits `wiki/history.parquet` |
 | `patcher-image.yml` | PRs, pushes to `patcher/`, weekly | unit tests, `validate`, schema/lock drift; publishes the signed multi-arch patcher image |
@@ -213,3 +213,11 @@ high, medium and low findings, before → after.
 | examples: jupyterhub (pytest) | tests | Environment fixed (install cutoff, venv on PATH, proxy prefix): 500+ tests passing; a full clean run was in progress |
 
 The Copa fast path (`rescan` → `refresh`) was also verified against a local registry.
+
+The release flow with credential-free builds (2026-10-29) was verified locally against a throwaway registry, linux/arm64
+only: maven 3.10.0 (two images in one repository, bundled-jar overlay) and trivy v0.76.1 (custom build `command`) went
+through `release-build` (archives, no registry access) → `release-push` → `publish`. Also checked: finishing a revision
+whose final tag existed (`publish` without `--revision`, as `rebuild: false` runs it) kept its digests; an archive of the
+wrong platform was refused before anything was pushed; a second attempt took a new revision; a recorded revision was
+refused; archives from Docker's classic image store push fine; Copa patches an image that came through an archive.
+It has not run in GitHub Actions yet.

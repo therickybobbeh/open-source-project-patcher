@@ -42,6 +42,8 @@ TOOLS = (
     Tool("YQ", "mikefarah/yq", {"amd64": "yq_linux_amd64", "arm64": "yq_linux_arm64"}, r"^checksums$", fmt="yq"),
     Tool("OSV_SCANNER", "google/osv-scanner", {"amd64": "osv-scanner_linux_amd64", "arm64": "osv-scanner_linux_arm64"},
          r"^osv-scanner_SHA256SUMS$"),
+    Tool("CRANE", "google/go-containerregistry",
+         {"amd64": "go-containerregistry_Linux_x86_64.tar.gz", "arm64": "go-containerregistry_Linux_arm64.tar.gz"}, r"^checksums\.txt$"),
 )
 
 

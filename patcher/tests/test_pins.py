@@ -1,4 +1,6 @@
 import datetime as dt
+import re
+from pathlib import Path
 
 import pytest
 
@@ -6,6 +8,15 @@ from patcher import pins
 from patcher.versions import parse_semver
 
 NOW = dt.datetime(2026, 10, 28, tzinfo=dt.timezone.utc)
+
+
+def test_every_managed_tool_is_pinned_in_the_dockerfile():
+    """tool-pins.yml updates exactly these ARGs: each tool needs a version and a sha256 per architecture."""
+    pinned = pins.read_pins((Path(__file__).resolve().parents[1] / "Dockerfile").read_text())
+    for tool in pins.TOOLS:
+        assert parse_semver(pinned[f"{tool.arg}_VERSION"])
+        for arch in pins.ARCHES:
+            assert re.fullmatch(r"[0-9a-f]{64}", pinned[f"{tool.arg}_SHA256_{arch.upper()}"]), f"{tool.arg} {arch}"
 
 
 def rel(tag: str, days_old: int) -> pins.Release:

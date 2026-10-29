@@ -27,7 +27,7 @@ easy to extend**. Items are ordered by priority within each section.
    and the literal derived from it.
 2. **Split `pipeline.py` (≈1,000 lines) by flow.**
    - `flows/patch.py`: attempts, baseline, image planning.
-   - `flows/release.py`: release-build, publish, image-only publish.
+   - `flows/release.py`: release-plan, release-build, release-push, publish, image-only publish.
    - `flows/rescan.py`: rescan, refresh.
    - `plan.py`: plan matrix, collect.
 
@@ -57,14 +57,19 @@ easy to extend**. Items are ordered by priority within each section.
 
 ### Security
 
-1. **Release builds hold registry credentials while running upstream code.**
-   - **What happens:** the release `build` job logs in to GHCR (`packages: write`) and then runs
-     `release-build`, which runs `build.setup` and custom build `command`s (upstream Makefile
-     targets) in a container with `~/.docker` mounted. Compromised upstream build code could read
-     the token and push images under our names.
-   - **Fix:** build without credentials and export OCI archives (`--output type=oci`) as workflow
-     artifacts. A separate job that runs no upstream code loads, pushes, Copa-patches and signs
-     them. Components' overlays move with the build.
+1. **Caches shared with jobs that run upstream code.**
+   - **Done (2026-10-29):** release builds hold no registry credentials. They save their images as archives, and a
+     job that runs no upstream code checks and pushes them ([architecture.md](architecture.md#release-flow)). Every
+     release job, and Copa refresh, reads no GitHub Actions cache, and a run releases one line.
+   - **Still open:** any job on `main` can write `main`'s cache, including the patch jobs, which run upstream code.
+     - `patcher-image.yml` builds the published patcher image with the layer cache and then signs it. Build it
+       without the cache (as `run-patcher` does with `image-cache: "false"`).
+     - `setup-uv` restores its cache by default. Turn it off (`enable-cache: false`) in jobs with a write token:
+       `patch.yml`'s `pr` job and `wiki-history.yml`.
+     - The patch jobs share toolchain caches across projects, so one project's tests could plant something in
+       another's patch run. Their output is reviewed in the PR, but a per-project scope can't be enforced with the
+       GitHub cache: drop the cache there too, or verify module caches (`go mod verify`) before use.
+     - `docker/setup-buildx-action` runs the unpinned `moby/buildkit:buildx-stable-1`; pin it by digest.
 2. **Upstream authenticity.**
    - **Today:** tags are pinned to the commit `ls-remote` reports and re-checked after checkout.
    - **Not verified:**
@@ -181,7 +186,7 @@ surface.
 
 ## Suggested order
 
-1. Isolate release credentials (gap 1): a small workflow change with the largest risk reduction.
+1. The rest of the cache isolation (gap 1): small workflow changes; release credentials are isolated already.
 2. The pipeline self-test workflow (gap 10): it protects every later change.
 3. Release-line and patch lifecycle (gaps 4 and 5).
 4. The downstream mapping (gap 7).

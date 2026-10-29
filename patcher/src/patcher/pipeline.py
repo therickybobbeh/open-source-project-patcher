@@ -3,7 +3,7 @@
 `run_line`  - PR flow: checkout -> scan -> plan/apply (rounds) -> regen -> commit -> tests ->
               build (native platform) -> components + bundled-jar overlay -> smoke -> copa ->
               report + generated/ files.
-`release_build` / `publish` - release flow from the reviewed generated/ patch set.
+`release_plan` / `release_build` / `release_push` / `publish` - release flow from the reviewed generated/ patch set.
 `rescan` / `refresh` - nightly re-scan of published images and the Copa-only fast path.
 """
 
@@ -12,19 +12,20 @@ from __future__ import annotations
 import datetime as dt
 import json
 import os
+import re
 import shutil
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-from . import adapters, components, jars, reach, releases, toolchain, upstream
+from . import adapters, archive, components, jars, reach, releases, toolchain, upstream
 from .adapters.base import Ctx, Result
 from .build import BuiltImage, arch_of, build_image, image_digest, native_platform, smoke_test, template_ctx
 from .config import Repo, line_key, render
 from .ecosystems import CVE_ECOSYSTEMS
 from . import copa
-from .models import RELEASABLE_STATUSES, Level, Line, LineState, Recipe, ReleasedImage
+from .models import RELEASABLE_STATUSES, ImageSpec, Level, Line, LineState, Recipe, ReleasedImage
 from .planner import Plan, Unresolved, build_plan
-from .proc import CommandError, first_error, log, output, run
+from .proc import CommandError, first_error, log, output, retry_on_network, run
 from .report import BASE_TOOLING, GLOBAL_NODE_PREFIX, ImageOutcome, Summary, bundled_paths, render_markdown
 from .scan import ScanReport, scan_fs, scan_image
 from .tests_runner import TestOutcome, only_preexisting, run_tests, same_setup_failure, setup_error
@@ -726,6 +727,16 @@ def _run_image_only(repo: Repo, recipe: Recipe, line: Line, out: Path, opts: Run
 
 
 # --- release flow -------------------------------------------------------------
+#
+# release.yml runs each stage in its own job, so upstream code never shares a job with registry credentials:
+#   plan     release_plan    which line, on which platforms and runners             no upstream code, no credentials
+#   build    release_build   per platform: rebuild the reviewed patch set, save      upstream code, no credentials,
+#                            each image as an archive (archive.py)                   pushes nothing
+#   push     release_push    pick the revision, push the archives as <final>-<arch>  credentials, no upstream code
+#   publish  publish         merge the platforms, Copa, final + moving tags, state   credentials, no upstream code
+
+# the native GitHub-hosted runner each platform is built on (release.yml's build matrix)
+RUNNERS = {"linux/amd64": "ubuntu-24.04", "linux/arm64": "ubuntu-24.04-arm"}
 
 
 def find_generated(repo: Repo, recipe: Recipe, key: str, tag: str | None = None) -> tuple[Path, dict]:
@@ -743,39 +754,158 @@ def find_generated(repo: Repo, recipe: Recipe, key: str, tag: str | None = None)
     return best[1], best[2]
 
 
-def next_revision(repo: Repo, recipe: Recipe, key: str, tag: str) -> int:
-    """Next free revision. Also probes the registry: the state/ PR of an earlier release may not be
-    merged yet, and published tags are never overwritten."""
+def _releasable(gen: Path, doc: dict) -> None:
+    if doc.get("status") not in RELEASABLE:
+        raise RuntimeError(f"generated patch set {gen} has status {doc.get('status')!r}; only successful runs are released")
+
+
+def image_platforms(recipe: Recipe, spec: ImageSpec, only: list[str] | None = None) -> list[str]:
+    """The platforms one image is released for: `build.platforms`, narrowed to the image's own `platforms` if it lists
+    any (and to `only` for a partial run, e.g. one platform locally)."""
+    assert recipe.build
+    return [p for p in recipe.build.platforms if (not spec.platforms or p in spec.platforms) and (only is None or p in only)]
+
+
+def release_platforms(recipe: Recipe, only: list[str] | None = None) -> list[str]:
+    """The platforms a release builds: those of `build.platforms` at least one image is released for."""
+    assert recipe.build
+    used = {p for s in recipe.build.images for p in image_platforms(recipe, s, only)}
+    return [p for p in recipe.build.platforms if p in used]
+
+
+def release_targets(repo: Repo, changed_files: list[str]) -> list[tuple[str, str]]:
+    """(recipe, line) of every patch set a push added or changed: generated/<recipe>/<tag>/bump-plan.json at exactly
+    that depth. A component's own plan (generated/<recipe>/<tag>/components/<name>/bump-plan.json) is not a release."""
+    targets = []
+    for f in changed_files:
+        parts = f.split("/")
+        path = repo.root / f
+        if len(parts) == 4 and parts[0] == "generated" and parts[3] == "bump-plan.json" and path.is_file():
+            doc = json.loads(path.read_text())
+            targets.append((doc["recipe"], doc["line"]))
+    return list(dict.fromkeys(targets))
+
+
+def release_plan(repo: Repo, targets: list[tuple[str, str]]) -> dict:
+    """What release.yml runs for each (recipe, line): `include` rows with whether anything is built, and the platforms
+    with their native runners; `skipped` rows for what is never released, with the reason."""
+    include, skipped = [], []
+    for name, key in dict.fromkeys(targets):
+        recipe = repo.load_recipe(name)
+        why = ("a component: it ships inside its parents' images" if recipe.mode == "component"
+               else "publish: false" if not recipe.publish else "")
+        if why:
+            skipped.append({"recipe": name, "line": key, "reason": why})
+            continue
+        _lines(recipe, key)  # an unknown line is an error, not a silent no-op
+        if not recipe.build:
+            raise ValueError(f"{name}: no `build` section, nothing to release")
+        build = recipe.mode != "image-only"  # image-only: `publish` overlays the vendor image itself, in one cross build
+        plats = release_platforms(recipe)
+        if build and (missing := [p for p in plats if p not in RUNNERS]):
+            raise ValueError(f"{name}: no native runner for {', '.join(missing)}; release builds run on {', '.join(RUNNERS)}")
+        include.append({"recipe": name, "line": key, "build": build, "platforms": plats,
+                        "arches": [{"platform": p, "arch": arch_of(p), "runner": RUNNERS[p]} for p in plats if p in RUNNERS]})
+    return {"include": include, "skipped": skipped}
+
+
+@dataclass
+class ReleaseImage:
+    """One image of a release revision, with its tags."""
+
+    spec: ImageSpec
+    repository: str  # <registry>/<name>
+    upstream_tag: str  # what its tags start with, e.g. v2.46.1-distroless
+    final: str  # the immutable tag, e.g. v2.46.1-distroless-patched.3
+    platforms: list[str]
+
+    @property
+    def ref(self) -> str:
+        return f"{self.repository}:{self.final}"
+
+    @property
+    def moving(self) -> str:
+        return f"{self.repository}:{self.upstream_tag}-patched"
+
+    def staging(self, platform: str) -> str:
+        """`<final>-<arch>`: what `release_push` pushes and `publish` merges."""
+        return f"{self.ref}-{arch_of(platform)}"
+
+    @property
+    def staged(self) -> list[str]:
+        return [self.staging(p) for p in self.platforms]
+
+
+def release_images(repo: Repo, recipe: Recipe, tctx: dict[str, str], rev: int, only: list[str] | None = None) -> list[ReleaseImage]:
+    """Every image of revision `rev` with its tags. The one place release tags are made: what `release_push` may push,
+    what `publish` merges and tags, and what `next_revision` / `built_revision` look for."""
+    assert recipe.build
+    g = repo.global_config()
+    images = []
+    for spec in recipe.build.images:
+        plats = image_platforms(recipe, spec, only)
+        if not plats:
+            raise ValueError(f"{recipe.name}: image {spec.key} is released for none of {only}")
+        up_tag = render(spec.upstreamTag, tctx)
+        images.append(ReleaseImage(spec, f"{g.registry}/{spec.name}", up_tag, final_tag(repo, up_tag, rev), plats))
+    return images
+
+
+def _first_revision(repo: Repo, recipe: Recipe, key: str, tag: str) -> int:
+    """The revision after the one state/ records for upstream `tag` (1 for a new tag)."""
     st = repo.state(recipe.name).lines.get(key)
-    rev = st.revision + 1 if st and st.upstreamTag == tag else 1
-    if recipe.build:
-        spec = recipe.build.images[0]
-        base = f"{repo.global_config().registry}/{spec.name}"
-        up_tag = render(spec.upstreamTag, template_ctx(tag, ""))
-        while _tag_exists(f"{base}:{final_tag(repo, up_tag, rev)}"):
-            rev += 1
+    return st.revision + 1 if st and st.upstreamTag == tag else 1
+
+
+def next_revision(repo: Repo, recipe: Recipe, key: str, tag: str, commit: str = "") -> int:
+    """The revision `release_push` takes: the first after the released one (state/) of which no tag exists in the
+    registry yet, final or per-arch, for any image. Nothing is ever overwritten: neither a published revision whose
+    state/ PR isn't merged yet, nor the per-arch images an attempt left behind when it failed later (a new build takes
+    a new revision, so revision numbers can skip)."""
+    tctx = template_ctx(tag, commit)
+    rev = _first_revision(repo, recipe, key, tag)
+    while any(_tag_exists(ref) for i in release_images(repo, recipe, tctx, rev) for ref in (i.ref, *i.staged)):
+        rev += 1
     return rev
 
 
-def built_revision(repo: Repo, recipe: Recipe, key: str, tag: str, platforms: list[str]) -> int:
-    """Revision `publish` should merge: the highest one whose per-arch builds all exist. A retried
-    publish therefore finishes its own revision, while a fresh release-build always gets a new one."""
-    st = repo.state(recipe.name).lines.get(key)
-    rev = st.revision + 1 if st and st.upstreamTag == tag else 1
-    spec = recipe.build.images[0]
-    base = f"{repo.global_config().registry}/{spec.name}"
-    up_tag = render(spec.upstreamTag, template_ctx(tag, ""))
+def built_revision(repo: Repo, recipe: Recipe, key: str, tag: str, commit: str = "", only: list[str] | None = None) -> int:
+    """The revision `publish` finishes when its run built nothing (release.yml with `rebuild: false`): the highest
+    after the released one (state/) whose per-arch images all exist. `next_revision` hands revisions out in order and
+    each one gets a tag, so the search ends at the first revision without any."""
+    tctx = template_ctx(tag, commit)
+    first = rev = _first_revision(repo, recipe, key, tag)
     best = None
-    while all(_tag_exists(f"{base}:{final_tag(repo, up_tag, rev)}-{arch_of(p)}") for p in platforms):
-        best, rev = rev, rev + 1
+    while True:
+        images = release_images(repo, recipe, tctx, rev, only)
+        exists = {ref: _tag_exists(ref) for i in images for ref in (i.ref, *i.staged)}
+        if not any(exists.values()):
+            break
+        if all(exists[ref] for i in images for ref in i.staged):
+            best = rev
+        rev += 1
     if best is None:
-        raise LookupError(f"no per-arch builds of {base}:{final_tag(repo, up_tag, rev)}-<arch> for {platforms}; run release-build first")
+        raise LookupError(f"{recipe.name} {key}: no revision of {tag} from {first} on has all its per-arch images "
+                          f"({', '.join(release_images(repo, recipe, tctx, first, only)[0].staged)}, ...); "
+                          "nothing to finish: release with `rebuild: true`")
     return best
 
 
+_NOT_FOUND = re.compile(r"^ERROR: \S+: not found$", re.M)
+
+
 def _tag_exists(ref: str) -> bool:
-    # uses the docker credential store, so private GHCR packages are visible too
-    return run(["docker", "buildx", "imagetools", "inspect", ref], check=False, quiet=True).code == 0
+    """Whether `ref` is in the registry. Uses the docker credentials if there are any; our packages are public, so
+    anonymous reads work too. Only a clear "not found" means no: anything else (network, authentication) raises, so a
+    revision is never taken as free because the registry couldn't be asked."""
+
+    def probe() -> bool:
+        r = run(["docker", "buildx", "imagetools", "inspect", ref], check=False, quiet=True)
+        if r.code and not _NOT_FOUND.search(r.out):
+            raise CommandError(f"docker buildx imagetools inspect {ref}", r.code, r.out[-2000:])
+        return r.code == 0
+
+    return retry_on_network(probe)
 
 
 def final_tag(repo: Repo, upstream_tag: str, revision: int) -> str:
@@ -784,8 +914,6 @@ def final_tag(repo: Repo, upstream_tag: str, revision: int) -> str:
 
 def upstream_tag_of(repo: Repo, tag: str) -> str:
     """Inverse of `final_tag`: `v2.46.1-distroless-patched.3` -> `v2.46.1-distroless`."""
-    import re
-
     fmt = re.escape(repo.global_config().tagFormat)
     fmt = fmt.replace(re.escape("{{upstream_tag}}"), "(?P<u>.+)").replace(re.escape("{{revision}}"), r"\d+")
     m = re.fullmatch(fmt, tag)
@@ -796,8 +924,7 @@ def upstream_tag_of(repo: Repo, tag: str) -> str:
 
 def prepare_release_source(repo: Repo, recipe: Recipe, key: str, workdir: Path, out: Path, tag: str | None = None):
     gen, doc = find_generated(repo, recipe, key, tag)
-    if doc.get("status") not in RELEASABLE:
-        raise RuntimeError(f"generated patch set {gen} has status {doc.get('status')!r}; only successful runs are released")
+    _releasable(gen, doc)
     src = workdir / recipe.name / key / "release-src"
     if src.exists():
         shutil.rmtree(src)
@@ -812,46 +939,90 @@ def prepare_release_source(repo: Repo, recipe: Recipe, key: str, workdir: Path, 
 
 
 def release_build(repo: Repo, recipe: Recipe, key: str, platform: str, workdir: Path, out: Path, tag: str | None = None) -> list[dict]:
-    """Build + push every image of a line for one platform as `<final>-<arch>` (merged by `publish`)."""
+    """Rebuild every image of a line released for `platform`, from the reviewed patch set, and save each one as an
+    archive (`out/<recipe>/<line>/images/<arch>/<image key>.tar`) for `release_push`. Pushes nothing and needs no
+    credentials: this job runs upstream code (build commands, Dockerfile RUN steps), so it never gets any. Component
+    overlays and bundled-jar swaps happen here too, so the archives hold the finished per-arch images."""
     if not recipe.publish:
         log(f"{recipe.name}: publish: false, nothing is built or pushed")
         return []
     if recipe.mode == "image-only":
-        return []  # nothing to build: `publish` mirrors the upstream image
+        return []  # nothing to build: `publish` overlays the upstream image
     out = out / recipe.name / key
-    g = repo.global_config()
     assert recipe.build
+    specs = [s for s in recipe.build.images if platform in image_platforms(recipe, s)]
+    if not specs:
+        raise ValueError(f"{recipe.name}: no image is released for {platform} (build.platforms: {recipe.build.platforms})")
     src, doc, env = prepare_release_source(repo, recipe, key, workdir, out, tag)
     tctx = template_ctx(doc["tag"], doc["commit"])
-    rev = next_revision(repo, recipe, key, doc["tag"])
+    images = out / "images"
+    shutil.rmtree(images / arch_of(platform), ignore_errors=True)  # only this build's archives get uploaded
     for cmd in recipe.build.setup:
         run(render(cmd, tctx), cwd=src, env={**env, **recipe.build.env}, log_file=out / "build.log", capture=False, clean=True,
             timeout=recipe.build.timeoutMinutes * 60)
     gen, _ = find_generated(repo, recipe, key, tag)
     comps = components.from_generated(repo, recipe, gen, workdir / recipe.name / key) if recipe.components else {}
     swaps = jars.from_generated(gen)
-    pushed = []
-    for spec in recipe.build.images:
-        tag_base = final_tag(repo, render(spec.upstreamTag, tctx), rev)
-        ref = f"{g.registry}/{spec.name}:{tag_base}-{arch_of(platform)}"
+    built = []
+    for spec in specs:
+        local = f"{LOCAL_PREFIX}/{spec.name}:{render(spec.upstreamTag, tctx)}-release-{arch_of(platform)}"
         mine = [comps[c.recipe] for c in components.applicable(recipe, spec.key) if c.recipe in comps]
         mine_jars = swaps.get(spec.key, [])
-        if mine or mine_jars:  # build locally, then push the overlay with the rebuilt components and the reviewed jar swaps
-            base = build_image(src, recipe.build, spec, f"{LOCAL_PREFIX}/{spec.name}:{tag_base}-base", platform, tctx, env,
-                               out / "build.log", push=False)
+        if mine or mine_jars:  # build, then overlay the rebuilt components and the reviewed jar swaps
+            base = build_image(src, recipe.build, spec, f"{local}-base", platform, tctx, env, out / "build.log", push=False)
             jars.restage(base.ref, [platform], mine_jars, out / f"overlay-{spec.key}")
-            components.overlay(base.ref, mine, out / f"overlay-{spec.key}", platforms=[platform], tag_ref=ref, push=True, local_base=True,
-                               files=jars.copies(mine_jars), labels=jars.labels(mine_jars))
+            components.overlay(base.ref, mine, out / f"overlay-{spec.key}", platforms=[platform], tag_ref=local, push=False,
+                               local_base=True, files=jars.copies(mine_jars), labels=jars.labels(mine_jars))
         else:
-            build_image(src, recipe.build, spec, ref, platform, tctx, env, out / "build.log", push=True)
-        pushed.append({"image": spec.key, "ref": ref, "platform": platform, "components": [c.ref.recipe for c in mine],
-                       "jars": [f"/{s.path}: {s.name} {s.new}" for s in mine_jars]})
-    return pushed
+            build_image(src, recipe.build, spec, local, platform, tctx, env, out / "build.log", push=False)
+        path = archive.path_for(images, platform, spec.key)
+        archive.export(local, path, out / "build.log")
+        built.append({"image": spec.key, "platform": platform, "archive": str(path.relative_to(out)),
+                      "components": [c.ref.recipe for c in mine], "jars": [f"/{s.path}: {s.name} {s.new}" for s in mine_jars]})
+    return built
 
 
-def publish(repo: Repo, recipe: Recipe, key: str, platforms: list[str], out: Path, tag: str | None = None) -> list[dict]:
-    """Merge per-arch builds, Copa the result, push the immutable + moving tags, update state."""
-    g = repo.global_config()
+def release_push(repo: Repo, recipe: Recipe, key: str, out: Path, images: Path | None = None, tag: str | None = None,
+                 platforms: list[str] | None = None) -> dict:
+    """Push the archives `release_build` saved, as `<final>-<arch>` of the next free revision; writes pushed.json.
+
+    release.yml's push job: credentials, no upstream code. The archives come from jobs that ran upstream code, so they
+    are data. Every tag is computed here from the recipe and the reviewed patch set (`release_images`); each archive
+    must hold exactly one image, of the platform its path names; only the archives at the expected paths are read;
+    every archive is checked before anything is pushed; and no tag that exists is ever overwritten."""
+    if not recipe.publish or recipe.mode != "source" or not recipe.build:
+        raise ValueError(f"{recipe.name}: nothing to push (only source recipes with `publish: true` build images)")
+    out = out / recipe.name / key
+    out.mkdir(parents=True, exist_ok=True)
+    images = images or out / "images"
+    gen, doc = find_generated(repo, recipe, key, tag)
+    _releasable(gen, doc)
+    rev = next_revision(repo, recipe, key, doc["tag"], doc["commit"])
+    planned = [(img, p, archive.path_for(images, p, img.spec.key))
+               for img in release_images(repo, recipe, template_ctx(doc["tag"], doc["commit"]), rev, platforms) for p in img.platforms]
+    for _, p, path in planned:
+        archive.check(path, p)
+    pushed = []
+    for img, p, path in planned:
+        ref = img.staging(p)
+        if _tag_exists(ref):  # free when next_revision looked; another run may have pushed since
+            raise RuntimeError(f"{ref} exists: it is never overwritten. Dispatch the release again: it takes a new revision")
+        pushed.append({"image": img.spec.key, "platform": p, "ref": ref, "digest": archive.push(path, ref, out / "push.log")})
+        log(f"pushed {ref} ({pushed[-1]['digest']})")
+    result = {"recipe": recipe.name, "line": key, "tag": doc["tag"], "revision": rev, "pushed": pushed}
+    (out / "pushed.json").write_text(json.dumps(result, indent=2) + "\n")
+    return result
+
+
+def publish(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, out: Path, tag: str | None = None,
+            revision: int | None = None) -> list[dict]:
+    """Merge a revision's per-arch images, Copa the result, push the immutable and moving tags, update state.
+
+    `revision`: the one `release_push` pushed in this run. Without it (the run built nothing: `rebuild: false`), the
+    highest revision whose per-arch images all exist (`built_revision`). Never a revision state/ records. An image
+    whose final tag exists already, because an earlier publish of this revision failed after pushing it, is finished
+    as it is: no second merge or Copa, so its digest stays; it is tagged, scanned and recorded again, and the workflow
+    signs and attests what is still missing. `platforms` narrows the release (default: the recipe's)."""
     out = out / recipe.name / key
     out.mkdir(parents=True, exist_ok=True)
     if not recipe.publish:
@@ -859,37 +1030,50 @@ def publish(repo: Repo, recipe: Recipe, key: str, platforms: list[str], out: Pat
         (out / "release.json").write_text("[]\n")
         return []
     if recipe.mode == "image-only":
-        return _publish_image_only(repo, recipe, key, platforms, out)
+        return _publish_image_only(repo, recipe, key, platforms or recipe.build.platforms, out)
+    g = repo.global_config()
     gen, doc = find_generated(repo, recipe, key, tag)
+    _releasable(gen, doc)
     tctx = template_ctx(doc["tag"], doc["commit"])
-    rev = built_revision(repo, recipe, key, doc["tag"], platforms)
+    first = _first_revision(repo, recipe, key, doc["tag"])
+    if revision is None:
+        rev = built_revision(repo, recipe, key, doc["tag"], doc["commit"], platforms)
+    elif revision < first:
+        raise ValueError(f"{recipe.name} {key}: state/ records revision {first - 1} of {doc['tag']}; revision {revision} "
+                         "is released already and is never published again")
+    else:
+        rev = revision
     swaps = jars.from_generated(gen)  # already in the per-arch images merged here (release_build swapped them)
     released: list[dict] = []
     images: list[ReleasedImage] = []
-    for spec in recipe.build.images:
-        up_tag = render(spec.upstreamTag, tctx)
-        final = final_tag(repo, up_tag, rev)
-        repo_ref = f"{g.registry}/{spec.name}"
-        build_ref = f"{repo_ref}:{final}-build"
-        run(["docker", "buildx", "imagetools", "create", "-t", build_ref, *[f"{repo_ref}:{final}-{arch_of(p)}" for p in platforms]])
-        cr = copa.for_image(spec, build_ref, final, out, platforms=platforms, severities=g.scan.severities, push=True, src="remote")
-        if not (cr and cr.patched_ref):
-            run(["docker", "buildx", "imagetools", "create", "-t", f"{repo_ref}:{final}", build_ref])
-        run(["docker", "buildx", "imagetools", "create", "-t", f"{repo_ref}:{up_tag}-patched", f"{repo_ref}:{final}"])
-        digest = image_digest(f"{repo_ref}:{final}")
-        after = scan_image(f"{repo_ref}@{digest}", out / f"scan-release-{spec.key}.json", severities=g.scan.severities,
-                           platform=platforms[0], src="remote")
-        vexdoc = openvex(repo.vex(recipe.name), oci_purl(repo_ref, digest), after.findings,
+    for img in release_images(repo, recipe, tctx, rev, platforms):
+        spec, cr = img.spec, None
+        if _tag_exists(img.ref):
+            log(f"{img.ref} exists: an earlier publish of revision {rev} got this far; finishing it as it is")
+            copa_note = "unchanged: an earlier publish of this revision pushed it"
+        else:
+            build_ref = f"{img.ref}-build"
+            run(["docker", "buildx", "imagetools", "create", "-t", build_ref, *img.staged])
+            cr = copa.for_image(spec, build_ref, img.final, out, platforms=img.platforms, severities=g.scan.severities, push=True,
+                                src="remote")
+            if not (cr and cr.patched_ref):
+                run(["docker", "buildx", "imagetools", "create", "-t", img.ref, build_ref])
+            copa_note = cr.note() if cr else "disabled"
+        run(["docker", "buildx", "imagetools", "create", "-t", img.moving, img.ref])
+        digest = image_digest(img.ref)
+        after = scan_image(f"{img.repository}@{digest}", out / f"scan-release-{spec.key}.json", severities=g.scan.severities,
+                           platform=img.platforms[0], src="remote")
+        vexdoc = openvex(repo.vex(recipe.name), oci_purl(img.repository, digest), after.findings,
                          extra_docs=[cr.vex] if cr and cr.vex else [])
         vex_path = out / f"vex-{spec.key}.openvex.json"
         vex_path.write_text(json.dumps(vexdoc, indent=2) + "\n")
-        images.append(ReleasedImage(name=spec.key, ref=f"{repo_ref}:{final}", digest=digest, knownFixable=_fixable_keys(after)))
-        released.append({"image": spec.key, "repository": repo_ref, "tag": final, "digest": digest, "vex": str(vex_path),
-                         "copa": (cr.skipped or "patched") if cr else "disabled",
-                         "jars": [f"/{s.path}: {s.name} {s.new}" for s in swaps.get(spec.key, [])]})
+        images.append(ReleasedImage(name=spec.key, ref=img.ref, digest=digest, knownFixable=_fixable_keys(after)))
+        released.append({"image": spec.key, "repository": img.repository, "tag": img.final, "digest": digest, "vex": str(vex_path),
+                         "copa": copa_note, "jars": [f"/{s.path}: {s.name} {s.new}" for s in swaps.get(spec.key, [])]})
     st = repo.state(recipe.name)
     st.lines[key] = LineState(upstreamTag=doc["tag"], commit=doc["commit"], revision=rev,
-                              releasedAt=dt.datetime.now(dt.timezone.utc).replace(microsecond=0), platforms=platforms, images=images)
+                              releasedAt=dt.datetime.now(dt.timezone.utc).replace(microsecond=0),
+                              platforms=release_platforms(recipe, platforms), images=images)
     repo.save_state(recipe.name, st)
     (out / "release.json").write_text(json.dumps(released, indent=2) + "\n")
     return released
@@ -935,7 +1119,7 @@ def _publish_image_only(repo: Repo, recipe: Recipe, key: str, platforms: list[st
                                                extra_docs=[cr.vex] if cr and cr.vex else []), indent=2) + "\n")
         images.append(ReleasedImage(name=spec.key, ref=f"{repo_ref}:{final}", digest=digest, knownFixable=_fixable_keys(after)))
         released.append({"image": spec.key, "repository": repo_ref, "tag": final, "digest": digest, "vex": str(vex_path),
-                         "copa": (cr.skipped or "patched") if cr else "disabled",
+                         "copa": cr.note() if cr else "disabled",
                          "jars": [f"/{s.path}: {s.name} {s.new}" for s in mine_jars]})
     st.lines[key] = LineState(upstreamTag=targets[0][1], commit="n/a", revision=rev, platforms=platforms,
                               releasedAt=dt.datetime.now(dt.timezone.utc).replace(microsecond=0), images=images)
@@ -982,7 +1166,25 @@ def rescan(repo: Repo, out: Path) -> dict:
     return result
 
 
-def refresh(repo: Repo, recipe: Recipe, key: str, platforms: list[str], out: Path) -> list[dict]:
+def _refresh_revision(repo: Repo, ls: LineState, platforms: list[str]) -> int:
+    """The revision a Copa refresh publishes: as for a release (`next_revision`), the first after the recorded one with
+    no tag yet, final or per-arch. So a refresh never lands on a revision a failed release attempt left images for,
+    which `rebuild: false` would then finish as that release."""
+
+    def refs(rev: int):
+        for img in ls.images:
+            repository, current = img.ref.rsplit(":", 1)
+            final = f"{repository}:{final_tag(repo, upstream_tag_of(repo, current), rev)}"
+            yield final
+            yield from (f"{final}-{arch_of(p)}" for p in platforms)
+
+    rev = ls.revision + 1
+    while any(_tag_exists(ref) for ref in refs(rev)):
+        rev += 1
+    return rev
+
+
+def refresh(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, out: Path) -> list[dict]:
     """Copa-only re-patch of the currently published images to the next revision."""
     if not recipe.publish:
         log(f"{recipe.name}: publish: false, nothing to refresh")
@@ -994,8 +1196,8 @@ def refresh(repo: Repo, recipe: Recipe, key: str, platforms: list[str], out: Pat
         raise LookupError(f"{recipe.name} line {key} has never been released")
     out = out / recipe.name / key
     out.mkdir(parents=True, exist_ok=True)
-    platforms = ls.platforms or platforms  # patch exactly what was released
-    rev = ls.revision + 1
+    platforms = ls.platforms or platforms or recipe.build.platforms  # patch exactly what was released
+    rev = _refresh_revision(repo, ls, platforms)
     released, images = [], []
     specs = {s.key: s for s in recipe.build.images}
     for img in ls.images:
@@ -1006,7 +1208,8 @@ def refresh(repo: Repo, recipe: Recipe, key: str, platforms: list[str], out: Pat
         repo_ref, cur_tag = img.ref.rsplit(":", 1)
         up_tag = upstream_tag_of(repo, cur_tag)
         final = final_tag(repo, up_tag, rev)
-        cr = copa.for_image(spec, f"{repo_ref}@{img.digest}", final, out, platforms=platforms, severities=g.scan.severities,
+        plats = [p for p in platforms if not spec.platforms or p in spec.platforms] or spec.platforms  # what this image has
+        cr = copa.for_image(spec, f"{repo_ref}@{img.digest}", final, out, platforms=plats, severities=g.scan.severities,
                             push=True, src="remote")
         if not (cr and cr.patched_ref):
             images.append(img)
@@ -1014,7 +1217,7 @@ def refresh(repo: Repo, recipe: Recipe, key: str, platforms: list[str], out: Pat
         run(["docker", "buildx", "imagetools", "create", "-t", f"{repo_ref}:{up_tag}-patched", f"{repo_ref}:{final}"])
         digest = image_digest(f"{repo_ref}:{final}")
         after = scan_image(f"{repo_ref}@{digest}", out / f"scan-refresh-{spec.key}.json", severities=g.scan.severities,
-                           platform=platforms[0], src="remote")
+                           platform=plats[0], src="remote")
         images.append(ReleasedImage(name=spec.key, ref=f"{repo_ref}:{final}", digest=digest, knownFixable=_fixable_keys(after)))
         released.append({"image": spec.key, "repository": repo_ref, "tag": final, "digest": digest, "copa": "patched"})
     if released:

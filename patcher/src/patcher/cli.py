@@ -126,6 +126,29 @@ def collect(out: Path = typer.Option(Path("out")), repo: Optional[Path] = RepoOp
     _emit(pipeline.collect(_repo(repo), out.resolve()))
 
 
+@app.command("release-plan")
+def release_plan(
+    recipe: Optional[str] = typer.Option(None, help="Release this recipe's line (with --line)"),
+    line: Optional[str] = typer.Option(None),
+    changed_files: Optional[Path] = typer.Option(None, help="File listing the paths a push changed; `-` = stdin"),
+    repo: Optional[Path] = RepoOpt,
+) -> None:
+    """Print what release.yml runs: {"include": [{recipe, line, build, platforms, arches}], "skipped": [...]}."""
+    r = _repo(repo)
+    if recipe and line and not changed_files:
+        targets = [(recipe, line)]
+    elif changed_files and not (recipe or line):
+        text = sys.stdin.read() if str(changed_files) == "-" else changed_files.read_text()
+        targets = pipeline.release_targets(r, [l.strip() for l in text.splitlines() if l.strip()])
+    else:
+        raise typer.BadParameter("give --recipe and --line, or --changed-files")
+    typer.echo(json.dumps(pipeline.release_plan(r, targets)))
+
+
+def _platforms(value: Optional[str]) -> Optional[list[str]]:
+    return [p for p in value.split(",") if p] if value else None
+
+
 @app.command("release-build")
 def release_build(
     recipe: str,
@@ -136,23 +159,43 @@ def release_build(
     workdir: Path = typer.Option(Path(".work"), envvar="PATCHER_WORKDIR", help="Scratch dir for upstream checkouts"),
     repo: Optional[Path] = RepoOpt,
 ) -> None:
-    """Release flow, per platform: re-apply the reviewed patch set, build and push `<tag>-<arch>`."""
+    """Release flow, per platform: re-apply the reviewed patch set, build, and save each image to
+    out/<recipe>/<line>/images/<arch>/<image>.tar. Pushes nothing and needs no credentials."""
     r = _repo(repo)
     _emit(pipeline.release_build(r, r.load_recipe(recipe), line, platform, workdir.resolve(), out.resolve(), tag))
+
+
+@app.command("release-push")
+def release_push(
+    recipe: str,
+    line: str = typer.Option(...),
+    images: Optional[Path] = typer.Option(None, help="Archives from release-build (default: out/<recipe>/<line>/images)"),
+    platforms: Optional[str] = typer.Option(None, help="Comma-separated subset of the recipe's platforms (default: all)"),
+    tag: Optional[str] = typer.Option(None),
+    out: Path = typer.Option(Path("out")),
+    repo: Optional[Path] = RepoOpt,
+) -> None:
+    """Release flow: push release-build's archives as `<final>-<arch>` of the next free revision (never overwriting
+    a tag); writes out/<recipe>/<line>/pushed.json."""
+    r = _repo(repo)
+    _emit(pipeline.release_push(r, r.load_recipe(recipe), line, out.resolve(), images.resolve() if images else None, tag,
+                                _platforms(platforms)))
 
 
 @app.command()
 def publish(
     recipe: str,
     line: str = typer.Option(...),
-    platforms: str = typer.Option("linux/amd64,linux/arm64"),
+    platforms: Optional[str] = typer.Option(None, help="Comma-separated subset of the recipe's platforms (default: all)"),
     tag: Optional[str] = typer.Option(None),
+    revision: Optional[int] = typer.Option(None, help="The revision release-push pushed (default: the highest one whose "
+                                                      "per-arch images all exist)"),
     out: Path = typer.Option(Path("out")),
     repo: Optional[Path] = RepoOpt,
 ) -> None:
     """Release flow: merge per-arch images, Copa, push final + moving tags, update state/."""
     r = _repo(repo)
-    _emit(pipeline.publish(r, r.load_recipe(recipe), line, platforms.split(","), out.resolve(), tag))
+    _emit(pipeline.publish(r, r.load_recipe(recipe), line, _platforms(platforms), out.resolve(), tag, revision))
 
 
 @app.command()
@@ -165,13 +208,13 @@ def rescan(out: Path = typer.Option(Path("out/rescan")), repo: Optional[Path] = 
 def refresh(
     recipe: str,
     line: str = typer.Option(...),
-    platforms: str = typer.Option("linux/amd64,linux/arm64"),
+    platforms: Optional[str] = typer.Option(None, help="Only when state/ records none (default: the recipe's)"),
     out: Path = typer.Option(Path("out")),
     repo: Optional[Path] = RepoOpt,
 ) -> None:
     """Copa-only re-patch of a published line (new OS CVEs, no source change)."""
     r = _repo(repo)
-    _emit(pipeline.refresh(r, r.load_recipe(recipe), line, platforms.split(","), out.resolve()))
+    _emit(pipeline.refresh(r, r.load_recipe(recipe), line, _platforms(platforms), out.resolve()))
 
 
 @app.command()

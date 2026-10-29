@@ -317,7 +317,8 @@ class ImageSpec(_Model):
                                             "on the built image, before smoke tests and Copa")
     copa: bool | CopaOptions = Field(True, description="Copa for leftover OS packages; an object enables library patching too")
     tagPattern: str | None = Field(None, description="image-only: this image's own tag regex when it versions separately from the line")
-    platforms: list[str] = Field(default_factory=list, description="Platforms this image exists for, when fewer than build.platforms")
+    platforms: list[str] = Field(default_factory=list, description="Platforms this image exists for, when fewer than build.platforms: "
+                                 "it is built and released for those of build.platforms it lists")
 
     @property
     def key(self) -> str:
@@ -334,7 +335,9 @@ class ImageSpec(_Model):
 
 class Build(_Model):
     setup: list[str] = Field(default_factory=list, description="Commands run before image builds (e.g. `make build`)")
-    platforms: list[str] = Field(default_factory=lambda: ["linux/amd64", "linux/arm64"])
+    platforms: list[str] = Field(default_factory=lambda: ["linux/amd64", "linux/arm64"], min_length=1,
+                                 description="Platforms the line is released for. The release builds each one on its own native "
+                                             "runner (linux/amd64, linux/arm64) and merges them")
     env: dict[str, str] = Field(default_factory=dict)
     images: list[ImageSpec] = Field(min_length=1)
     timeoutMinutes: int = Field(60, description="Per image build (and per component overlay); a build that hangs is killed "
@@ -345,6 +348,9 @@ class Build(_Model):
         keys = [i.key for i in self.images]
         if len(keys) != len(set(keys)):
             raise ValueError(f"image keys must be unique (set `id` on variants): {keys}")
+        for i in self.images:
+            if i.platforms and not set(i.platforms) & set(self.platforms):
+                raise ValueError(f"image {i.key}: none of its platforms {i.platforms} is in build.platforms {self.platforms}")
         return self
 
 

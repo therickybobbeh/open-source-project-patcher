@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1
-# The portable patcher image: the `patcher` CLI plus every tool the pipeline shells out to.
+# The portable patcher image: the `patcher` CLI plus every tool the pipeline shells out to (trivy, copa, cosign,
+# osv-scanner, yq, crane, mise, the docker CLI with buildx and compose).
 # Language toolchains (Go, Rust, JDK/Maven, Node/pnpm) are installed at runtime by mise from each
 # recipe's `toolchain`, into /opt/mise (mount a cache volume there in CI).
 #
@@ -44,6 +45,11 @@ ARG YQ_VERSION=4.54.1
 ARG YQ_SHA256_AMD64=8e34fc298390875de416e6a4afcb8cabeceb25d9aa8506c1a2f9353cf702ea5f
 ARG YQ_SHA256_ARM64=189088da0c6429ec5178dfaab1a114805f6cab0b61b165ab236efedf1d57a71b
 
+# crane (go-containerregistry): the release's push job pushes the build jobs' image archives with it
+ARG CRANE_VERSION=0.22.1
+ARG CRANE_SHA256_AMD64=0ab7a1d6932a213aed964ce97666c3077fe691c8606413674a8b3e0b9ec4cda0
+ARG CRANE_SHA256_ARM64=898c0cff975f898a33e8c4580bdafb0e7c02c7faa33374e946762f97c4ab7110
+
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 
 # (TARGETARCH is only set by BuildKit; the RUNs below fall back to dpkg for the legacy builder / podman.)
@@ -86,6 +92,9 @@ RUN ARCH="${TARGETARCH:-$(dpkg --print-architecture)}" \
  && fetch "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${ARCH}" \
       yq "$(pick "$YQ_SHA256_AMD64" "$YQ_SHA256_ARM64")" \
  && install -m 0755 yq /usr/local/bin/yq \
+ && fetch "https://github.com/google/go-containerregistry/releases/download/v${CRANE_VERSION}/go-containerregistry_Linux_$(pick x86_64 arm64).tar.gz" \
+      crane.tgz "$(pick "$CRANE_SHA256_AMD64" "$CRANE_SHA256_ARM64")" \
+ && tar -xzf crane.tgz crane && install -m 0755 crane /usr/local/bin/crane \
  && rm -rf /tmp/*
 
 # MISE_GO_SET_GOBIN=false: `go install` goes to $GOPATH/bin (/opt/go/bin, on PATH and writable for the test user),

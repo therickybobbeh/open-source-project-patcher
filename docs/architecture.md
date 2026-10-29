@@ -30,7 +30,7 @@ remain. What can't be rebuilt gets what is possible:
 | Recipes | `recipes/<project>.yaml`, `recipes/_global.yaml` | What to patch, test and build for each upstream project, plus org-wide policy, overrides and holds |
 | Skips / VEX / patches | `skips/`, `vex/`, `patches/<project>/` | Human decisions: tests to skip, findings accepted with a reason, hand-written patches and extra files |
 | `patcher` CLI | `patcher/src/patcher/` | All of the logic (below). Every workflow job is a thin wrapper around one CLI command |
-| Patcher image | `patcher/Dockerfile` | The CLI plus every tool it shells out to (trivy, copa, mise, cosign, yq, docker CLI, buildx, compose, compilers). All pinned |
+| Patcher image | `patcher/Dockerfile` | The CLI plus every tool it shells out to (trivy, copa, mise, cosign, osv-scanner, yq, crane, docker CLI, buildx, compose, compilers). All pinned |
 | Generated patch sets | `generated/<project>/<tag>/` | Written by CI and reviewed through PRs: `deps.patch`, `bump-plan.json`, `report.md`, and `jars.json` when bundled jars are swapped |
 | Release state | `state/<project>/<line>.yaml` (one file per line, so lines released together don't conflict) | What was published: tag, revision, platforms, digests, and the fixable findings known at release time |
 | Workflows | `.github/workflows/` | `patch`, `release`, `rescan`, `patcher-image`, `tool-pins`, plus Dependabot (`.github/dependabot.yml`) |
@@ -52,8 +52,9 @@ remain. What can't be rebuilt gets what is possible:
 | `jars.py` | Bundled Java distributions: plan jar swaps like Maven bumps, fetch the jars from Maven Central pinned by sha256, overlay them (with the components) and re-apply them at release |
 | `onboarding.py`, `inventory.py` | `patcher init` drafts; `inventory.yaml` coverage |
 | `build.py`, `copa.py`, `registry.py` | buildx or custom builds, smoke tests, Copa per platform, anonymous registry lookups |
+| `archive.py` | Image archives, the release build's hand-off to the push job: `docker save`, the one-image-of-this-platform check, `crane push` |
 | `report.py`, `vex.py` | Before/after report (the PR body), and OpenVEX documents for each image |
-| `pipeline.py` | Stage orchestration for `run`, `release-build`, `publish`, `rescan`, `refresh`, `plan` and `collect` |
+| `pipeline.py` | Stage orchestration for `run`, `release-plan`, `release-build`, `release-push`, `publish`, `rescan`, `refresh`, `plan` and `collect` |
 | `pins.py` | Updates the tool pins (version + sha256) in `patcher/Dockerfile` |
 
 ## End-to-end flow
@@ -64,8 +65,10 @@ flowchart TD
     plan --> patch["patch.yml: patch job, one per release line<br/>checkout, scan, bump, test, build, Copa, report<br/>NO secrets, NO push"]
     patch --> pr["patch.yml: pr job<br/>generated/{project}/{tag}/ to a PR in this repo<br/>(draft if tests failed)"]
     pr --> review{"human review"}
-    review -->|merge| release["release.yml<br/>per-arch build on native runners, merge,<br/>Copa, cosign sign, SBOM + OpenVEX attest,<br/>SLSA provenance"]
-    release --> state["PR updating state/{project}/{line}.yaml"]
+    review -->|merge| build["release.yml: build, per platform on native runners<br/>rebuild the reviewed patch set, save image archives<br/>NO credentials, NO push"]
+    build --> push["release.yml: push<br/>archives to per-arch tags (crane)"]
+    push --> release["release.yml: publish, attest<br/>merge, Copa, cosign sign, SBOM + OpenVEX attest,<br/>SLSA provenance"]
+    release --> state["release.yml: state<br/>PR updating state/{project}/{line}.yaml"]
     state --> rescan["rescan.yml, daily<br/>scan published images"]
     rescan -->|new OS-only findings| refresh["Copa refresh to the next revision<br/>(no rebuild)"]
     rescan -->|new language findings| plan
@@ -125,20 +128,75 @@ The baseline separates "broken upstream" from "broken by us" without anyone read
 cutoff keeps test environments close to what upstream's CI saw when it released. It also keeps a
 freshly published, possibly malicious package out of the test run.
 
+## Release flow
+
+`release.yml` rebuilds a merged patch set and publishes it. Each stage is its own job, so upstream code never runs
+in a job that holds registry credentials:
+
+| Job | What it does | Upstream code | Permissions |
+|---|---|---|---|
+| `plan` | `patcher release-plan`: the line, whether anything is built, the platforms and their runners. A push that lands several patch sets dispatches one run per line instead | no | `contents: read`, `actions: write` |
+| `build`, one per platform | `patcher release-build`: applies the reviewed `deps.patch` to the verified upstream commit, builds each image for the platform with its components and bundled jars overlaid, and saves it as an archive (`docker save` to `images/<arch>/<image>.tar`), uploaded as an artifact | **yes** | `contents: read` only. No login, no cache |
+| `push` | `patcher release-push`: takes the next free revision, checks every archive, pushes each to `<final>-<arch>` with crane | no | `packages: write` |
+| `publish` | `patcher publish`: merges the per-arch images, Copa, final and moving tags, scan, OpenVEX, release record; then cosign signs and attaches the SBOM and OpenVEX | no | `packages: write`, `id-token: write` |
+| `attest` | SLSA build provenance, one per image | no | `packages: write`, `id-token: write`, `attestations: write` |
+| `state` | the PR updating `state/<project>/<line>.yaml` | no | GitHub App token (`contents`, `pull-requests: write` for its fallback) |
+
+**Why the build job gets no credentials.** Building upstream code runs it: the recipe's `build.setup` (upstream
+Makefile targets), custom build `command`s, and every Dockerfile `RUN` step. That code has the Docker socket, so it
+is root on the runner: it can read every file and every process's memory there, `~/.docker/config.json` and the
+runner's own tokens included. Logging in only after the build, in the same job, doesn't help: something the build
+started can wait for the credentials to show up. So the job that builds holds nothing worth taking (a read-only
+`GITHUB_TOKEN`, and its run's artifact and cache tokens), and the only thing of it that is used later is the archives.
+
+**The hand-off.** The archives come from an untrusted job, so they are data:
+- `release-push` takes no name, tag or path from them. Every tag is computed from the recipe and the reviewed patch
+  set: `<registry>/<image>:<final>-<arch>` for each image and each of its platforms. Only the archives at the expected
+  paths are read; each must hold exactly one image, of that platform; all are checked before anything is pushed; and a
+  tag that exists is never overwritten.
+- What is inside the images is what the build produced, as before this split: the release rebuilds exactly the
+  reviewed patch set.
+- **One line per run.** A job can write any artifact of its own run (the runner holds the token), so in a run that
+  released two projects, one project's build could replace the other's archives. A push that lands several patch sets
+  therefore dispatches a run per line, and a run's archives only ever come from that line's own build.
+- **No cache where credentials are, or where a release is built.** Any job on a branch can write that branch's GitHub
+  Actions cache, the jobs that run upstream code included. A job that reads it can end up running binaries another job
+  planted: the patcher image's layers, toolchains on `PATH`. So every `release.yml` job that runs the patcher, and Copa
+  refresh, builds the patcher image without the layer cache and restores no toolchain cache (`run-patcher` with
+  `image-cache: "false"` and no `cache-key`), and the plan job's `setup-uv` restores no cache either. The release build
+  takes longer for it, but one project's code can't reach another project's release. The patch jobs still share
+  caches; what they produce is reviewed in the PR.
+
+**Platforms.** `build.platforms` (default `linux/amd64`, `linux/arm64`) are the platforms a line is released for, and
+an image's own `platforms` narrows it to a subset. `release-plan` turns them into the build matrix, one native runner
+per platform (`ubuntu-24.04`, `ubuntu-24.04-arm`; there is no native runner for others, so they are refused). Each
+image is built, pushed and merged for exactly its platforms.
+
+**Recovery.** `state/` is written last, so it only records complete releases: signed, with SBOM, OpenVEX and
+provenance. A run that fails after its builds leaves an unrecorded revision, and dispatching the release with
+`rebuild: false` finishes it without building again (see [Tags and revisions](#tags-and-revisions) and the
+[runbook](runbook.md#a-release-failed-after-the-builds)). Re-running failed jobs (`gh run rerun --failed`) uses the
+workflow and action files of the commit that started the run, so it only helps with transient failures.
+
 ## Trust boundaries
 
 | Job | Runs upstream code? | Credentials |
 |---|---|---|
 | `patch.yml` / patch | yes (builds and tests) | none: `contents: read`, no secrets, nothing pushed |
 | `patch.yml` / pr | no | GitHub App token (to open PRs that trigger checks) |
-| `release.yml` / build | yes (re-runs the reviewed build) | `packages: write` (GHCR push) |
+| `release.yml` / build | yes (re-runs the reviewed build) | none: `contents: read`, no login, no cache; its images leave it as archives |
+| `release.yml` / push | no | `packages: write`; pushes only the per-arch tags it computes |
 | `release.yml` / publish, attest | no | `packages: write`, `id-token: write` (keyless cosign), `attestations: write` |
-| `rescan.yml` | no | `packages: read`; refresh adds `packages: write` + `id-token: write` |
+| `release.yml` / plan, state | no | `actions: write` (dispatch); GitHub App token (the `state/` PR) |
+| `rescan.yml` | no | `packages: read`; refresh adds `packages: write` + `id-token: write`, and reads no cache |
 | `tool-pins.yml` | no | GitHub App token |
 
 Supply-chain rules for the pipeline itself:
 - Every GitHub Action is pinned to a commit SHA.
 - Every tool download in the patcher image is pinned to a version and its sha256.
+- Jobs that hold write credentials, and the release build, read no GitHub Actions cache (see
+  [Release flow](#release-flow)). `patcher/tests/test_workflows.py` checks these rules, and that no job that runs
+  upstream code can write or logs in.
 - New releases of anything the pipeline uses are only adopted once they are **14 days old**:
   Dependabot's `cooldown` and `patcher pins --min-age-days`. Trivy's release channels were
   compromised in March 2026 (GHSA-69fq-xp46-6x23); a waiting period gives such incidents time to surface.
@@ -153,15 +211,20 @@ held to the same cutoff.
 |---|---|
 | `<upstream tag>-patched.<revision>` | Immutable release, e.g. `v2.46.1-patched.3`, `v2.46.1-distroless-patched.3` |
 | `<upstream tag>-patched` | Moving tag that always points to the newest revision |
-| `<final>-<arch>`, `<final>-build` | Staging tags used while releasing; safe to garbage-collect |
+| `<final>-<arch>`, `<final>-build` | Staging tags used while releasing: the push job's per-arch images and their merge. When Copa patches several platforms it pushes its per-platform results under the same `<final>-<arch>` names. Safe to garbage-collect once the revision is in `state/` |
 
 How revisions are chosen:
 - **First release** of a new upstream tag is revision 1.
 - **Release flow:**
-  - `release-build` takes the next revision whose final tag doesn't exist in the registry yet. A
-    `state/` PR that hasn't been merged can never cause a tag to be overwritten.
-  - `publish` merges the highest revision whose per-arch builds all exist. A retried publish therefore
-    finishes its own revision.
+  - `release-push` takes the first revision after the one `state/` records that has no tag in the registry yet, final
+    or per-arch, for any image. Nothing is overwritten: not a revision whose `state/` PR isn't merged yet, and not the
+    per-arch images a failed attempt left behind. A new build always takes a new revision, so revision numbers can skip.
+  - `publish` merges the revision `release-push` pushed in the same run.
+  - With `rebuild: false`, nothing is built or pushed, and `publish` finishes the highest revision after the recorded
+    one whose per-arch images all exist. An image whose final tag exists already (an earlier publish of that revision
+    pushed it, then failed) is kept as it is: no second merge or Copa, so its digest stays. It is tagged, scanned and
+    recorded again; signatures, SBOM and OpenVEX are only added where this workflow hasn't attached them yet (SLSA
+    provenance is attested again). A revision `state/` records is never published again.
 - **Copa refresh:** each refresh publishes the next revision of the same upstream tag.
 
 ## Rescan and `knownFixable`

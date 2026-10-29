@@ -121,8 +121,8 @@ updated in place.
 
 | Trigger | What runs |
 |---|---|
-| Nightly (03:17 UTC) | Lines whose newest upstream tag isn't released yet, **minus** lines whose patch set for that tag is in a PR (open, or merged into `generated/`: a failed release is re-run with `release.yml`, not re-patched) and lines another run is patching right now. A `no-changes` line comes back every night, so a new fix is picked up the next day; a line with nothing to change costs a clone and the scans |
-| Push to `recipes/`, `skips/`, `patches/`, `vex/` | The lines of the recipes that changed (`_global.yaml`: all of them). A file whose only changes are comments, formatting, or a recipe's `description` or `notes` runs nothing; the next run picks the text up |
+| Nightly (03:17 UTC) | Lines whose newest upstream tag isn't released yet, **minus** lines whose patch set for that tag is in a PR (open, or merged into `generated/`: a failed release is re-run with `release.yml`, not re-patched; see [A release failed after the builds](#a-release-failed-after-the-builds)) and lines another run is patching right now. A `no-changes` line comes back every night, so a new fix is picked up the next day; a line with nothing to change costs a clone and the scans |
+| Push to `recipes/`, `skips/`, `patches/`, `vex/` | The lines of the recipes that changed (`_global.yaml`: all of them) |
 | Manual dispatch | The recipe (and line) you name, or every line with `all` |
 
 Two runs never patch the same line at once: the second one waits.
@@ -185,13 +185,56 @@ Set `expires` so decisions get revisited.
 
 ## Releases
 
-`release.yml` runs when a patch PR merges:
-1. Rebuilds the reviewed patch set per platform.
-2. Merges the platforms and runs Copa.
-3. Signs with cosign (keyless).
-4. Attaches a CycloneDX SBOM, the OpenVEX document and SLSA provenance.
-5. Pushes the tags.
-6. Opens a `state/` PR.
+`release.yml` runs when a patch PR merges, one run per line:
+1. **build**: rebuilds the reviewed patch set on a native runner for each of the recipe's platforms
+   (`build.platforms`, default amd64 and arm64; an image's own `platforms` narrows it). This job runs upstream
+   code, so it has no registry credentials: it saves the images as archives instead of pushing them.
+2. **push**: pushes the archives as per-arch tags of a new revision, after checking each one.
+3. **publish**: merges the platforms, runs Copa, pushes the final and moving tags, signs with cosign (keyless), and
+   attaches a CycloneDX SBOM and the OpenVEX document.
+4. **attest**: SLSA provenance for each image.
+5. **state**: opens the `state/` PR. It comes last, so `state/` only records complete releases.
+
+Why the jobs are split this way is in [architecture.md](architecture.md#release-flow).
+
+### A release failed after the builds
+
+When `push`, `publish`, the signing, `attest` or `state` failed, the images are built already. Finish the release
+without building again:
+
+```bash
+gh workflow run release.yml -f recipe=<recipe> -f line=<line> -f rebuild=false
+```
+
+(or *Actions → release → Run workflow*, with *rebuild* unticked). It skips `build` and `push`. `publish` takes the
+highest revision after the one `state/` records whose per-arch images (`<final>-<arch>`, every image, every platform)
+are all in the registry, and carries on from there:
+- **Its final tag doesn't exist yet:** it is merged and Copa-patched as usual.
+- **Its final tag exists** (the earlier `publish` pushed it, then failed): the image is kept as it is, with no second
+  merge or Copa, so its digest doesn't change. The moving tag points to it, it is scanned, and the OpenVEX document
+  is written from that scan (without Copa's own statements, which the earlier run had). A signature, SBOM or OpenVEX
+  attestation is only added if this workflow hasn't attached one yet. Provenance is attested again (a duplicate is
+  harmless).
+- `attest` and `state` run as usual, and the `state/` PR records the revision.
+
+Notes:
+- A revision that `state/` records is never published again. With nothing left to finish, the run fails with
+  "no revision ... has all its per-arch images": dispatch with `rebuild: true` instead.
+- Use `rebuild: false` for the patch set that failed. If the line's `generated/` patch set changed since (a new PR
+  merged), release with `rebuild: true`.
+- If `build` itself failed, or `push` failed before pushing every per-arch image, there is nothing complete to
+  finish: dispatch with `rebuild: true`. A new build always takes a new revision, so the numbers can skip.
+- Image-only recipes build nothing in `build`: their `publish` overlays the vendor image and always redoes the
+  revision after the recorded one, so `rebuild` makes no difference for them.
+- The [failure alert](#failure-alerts) of a job closes itself when that job passes in the finishing run. A run with
+  `rebuild: false` skips `build` and `push`, so close their alerts by hand.
+- **Re-run failed jobs** (`gh run rerun --failed`) only for transient failures (a registry or Sigstore blip). A re-run
+  uses the workflow and action files of the commit that started the run, so it repeats a failure that a later commit
+  fixed. A new dispatch uses the current files.
+- Revisions that a failed run published but `state/` never recorded (for example `-patched.1` and `-patched.2` of
+  the releases of 2026-10-29) stay in the registry, signed, without provenance. Nothing uses them. To remove them,
+  delete their package versions in GHCR after the line's `state/` records a later revision; numbers below that one
+  are never used again.
 
 ### Verifying an image
 
@@ -308,6 +351,9 @@ new one.
 | `patcher coverage [--json] [--fail-on-uncovered]` | Which inventory images are covered and patched |
 | `patcher new-lines [--json]` | Upstream release lines newer than every line a recipe tracks |
 | `patcher collect --out out` | Copy run outputs into `generated/` (what the PR job commits) |
-| `patcher release-build <recipe> --line L --platform P` / `patcher publish <recipe> --line L` | Release flow |
+| `patcher release-plan --recipe R --line L` (or `--changed-files F`) | The release's line, platforms and runners (release.yml's plan job) |
+| `patcher release-build <recipe> --line L --platform P` | Release build for one platform: saves the images to `out/<recipe>/<line>/images/<arch>/`, pushes nothing |
+| `patcher release-push <recipe> --line L [--platforms P,…]` | Pushes those archives as `<final>-<arch>` of a new revision; never overwrites a tag |
+| `patcher publish <recipe> --line L [--revision N] [--platforms P,…]` | Merge, Copa, final and moving tags, `state/`. Without `--revision`: finishes the newest revision whose per-arch images all exist |
 | `patcher rescan` / `patcher refresh <recipe> --line L` | Nightly re-scan and the Copa-only refresh |
 | `patcher pins [--write]` | Tool pin updates for `patcher/Dockerfile` |

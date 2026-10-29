@@ -90,6 +90,7 @@ jobs:
       - uses: ./.github/actions/run-patcher
         with:
           args: refresh ${{ matrix.recipe }} --line ${{ matrix.line }} --out out
+          image-cache: "false"   # this job pushes and signs: it reads no cache other jobs can write
       - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
       - name: Sign refreshed images
         run: |
