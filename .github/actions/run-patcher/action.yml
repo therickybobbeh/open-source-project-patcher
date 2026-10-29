@@ -42,3 +42,11 @@ runs:
         # shellcheck disable=SC2086
         PATCHER_IMAGE=patcher:ci PATCHER_CACHE="$RUNNER_TEMP/patcher-cache" PATCHER_WORK="$RUNNER_TEMP/work" \
           "$GITHUB_WORKSPACE/scripts/patcher-docker.sh" $ARGS
+
+    # The container runs as root, so what it writes into the checkout (out/, state/) is root-owned, and later
+    # steps can't move it: open-pr's stash failed with "Permission denied" on the state/<recipe>/ directory the
+    # release created, and all six releases of 2026-10-29 05:00 stopped there. Give it back to the runner's user.
+    - name: Give the checkout back to the runner user
+      if: always()
+      shell: bash
+      run: sudo chown -R "$(id -u):$(id -g)" "$GITHUB_WORKSPACE"
