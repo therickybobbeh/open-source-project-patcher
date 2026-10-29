@@ -1,0 +1,14 @@
+diff --git a/docker-compose.yml b/docker-compose.yml
+index 7527cec..aec7a94 100644
+--- a/docker-compose.yml
++++ b/docker-compose.yml
+@@ -21,6 +21,9 @@ services:
+   # standalone redis
+   redis:
+     image: redis:latest
++    # support-images: no RDB snapshots. With `read_only: true`, current redis:latest can't save one and then
++    # refuses writes (MISCONF), failing every Redis-backed test. The tests don't need persistence.
++    command: ["redis-server", "--save", ""]
+     security_opt:
+       - no-new-privileges:true
+     read_only: true
