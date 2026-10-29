@@ -1,14 +1,14 @@
 upstreamTag: v2.46.1
 commit: 75eb19238e10fc4750e7efb05a4031b254b04029
-revision: 1
-releasedAt: '2026-10-29T03:27:29Z'
+revision: 2
+releasedAt: '2026-10-29T20:19:12Z'
 platforms:
 - linux/amd64
 - linux/arm64
 images:
 - name: dex
-  ref: ghcr.io/therickybobbeh/dex:v2.46.1-patched.1
-  digest: sha256:c2855668f03c7634df00a467d269408132e8b2af5b96ae8563e085afd66e7f65
+  ref: ghcr.io/therickybobbeh/dex:v2.46.1-patched.2
+  digest: sha256:418d13889add99858f3e18084406de23b2d78f8c20828f585b47524e43d0ce28
   knownFixable:
   - CVE-2026-111943|stdlib|usr/local/bin/gomplate
   - CVE-2026-116585|github.com/go-jose/go-jose/v4|usr/local/bin/gomplate
@@ -56,8 +56,8 @@ images:
   - CVE-2026-97045|golang.org/x/net|usr/local/bin/gomplate
   - GHSA-hrxh-6v49-42gf|google.golang.org/grpc|usr/local/bin/gomplate
 - name: dex-distroless
-  ref: ghcr.io/therickybobbeh/dex:v2.46.1-distroless-patched.1
-  digest: sha256:2b06d20108f02949bf5cada00da5abd9f1c98487dae5850979ffca435d2ba2e7
+  ref: ghcr.io/therickybobbeh/dex:v2.46.1-distroless-patched.2
+  digest: sha256:ae0a237289762641b440a36a84c34f7750c0e6c972944dcb04579ae40d3b424d
   knownFixable:
   - CVE-2026-111943|stdlib|usr/local/bin/gomplate
   - CVE-2026-116585|github.com/go-jose/go-jose/v4|usr/local/bin/gomplate
