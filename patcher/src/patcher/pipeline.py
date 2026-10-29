@@ -739,7 +739,8 @@ def _run_image_only(repo: Repo, recipe: Recipe, line: Line, out: Path, opts: Run
 #   push     release_push    pick the revision, push the archives as <final>-<arch>  credentials, no upstream code
 #   publish  publish         merge the platforms, Copa, final + moving tags, state   credentials, no upstream code
 
-# the native GitHub-hosted runner each platform is built on (release.yml's build matrix)
+# the platforms release builds support, with the GitHub-hosted runner each one is built on natively; the
+# PATCHER_RUNS_ON_UPSTREAM(_ARM64) variables pick self-hosted runners instead (release.yml's build job)
 RUNNERS = {"linux/amd64": "ubuntu-24.04", "linux/arm64": "ubuntu-24.04-arm"}
 
 

@@ -15,7 +15,7 @@ env:
 
 jobs:
   scan:
-    runs-on: ubuntu-24.04
+    runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
     outputs:
       refresh: ${{ steps.r.outputs.refresh }}
       rerun: ${{ steps.r.outputs.rerun }}
@@ -47,7 +47,7 @@ jobs:
 
   # upstream release lines no recipe tracks (v3.6 shipped, recipes follow v3.5): one issue each
   new-lines:
-    runs-on: ubuntu-24.04
+    runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
     permissions:
       contents: read
       issues: write
@@ -72,7 +72,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.scan.outputs.refresh) }}
-    runs-on: ubuntu-24.04
+    runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
     name: copa refresh ${{ matrix.recipe }} ${{ matrix.line }}
     permissions:
       contents: write        # only used by the GITHUB_TOKEN fallback in open-pr (the state PR)
@@ -112,7 +112,7 @@ jobs:
   rerun:
     needs: scan
     if: needs.scan.outputs.rerun != '[]'
-    runs-on: ubuntu-24.04
+    runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
     permissions:
       actions: write
     steps:

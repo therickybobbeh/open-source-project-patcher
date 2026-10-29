@@ -61,4 +61,7 @@ runs:
     - name: Give the checkout back to the runner user
       if: always()
       shell: bash
-      run: sudo chown -R "$(id -u):$(id -g)" "$GITHUB_WORKSPACE"
+      # with the patcher image rather than sudo, which self-hosted runners often don't allow
+      run: |
+        docker image inspect patcher:ci >/dev/null 2>&1 || exit 0  # the image never built: the container wrote nothing
+        docker run --rm -v "$GITHUB_WORKSPACE:$GITHUB_WORKSPACE" --entrypoint chown patcher:ci -R "$(id -u):$(id -g)" "$GITHUB_WORKSPACE"

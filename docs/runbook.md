@@ -26,6 +26,59 @@ For the people who review patch PRs and operate the pipeline. Background is in
 6. **First run:** *Actions → patch → Run workflow*, `recipe=dex`. Check the job summary (the report
    is posted there), then the PR it opens.
 
+## Self-hosted runners
+
+Every job runs on GitHub-hosted runners by default: `ubuntu-24.04`, plus `ubuntu-24.04-arm` for arm64
+builds. To use your own runners, set repository or organization **variables**. Each one holds the job's
+`runs-on` value as JSON:
+
+| Variable | Jobs | Example |
+|---|---|---|
+| `PATCHER_RUNS_ON` | every job not listed below | `{"group": "patcher"}` |
+| `PATCHER_RUNS_ON_ARM64` | arm64 builds (release builds, the patcher image) | `{"group": "patcher", "labels": ["ARM64"]}` |
+| `PATCHER_RUNS_ON_UPSTREAM` | jobs that run code we don't vet: patch runs (upstream builds and tests), release builds, PR tests | `{"group": "patcher-sandbox"}` |
+| `PATCHER_RUNS_ON_UPSTREAM_ARM64` | arm64 release builds | `{"group": "patcher-sandbox", "labels": ["ARM64"]}` |
+
+Any `runs-on` form works:
+- a runner group: `{"group": "name"}`;
+- a group with labels;
+- a label list: `["self-hosted", "linux", "x64"]`;
+- an Actions Runner Controller scale set: `"patcher-x64"`.
+
+An unset variable falls back: the `UPSTREAM` ones to `PATCHER_RUNS_ON` / `PATCHER_RUNS_ON_ARM64`, and those to
+GitHub-hosted runners. With no arm64 runners, set `build.platforms: [linux/amd64]` in the recipes.
+
+**Security.** Patch runs and release builds run upstream build and test code with the Docker socket,
+which is root on the runner.
+- **Use ephemeral runners** (one job per runner: ARC, or just-in-time runners). A runner that is reused
+  lets a malicious build persist into the next job, including the jobs that hold registry credentials
+  or the GitHub App's token.
+- **Keep those jobs apart.** Point `PATCHER_RUNS_ON_UPSTREAM` at a separate group that can't reach
+  internal systems.
+- **On a public repository,** fork pull requests run the `test` job on the `UPSTREAM` runners. Require
+  approval for outside contributors (*Settings → Actions → General*), or leave the `UPSTREAM` variables
+  unset.
+
+**Runner requirements.** Linux, with:
+- **Docker:** Docker Engine 25 or later, with the buildx plugin and the **containerd image store** enabled
+  (`{"features": {"containerd-snapshotter": true}}` in `/etc/docker/daemon.json`). Copa needs it to patch
+  locally built images, and patch runs check for it and stop with an error if it's missing.
+- **Tools:** `bash`, `git`, `curl`, `jq`, `tar` and the GitHub CLI (`gh`).
+- **QEMU binfmt handlers:** release `publish` jobs and Copa refreshes install them with
+  `docker/setup-qemu-action`, which runs a privileged container.
+- **Space:** room for upstream checkouts, module caches and images. GitHub's runners (4 CPUs, 16 GB, about
+  70 GB of disk) are enough. The OpenTelemetry contrib build is the largest so far.
+- **Network:** outbound access to GitHub, the registries (GHCR, Docker Hub, quay.io and others), the
+  language package registries and Trivy's DB mirrors, or to your proxies (see the
+  [roadmap's artifact-proxy notes](roadmap.md#later-running-behind-an-artifact-proxy-nexus-artifactory)).
+
+Two steps of the patch job run on GitHub-hosted runners only, because on your own machine they would
+delete the host's files and restart its Docker:
+- the disk clean-up, which removes preinstalled SDKs;
+- the switch to the containerd image store.
+
+The checkout is handed back to the runner's user without `sudo`.
+
 ## Reviewing a patch PR
 
 Each PR is titled `[<recipe>] <tag>: dependency updates (<status>)`. The body is the generated

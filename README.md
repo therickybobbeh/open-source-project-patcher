@@ -156,7 +156,7 @@ build:
 | `tool-pins.yml` | Mondays 07:00 ET | updates the version+sha256 tool pins in `patcher/Dockerfile` (releases ≥ 14 days old) |
 | Dependabot | daily 07:00 ET | GitHub Actions, the patcher's Python packages and image bases (14-day cooldown) |
 
-Setup (GitHub App, code security settings, GHCR visibility) is in the [runbook](docs/runbook.md#one-time-setup).
+Setup (GitHub App, code security settings, GHCR visibility) is in the [runbook](docs/runbook.md#one-time-setup). Jobs run on GitHub-hosted runners unless the `PATCHER_RUNS_ON*` variables select your own ([self-hosted runners](docs/runbook.md#self-hosted-runners)).
 
 ## Known limits
 

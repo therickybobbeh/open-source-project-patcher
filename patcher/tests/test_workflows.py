@@ -92,3 +92,30 @@ def test_release_jobs():
         assert "!cancelled()" in str(release[name][0]["if"]), name
     # the state PR is made from publish's outputs, never from an artifact (any job of the run can write those)
     assert not any("download-artifact" in s.get("uses", "") for s in steps(release["state"][0]))
+
+
+@pytest.mark.parametrize("path", WORKFLOWS, ids=lambda p: p.name)
+def test_runners_come_from_the_runs_on_variables(path):
+    """Self-hosted setups set PATCHER_RUNS_ON* (a runner group, labels or a scale set); unset means GitHub-hosted. Jobs
+    that run code we don't vet (upstream builds and tests, PR code) use the upstream pool, which can be kept apart."""
+    for name, job, _ in jobs(path):
+        runs_on = str(job.get("runs-on", ""))
+        assert "vars.PATCHER_RUNS_ON" in runs_on, f"{path.name}/{name}: take runs-on from vars.PATCHER_RUNS_ON*"
+        if any(a.startswith(UPSTREAM_CODE) for a in patcher_args(job)):
+            assert "PATCHER_RUNS_ON_UPSTREAM" in runs_on, f"{path.name}/{name} runs upstream code: PATCHER_RUNS_ON_UPSTREAM"
+
+
+def test_release_builds_default_to_the_native_runners():
+    from patcher.pipeline import RUNNERS
+
+    build = {name: job for name, job, _ in jobs(ROOT / ".github" / "workflows" / "release.yml")}["build"]
+    for runner in RUNNERS.values():
+        assert f'"{runner}"' in build["runs-on"], runner
+
+
+@pytest.mark.parametrize("path", WORKFLOWS, ids=lambda p: p.name)
+def test_host_changing_steps_run_only_on_github_hosted_runners(path):
+    for name, job, _ in jobs(path):
+        for s in steps(job):
+            if re.search(r"systemctl|daemon\.json|rm -rf /(usr|opt)", s.get("run", "")):
+                assert "runner.environment == 'github-hosted'" in str(s.get("if", "")), f"{path.name}/{name}: {s.get('name')}"
