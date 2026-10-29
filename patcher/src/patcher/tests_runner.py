@@ -7,6 +7,7 @@ import glob
 import re
 import shlex
 import shutil
+import time
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -193,6 +194,8 @@ def run_tests(src: Path, tests: Tests, skips: SkipFile, out: Path, env: dict[str
     command = render(tests.command, tctx)
     log_file = out / "tests.log"
     compose = None
+    started = time.monotonic()
+    timeout_note = ""
     try:
         for cmd in tests.setup:
             run(render(cmd, tctx), cwd=src, env=test_env, log_file=log_file, capture=False, clean=True)
@@ -207,7 +210,11 @@ def run_tests(src: Path, tests: Tests, skips: SkipFile, out: Path, env: dict[str
         failures = "" if passed else failure_summary(tests.framework, res.out)
         seconds = res.seconds
     except CommandError as e:
-        passed, tail, seconds, failures = False, e.tail, 0.0, ""
+        passed, tail, seconds, failures = False, e.tail, time.monotonic() - started, ""
+        if e.code == -9:  # killed at tests.timeoutMinutes: the last output line usually names the test that hung
+            last = next((l.strip() for l in reversed(e.tail.splitlines()) if l.strip() and not l.startswith("timed out")), "")
+            timeout_note = (f"The suite timed out after {tests.timeoutMinutes} min (tests.timeoutMinutes) and was stopped; "
+                            f"last output: {last[:160]}")
     finally:
         if compose:
             run([*compose, "down", "-v"], cwd=src, env=test_env, log_file=log_file, check=False)
@@ -217,7 +224,7 @@ def run_tests(src: Path, tests: Tests, skips: SkipFile, out: Path, env: dict[str
             dest = out / f"junit-{i}-{Path(f).name}"
             shutil.copy(f, dest)
             junit.append(dest)
-    note = ""
+    note = timeout_note
     if not passed and skips.quarantine and junit:
         failing = failed_cases(junit)
         if failing and all(_quarantined(c, skips.quarantine) for c in failing):

@@ -18,6 +18,10 @@ What the runs taught us is in [troubleshooting.md](../troubleshooting.md). Highl
 - A test helper installed into the project's `node_modules` got pruned by the project's own build.
 - Image-driven planning has to run even when the source scan finds nothing.
 
+**JupyterHub status:** with those fixes, 524 tests pass. The suite then hangs in `test_token_page`, inside
+JupyterHub's mock-service fixtures, in this environment. The test timeout stops it, and the report names the
+last test that started. Deselect it in `skips/jupyterhub.yaml` if you adopt this recipe.
+
 ## Using one
 
 1. Copy the recipe into `recipes/` and fix the `$schema` path (`../schema/recipe.schema.json`).
