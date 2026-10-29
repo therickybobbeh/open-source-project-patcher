@@ -45,6 +45,25 @@ jobs:
           echo "rerun=$(jq -c '.rerun' <<<"$result")" >> "$GITHUB_OUTPUT"
           jq . <<<"$result"
 
+  # upstream release lines no recipe tracks (v3.6 shipped, recipes follow v3.5): one issue each
+  new-lines:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+      - name: Report and track new release lines
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          uv run --project patcher --frozen patcher new-lines >> "$GITHUB_STEP_SUMMARY"
+          uv run --project patcher --frozen patcher new-lines --json > "$RUNNER_TEMP/new-lines.json"
+          scripts/line-issues.sh "$RUNNER_TEMP/new-lines.json"
+
   refresh:
     needs: scan
     if: fromJSON(needs.scan.outputs.refresh).include[0] != null

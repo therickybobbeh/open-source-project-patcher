@@ -28,7 +28,7 @@ def list_tags(url: str) -> dict[str, str]:
     return tags
 
 
-def _tag_version(tag: str):
+def tag_version(tag: str):
     m = re.search(r"v?\d+(?:\.\d+)*(?:-[0-9A-Za-z.\-]+)?$", tag)
     if not m:
         return None
@@ -45,7 +45,7 @@ def newest_tag(tags: dict[str, str] | list[str], pattern: str, exclude: list[str
     for tag in tags:
         if not rx.search(tag) or any(e.search(tag) for e in ex):
             continue
-        v = _tag_version(tag)
+        v = tag_version(tag)
         if v is None:
             continue
         if best is None or v > best[0]:
