@@ -10,6 +10,9 @@ For the people who review patch PRs and operate the pipeline. Background is in
    - Permissions: *Contents: read & write*, *Pull requests: read & write*.
    - Install it on this repository.
    - Add the variable `PATCHER_APP_ID` and the secret `PATCHER_APP_PRIVATE_KEY`.
+   - **Until then:** the workflows fall back to `GITHUB_TOKEN` (with a warning in the run) if you
+     turn on *Settings → Actions → General → Workflow permissions → Allow GitHub Actions to create
+     and approve pull requests*. The PRs open, but their checks don't run.
 2. **Code security settings:** enable *Dependency graph*, *Dependabot alerts* and *Dependabot
    security updates*. Version updates are configured in `.github/dependabot.yml` (see
    [Dependency hygiene](#dependency-hygiene-of-this-repo)).

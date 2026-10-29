@@ -15,6 +15,11 @@ on:
 permissions:
   contents: read
 
+# one publish per ref at a time, in order (two quick merges raced to move :main); PR runs cancel older ones
+concurrency:
+  group: patcher-image-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   test:
     runs-on: ubuntu-24.04
@@ -72,6 +77,10 @@ jobs:
       packages: write
       id-token: write
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: scripts
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
@@ -86,5 +95,5 @@ jobs:
           tag="${GITHUB_SHA::12}"
           docker buildx imagetools create -t "$repo:$tag" -t "$repo:main" "$repo:$tag-amd64" "$repo:$tag-arm64"
           digest=$(docker buildx imagetools inspect "$repo:$tag" --format '{{json .Manifest}}' | jq -r .digest)
-          cosign sign --yes "$repo@$digest"
+          scripts/retry.sh 3 cosign sign --yes "$repo@$digest"
           echo "published $repo:$tag ($digest)" >> "$GITHUB_STEP_SUMMARY"

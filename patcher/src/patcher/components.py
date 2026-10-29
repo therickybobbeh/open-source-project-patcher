@@ -97,6 +97,9 @@ def find_version(ref: ComponentRef, scan: ScanReport | None, src: Path | None, i
         from .build import run_container
         from .proc import CommandError
 
+        # pull first, quietly: otherwise docker's "Unable to find image '…:1.6.0' locally" lands in the output, and the
+        # first version in it is the image's tag, not the binary's
+        run(["docker", "pull", "--quiet", "--platform", platform, image], check=False, quiet=True, timeout=600)
         try:
             res = run_container(image, list(ref.versionCommand), platform=platform, timeout=120, entrypoint=ref.path, check=False)
         except CommandError:  # timed out

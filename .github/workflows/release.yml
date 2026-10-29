@@ -93,7 +93,8 @@ jobs:
       group: publish-${{ matrix.recipe }}-${{ matrix.line }}
       cancel-in-progress: false
     permissions:
-      contents: read
+      contents: write       # only used by the GITHUB_TOKEN fallback in open-pr (the state PR)
+      pull-requests: write
       packages: write
       id-token: write       # keyless cosign
     steps:
@@ -117,11 +118,11 @@ jobs:
         run: |
           jq -c '.[]' "$RELEASE" | while read -r img; do
             ref="$(jq -r '.repository + "@" + .digest' <<<"$img")"
-            cosign sign --yes "$ref"
+            scripts/retry.sh 3 cosign sign --yes "$ref"
             docker run --rm -v "$PWD:$PWD" -w "$PWD" -v "$HOME/.docker:/root/.docker" --entrypoint trivy patcher:ci \
               image --format cyclonedx --output "$PWD/sbom.cdx.json" "$ref"
-            cosign attest --yes --type cyclonedx --predicate sbom.cdx.json "$ref"
-            cosign attest --yes --type openvex --predicate "$(jq -r .vex <<<"$img")" "$ref"
+            scripts/retry.sh 3 cosign attest --yes --type cyclonedx --predicate sbom.cdx.json "$ref"
+            scripts/retry.sh 3 cosign attest --yes --type openvex --predicate "$(jq -r .vex <<<"$img")" "$ref"
             echo "$(jq -r .image <<<"$img")=$(jq -r .digest <<<"$img")" >> digests.txt
           done
           cat digests.txt
@@ -129,22 +130,16 @@ jobs:
         with:
           name: release-${{ matrix.recipe }}-${{ matrix.line }}
           path: out/${{ matrix.recipe }}/${{ matrix.line }}/release.json
-      - id: app-token
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+      - uses: ./.github/actions/open-pr
         with:
           app-id: ${{ vars.PATCHER_APP_ID }}
           private-key: ${{ secrets.PATCHER_APP_PRIVATE_KEY }}
-      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
-        with:
-          token: ${{ steps.app-token.outputs.token }}
           branch: state/${{ matrix.recipe }}/${{ matrix.line }}
-          delete-branch: true
           add-paths: state/${{ matrix.recipe }}.yaml
           commit-message: "state: released ${{ matrix.recipe }} ${{ matrix.line }}"
           title: "[${{ matrix.recipe }}] record release of ${{ matrix.line }}"
           body-path: out/${{ matrix.recipe }}/${{ matrix.line }}/release.json
           labels: automated, release
-          sign-commits: true
 
   # one provenance attestation per image (attest-build-provenance takes a single registry subject)
   subjects:
