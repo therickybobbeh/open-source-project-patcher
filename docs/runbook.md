@@ -224,6 +224,8 @@ findings instead trigger a `patch.yml` run, which ends in a normal patch PR.
 
 ## Adding a release line or a project
 
+The full walk-through for a new project, with a checklist, is [onboarding.md](onboarding.md).
+
 - **Line:** add it to `source.lines` in the recipe and merge. The push triggers `patch.yml` for that
   recipe.
 - **Project:**
