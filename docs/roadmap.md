@@ -106,6 +106,14 @@ easy to extend**. Items are ordered by priority within each section.
 
 ### Quality and operations
 
+0. **Find the bump that broke the tests.**
+   - **Today:** when the full plan fails a test that passes on the unpatched source, the whole run
+     falls back to patch-level bumps. Argo CD v3.5 lost 35 fixes over one test
+     (`TestNewConnection_ErrorWhenRotatedCertIsInvalid`).
+   - **Fix:** re-run only the failing tests (`go test -run`, pytest node ids, jest `-t`) with the
+     above-patch bumps added one group at a time. Keep every group that passes, and report the
+     culprit. A few seconds per try instead of a full suite.
+
 8. **Exceptions governance.** Skips, quarantine entries and VEX statements have owners and expiry;
    holds, overrides and patches don't. Add `expires` everywhere, and a `patcher exceptions` report
    listing every exception with its owner, age and expiry.
