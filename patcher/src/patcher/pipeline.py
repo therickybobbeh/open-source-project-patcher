@@ -1,7 +1,8 @@
 """Stage orchestration.
 
 `run_line`  - PR flow: checkout -> scan -> plan/apply (rounds) -> regen -> commit -> tests ->
-              build (native platform) -> smoke -> copa -> report + generated/ files.
+              build (native platform) -> components + bundled-jar overlay -> smoke -> copa ->
+              report + generated/ files.
 `release_build` / `publish` - release flow from the reviewed generated/ patch set.
 `rescan` / `refresh` - nightly re-scan of published images and the Copa-only fast path.
 """
@@ -15,7 +16,7 @@ import shutil
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-from . import adapters, components, reach, releases, toolchain, upstream
+from . import adapters, components, jars, reach, releases, toolchain, upstream
 from .adapters.base import Ctx, Result
 from .build import BuiltImage, arch_of, build_image, image_digest, native_platform, smoke_test, template_ctx
 from .config import Repo, line_key, render
@@ -457,23 +458,33 @@ def _build_and_scan(repo: Repo, recipe: Recipe, att: Attempt, summary: Summary, 
                     timeout=recipe.build.timeoutMinutes * 60)
             cache: dict = {}
             chosen: dict[str, str] = {}  # component -> the one version this line ships
+            gate = releases.gate_for(recipe.policy) if opts.cooldown else None
             for spec in recipe.build.images:
                 ref = f"{LOCAL_PREFIX}/{spec.name}:{render(spec.upstreamTag, tctx)}-patched.dev"
                 img = build_image(att.src, recipe.build, spec, ref, opts.platform, tctx, att.env, out / "build.log", push=False)
                 refs = components.applicable(recipe, spec.key)
+                usable, swaps = [], []
+                built_scan = scan_image(img.ref, out / f"scan-image-built-{spec.key}.json", severities=g.scan.severities,
+                                        platform=opts.platform) if refs or spec.bundledJars else None
                 if refs:
-                    built_scan = scan_image(img.ref, out / f"scan-image-built-{spec.key}.json", severities=g.scan.severities,
-                                            platform=opts.platform)
                     comps = components.prepare(repo, refs, built_scan, opts, out, cache, src=att.src, image=img.ref)
                     usable = components.swappable(comps, chosen, spec.key, summary.notes)
-                    if usable:
-                        components.overlay(img.ref, usable, out / f"overlay-{spec.key}", platforms=[opts.platform], tag_ref=img.ref,
-                                           push=False, local_base=True)
                     summary.components += [components.image_row(c, spec.key, usable) for c in comps]
                     summary.component_runs += [c for c in comps if c not in summary.component_runs]
+                if spec.bundledJars:
+                    swaps, unresolved = jars.prepare(img.ref, opts.platform, spec, built_scan, recipe, gate, out / f"overlay-{spec.key}")
+                    summary.jars += swaps
+                    summary.jar_unresolved += unresolved
+                if usable or swaps:  # one overlay for both, before the smoke tests
+                    components.overlay(img.ref, usable, out / f"overlay-{spec.key}", platforms=[opts.platform], tag_ref=img.ref,
+                                       push=False, local_base=True, files=jars.copies(swaps), labels=jars.labels(swaps))
                 if not smoke_test(img, out / "build.log"):
                     summary.status = "smoke-failed"
                 built.append(img)
+            if gate is not None:
+                summary.notes += [n for n in sorted(gate.notes) if n not in summary.notes]
+            if summary.jars and summary.status == "no-changes":  # the images changed, so there is a patch set to release
+                summary.status = "success"
         except (CommandError, ValueError) as e:
             summary.status = "build-failed"
             summary.notes.append(f"build failed: {str(e).splitlines()[0][:300]}")
@@ -539,6 +550,7 @@ def image_derived(recipe: Recipe, images: list[ImageOutcome], fs_after: ScanRepo
     found: set[tuple[str, str, str]] = set()
     added: set[tuple[str, str]] = set()
     out = ScanReport(artifact="image-derived")
+    bundled_jars = {s.key: s.bundledJars.paths for s in (recipe.build.images if recipe.build else []) if s.bundledJars}
     for img in images:
         if not img.after:
             continue
@@ -546,6 +558,8 @@ def image_derived(recipe: Recipe, images: list[ImageOutcome], fs_after: ScanRepo
             loc = f.location
             if img.own_binaries and not _is_own(loc, img.own_binaries):
                 continue
+            if f.ecosystem == "jar" and jars.under(loc, bundled_jars.get(img.name, [])):
+                continue  # a bundled distribution's jar: swapped in the image (`bundledJars`), not bumped in the source
             if f.name in BASE_TOOLING.get(f.ecosystem, set()) or loc.startswith(GLOBAL_NODE_PREFIX):
                 continue
             if f.ecosystem == "jar" and java is not None:
@@ -604,6 +618,8 @@ def _write_outputs(repo: Repo, s: Summary, att: Attempt | None, out: Path) -> No
         "skips": [e.model_dump(mode="json") for e in (s.tests.skipped if s.tests else [])],
     }
     (gen / "bump-plan.json").write_text(json.dumps(plan_doc, indent=2, sort_keys=False) + "\n")
+    if s.jars or s.jar_unresolved:  # the release re-applies exactly these swaps
+        (gen / "jars.json").write_text(json.dumps(jars.to_json(s.jars, s.jar_unresolved), indent=2) + "\n")
     for c in s.component_runs:
         if c.out and (c.out / "generated").is_dir() and c.recipe is not None:
             shutil.copytree(c.out / "generated", gen / "components" / c.recipe.name, dirs_exist_ok=True)
@@ -659,6 +675,7 @@ def _run_image_only(repo: Repo, recipe: Recipe, line: Line, out: Path, opts: Run
     s = Summary(recipe=recipe, line=line_key(line), tag=targets[0][1], commit="n/a", status="success", vex=repo.vex(recipe.name))
     cache: dict = {}
     chosen: dict[str, str] = {}  # component -> the one version this line ships
+    gate = releases.gate_for(recipe.policy) if opts.cooldown else None
     for spec, tag in targets:
         ref = f"{spec.upstream}:{render(spec.upstreamTag, template_ctx(tag, ''))}"
         platform = _spec_platform(spec, opts.platform)
@@ -668,20 +685,28 @@ def _run_image_only(repo: Repo, recipe: Recipe, line: Line, out: Path, opts: Run
             s.notes.append(f"could not scan {ref} ({platform}): {first_error(e.tail)}")
             s.status = "scan-failed"
             continue
-        copa_note, after = "disabled", before
+        copa_note, after, smoke = "disabled", before, []
         local = f"{LOCAL_PREFIX}/{spec.name}:{tag}"
         refs = components.applicable(recipe, spec.key)
-        overlaid = False
+        usable, swaps = [], []
         if refs:
             comps = components.prepare(repo, refs, before, opts, out, cache, image=ref)
             usable = components.swappable(comps, chosen, spec.key, s.notes)
-            if usable:
-                components.overlay(ref, usable, out / f"overlay-{spec.key}", platforms=[platform], tag_ref=local, push=False,
-                                   local_base=False)
-                overlaid = True
-                after = scan_image(local, out / f"scan-image-after-{spec.key}.json", severities=g.scan.severities, platform=platform)
             s.components += [components.image_row(c, spec.key, usable) for c in comps]
             s.component_runs += [c for c in comps if c not in s.component_runs]
+        if spec.bundledJars:
+            swaps, unresolved = jars.prepare(ref, platform, spec, before, recipe, gate, out / f"overlay-{spec.key}")
+            s.jars += swaps
+            s.jar_unresolved += unresolved
+        overlaid = bool(usable or swaps)
+        if overlaid:
+            components.overlay(ref, usable, out / f"overlay-{spec.key}", platforms=[platform], tag_ref=local, push=False,
+                               local_base=False, files=jars.copies(swaps), labels=jars.labels(swaps))
+            img = BuiltImage(spec, local, platform)  # the vendor image changed: its smoke tests (if any) must still pass
+            if not smoke_test(img, out / "build.log"):
+                s.status = "smoke-failed"
+            smoke = img.smoke
+            after = scan_image(local, out / f"scan-image-after-{spec.key}.json", severities=g.scan.severities, platform=platform)
         if opts.copa and spec.copa_enabled:
             if not overlaid:
                 run(["docker", "pull", "--platform", platform, ref])
@@ -690,8 +715,10 @@ def _run_image_only(repo: Repo, recipe: Recipe, line: Line, out: Path, opts: Run
             copa_note = cr.note()
             if cr.patched_ref:
                 after = scan_image(cr.patched_ref, out / f"scan-image-after-{spec.key}.json", severities=g.scan.severities, platform=platform)
-        s.images.append(ImageOutcome(f"{spec.key} {tag}", ref, ref, before, after, [], copa_note))
-    if (s.status == "success" and not any(c["status"] in RELEASABLE for c in s.components)
+        s.images.append(ImageOutcome(f"{spec.key} {tag}", ref, ref, before, after, smoke, copa_note))
+    if gate is not None:
+        s.notes += sorted(gate.notes)
+    if (s.status == "success" and not any(c["status"] in RELEASABLE for c in s.components) and not s.jars
             and all(i.copa in ("disabled", "no fixable OS packages", "no fixable packages") for i in s.images)):
         s.status = "no-changes"
     _write_outputs(repo, s, None, out)
@@ -802,18 +829,23 @@ def release_build(repo: Repo, recipe: Recipe, key: str, platform: str, workdir: 
             timeout=recipe.build.timeoutMinutes * 60)
     gen, _ = find_generated(repo, recipe, key, tag)
     comps = components.from_generated(repo, recipe, gen, workdir / recipe.name / key) if recipe.components else {}
+    swaps = jars.from_generated(gen)
     pushed = []
     for spec in recipe.build.images:
         tag_base = final_tag(repo, render(spec.upstreamTag, tctx), rev)
         ref = f"{g.registry}/{spec.name}:{tag_base}-{arch_of(platform)}"
         mine = [comps[c.recipe] for c in components.applicable(recipe, spec.key) if c.recipe in comps]
-        if mine:  # build locally, then push the overlay with the rebuilt components
+        mine_jars = swaps.get(spec.key, [])
+        if mine or mine_jars:  # build locally, then push the overlay with the rebuilt components and the reviewed jar swaps
             base = build_image(src, recipe.build, spec, f"{LOCAL_PREFIX}/{spec.name}:{tag_base}-base", platform, tctx, env,
                                out / "build.log", push=False)
-            components.overlay(base.ref, mine, out / f"overlay-{spec.key}", platforms=[platform], tag_ref=ref, push=True, local_base=True)
+            jars.restage(base.ref, [platform], mine_jars, out / f"overlay-{spec.key}")
+            components.overlay(base.ref, mine, out / f"overlay-{spec.key}", platforms=[platform], tag_ref=ref, push=True, local_base=True,
+                               files=jars.copies(mine_jars), labels=jars.labels(mine_jars))
         else:
             build_image(src, recipe.build, spec, ref, platform, tctx, env, out / "build.log", push=True)
-        pushed.append({"image": spec.key, "ref": ref, "platform": platform, "components": [c.ref.recipe for c in mine]})
+        pushed.append({"image": spec.key, "ref": ref, "platform": platform, "components": [c.ref.recipe for c in mine],
+                       "jars": [f"/{s.path}: {s.name} {s.new}" for s in mine_jars]})
     return pushed
 
 
@@ -831,6 +863,7 @@ def publish(repo: Repo, recipe: Recipe, key: str, platforms: list[str], out: Pat
     gen, doc = find_generated(repo, recipe, key, tag)
     tctx = template_ctx(doc["tag"], doc["commit"])
     rev = built_revision(repo, recipe, key, doc["tag"], platforms)
+    swaps = jars.from_generated(gen)  # already in the per-arch images merged here (release_build swapped them)
     released: list[dict] = []
     images: list[ReleasedImage] = []
     for spec in recipe.build.images:
@@ -852,7 +885,8 @@ def publish(repo: Repo, recipe: Recipe, key: str, platforms: list[str], out: Pat
         vex_path.write_text(json.dumps(vexdoc, indent=2) + "\n")
         images.append(ReleasedImage(name=spec.key, ref=f"{repo_ref}:{final}", digest=digest, knownFixable=_fixable_keys(after)))
         released.append({"image": spec.key, "repository": repo_ref, "tag": final, "digest": digest, "vex": str(vex_path),
-                         "copa": (cr.skipped or "patched") if cr else "disabled"})
+                         "copa": (cr.skipped or "patched") if cr else "disabled",
+                         "jars": [f"/{s.path}: {s.name} {s.new}" for s in swaps.get(spec.key, [])]})
     st = repo.state(recipe.name)
     st.lines[key] = LineState(upstreamTag=doc["tag"], commit=doc["commit"], revision=rev,
                               releasedAt=dt.datetime.now(dt.timezone.utc).replace(microsecond=0), platforms=platforms, images=images)
@@ -870,19 +904,22 @@ def _publish_image_only(repo: Repo, recipe: Recipe, key: str, platforms: list[st
     targets = _image_only_targets(recipe, line)
     prev = st.lines.get(key)
     rev = prev.revision + 1 if prev and prev.upstreamTag == targets[0][1] else 1
-    comps = {}
-    if recipe.components:
+    comps, swaps = {}, {}
+    if recipe.components or any(s.bundledJars for s in recipe.build.images):
         gen, _ = find_generated(repo, recipe, key)
-        comps = components.from_generated(repo, recipe, gen, out / "work")
+        comps = components.from_generated(repo, recipe, gen, out / "work") if recipe.components else {}
+        swaps = jars.from_generated(gen)
     for spec, tag in targets:
         repo_ref = f"{g.registry}/{spec.name}"
         up_ref = f"{spec.upstream}:{render(spec.upstreamTag, template_ctx(tag, ''))}"
         final = final_tag(repo, tag, rev)
         plats = [p for p in platforms if not spec.platforms or p in spec.platforms] or spec.platforms
         mine = [comps[c.recipe] for c in components.applicable(recipe, spec.key) if c.recipe in comps]
-        if mine:  # vendor image + our rebuilt helpers, all platforms in one cross-compiling build
+        mine_jars = swaps.get(spec.key, [])
+        if mine or mine_jars:  # vendor image + our rebuilt helpers and swapped jars, all platforms in one cross-compiling build
+            jars.restage(up_ref, plats, mine_jars, out / f"overlay-{spec.key}")
             components.overlay(up_ref, mine, out / f"overlay-{spec.key}", platforms=plats, tag_ref=f"{repo_ref}:{final}-build",
-                               push=True, local_base=False)
+                               push=True, local_base=False, files=jars.copies(mine_jars), labels=jars.labels(mine_jars))
         else:
             run(["docker", "buildx", "imagetools", "create", "-t", f"{repo_ref}:{final}-build", up_ref])
         cr = copa.for_image(spec, f"{repo_ref}:{final}-build", final, out, platforms=plats, severities=g.scan.severities, push=True,
@@ -898,7 +935,8 @@ def _publish_image_only(repo: Repo, recipe: Recipe, key: str, platforms: list[st
                                                extra_docs=[cr.vex] if cr and cr.vex else []), indent=2) + "\n")
         images.append(ReleasedImage(name=spec.key, ref=f"{repo_ref}:{final}", digest=digest, knownFixable=_fixable_keys(after)))
         released.append({"image": spec.key, "repository": repo_ref, "tag": final, "digest": digest, "vex": str(vex_path),
-                         "copa": (cr.skipped or "patched") if cr else "disabled"})
+                         "copa": (cr.skipped or "patched") if cr else "disabled",
+                         "jars": [f"/{s.path}: {s.name} {s.new}" for s in mine_jars]})
     st.lines[key] = LineState(upstreamTag=targets[0][1], commit="n/a", revision=rev, platforms=platforms,
                               releasedAt=dt.datetime.now(dt.timezone.utc).replace(microsecond=0), images=images)
     repo.save_state(recipe.name, st)

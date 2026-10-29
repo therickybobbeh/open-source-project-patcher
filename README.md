@@ -19,6 +19,9 @@ Beyond the rebuild:
 - **Bundled binaries:** third-party binaries an image bundles (helm, kustomize, git-lfs, gomplate,
   credential helpers) are rebuilt from their own source as **components** and swapped in. This also
   works inside closed-source images.
+- **Bundled Java distributions:** when an image unpacks a distribution whose jars no bump can reach
+  (Maven's own `lib/`), each vulnerable jar is swapped for the fixed release from Maven Central,
+  pinned by sha256 and smoke-tested (`bundledJars`).
 - **Fresh releases:** bumps only use releases at least 7 days old (CRITICAL and CISA-KEV fixes go
   in at once). Bumped versions are checked against malicious-package advisories, and test setups
   only install releases older than the same cutoff.
@@ -41,7 +44,7 @@ Beyond the rebuild:
 | Redis | `redis` | redis/docker-library-redis | Redis point release, Dockerfile bases | Redis `./runtest` |
 | Strimzi operator | `strimzi` | strimzi/strimzi-kafka-operator | maven, Dockerfile bases | `mvn -DskipITs install` |
 | Strimzi maven-builder | `strimzi-maven-builder` | strimzi/strimzi-kafka-operator | Dockerfile base (UBI) + rebuild | smoke `mvn -v` |
-| Maven (official image) | `maven` | carlossg/docker-maven (branch `main`) | Dockerfile bases (eclipse-temurin) | upstream bats suite |
+| Maven (official image) | `maven` | carlossg/docker-maven (branch `main`) | Dockerfile bases (eclipse-temurin); Maven's own jars swapped from Maven Central (`bundledJars`) | upstream bats suite |
 
 Component recipes (`mode: component`, never released on their own): `helm`, `kustomize`, `git-lfs`,
 `gomplate`, `docker-credential-ecr-login`, `docker-credential-gcr`.
@@ -163,8 +166,13 @@ Setup (GitHub App, code security settings, GHCR visibility) is in the [runbook](
   npm packages).
 - **Redis:** its vendored C dependencies are patched by moving to the newest Redis point release,
   not individually.
+- **Bundled jars:** a jar of a bundled distribution is swapped on its own, within `bundledJars.level`,
+  and keeps its old file name. A fix beyond that level, or in a library shaded into another jar, is
+  reported, not applied. Only the image's smoke tests exercise the distribution with the new jar
+  (upstream tests never run against the overlaid image).
 - **Strimzi Kafka images:** Kafka's own jars come from the Apache release tarball; those images aren't
-  built by the `strimzi` recipe.
+  built by the `strimzi` recipe. A recipe for them would swap those jars with
+  `bundledJars: {paths: [opt/kafka/libs/]}`.
 - **Apollo GraphOS Operator:** closed source with no package database: the credential helpers are
   rebuilt, and the operator binary's own findings are reported.
 - **Python without lockfiles:** loose requirements are only seen in the built image (`scan.image`).
@@ -176,8 +184,8 @@ Setup (GitHub App, code security settings, GHCR visibility) is in the [runbook](
 ## Verification status (2026-10-28)
 
 Run locally inside the patcher image (linux/arm64, Docker Desktop) against the upstream releases
-current on that date. The trivy, copacetic, maven and strimzi-maven-builder rows come from 2026-10-27
-runs, before this round's changes. Nothing has run in GitHub Actions yet. Fixable counts are critical,
+current on that date. The trivy, copacetic and strimzi-maven-builder rows come from 2026-10-27 runs,
+before this round's changes. Nothing has run in GitHub Actions yet. Fixable counts are critical,
 high, medium and low findings, before → after.
 
 | Recipe | Verified | Result |
@@ -190,7 +198,7 @@ high, medium and low findings, before → after.
 | trivy v0.76.1 | full run | Unit tests pass; image 25 → 0 |
 | copacetic v0.15.0 | full run | Source 22 → 1 (`docker/docker` v28, needs-human); tests pass; images built |
 | strimzi-maven-builder 1.3.0 | full run | Image 28 → 0 |
-| maven 3.10.0 | full run | 34/34 bats tests; both variants build |
+| maven 3.10.0 | full run + release flow | 34/34 bats tests; both variants build. Bundled Guava 33.7.1-jre → 33.7.2-jre swapped (`bundledJars`): images 1 → 0 (HIGH CVE-2026-102554); `mvn -v` and `mvn -B -emp smoke` pass. `release-build` → `publish` re-applied the swap from `jars.json` against a local registry, and refused a base whose jar didn't match the record |
 | helm, kustomize, git-lfs, docker-credential-gcr | component recipes, standalone | Full upstream test suites pass (helm as non-root) |
 | apollo-router v2.19.0 | patch stage only | 4 crates bumped; tests (compose services) and source build not run locally |
 | strimzi 1.3.0 | patch stage only | Source 63 → 0. Unit tests need Testcontainers networking that Docker Desktop lacks; image build attempts hit local DNS outages |

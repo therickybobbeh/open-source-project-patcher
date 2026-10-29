@@ -33,13 +33,19 @@ build:
       upstreamTag: "{{version}}-eclipse-temurin-21-noble"
       dockerfile: eclipse-temurin-21-noble/Dockerfile
       context: eclipse-temurin-21-noble
-      smoke: ["mvn -v"]
+      # `mvn -v` exits before Maven starts its DI container, so it passes even with a broken lib/ jar. `-emp` (encrypt
+      # a master password) starts the container offline, loading Guice, Sisu and Guava: it checks the swapped jars
+      smoke: ["mvn -v", "mvn -B -emp smoke"]
+      # the Apache Maven distribution the Dockerfile unpacks (lib/, lib/ext/, boot/). Its jars only change with a Maven
+      # release, so vulnerable ones are swapped for the fixed release from Maven Central
+      bundledJars: { paths: [usr/share/maven/], level: patch }
     - name: maven
       id: maven-temurin-17-noble
       upstream: docker.io/library/maven
       upstreamTag: "{{version}}-eclipse-temurin-17-noble"
       dockerfile: eclipse-temurin-17-noble/Dockerfile
       context: eclipse-temurin-17-noble
-      smoke: ["mvn -v"]
+      smoke: ["mvn -v", "mvn -B -emp smoke"]
+      bundledJars: { paths: [usr/share/maven/], level: patch }
 notes:
-  - Maven's own jars (/usr/share/maven/lib) only change with a Maven release; upstream bumps those with update-maven-version.sh.
+  - Maven's own jars (/usr/share/maven) only change with a Maven release (upstream's update-maven-version.sh). Until then, vulnerable ones are swapped for fixed releases from Maven Central (`bundledJars`); a swapped jar keeps its old file name.

@@ -400,6 +400,7 @@ build:
 | `tagPattern`, `platforms` | Image-only recipes: an image that versions or ships separately from the line (e.g. Apollo's bundle-loader) |
 | `timeoutMinutes` (on `build`) | Per image build, build `setup` command and component overlay (default 60). A build that hangs or fails on a network error is retried once |
 | `copa` | `true` (default): Copa patches leftover OS packages. `false`: off. `{libraries: true, level: patch}`: also patch Python and npm packages inside the image (Copa's experimental library patching, `COPA_EXPERIMENTAL=1`); meant for closed-source images that can't be rebuilt |
+| `bundledJars` | `{paths: [usr/share/maven/], level: patch}`: swap vulnerable jars of a third-party Java distribution the image unpacks for fixed releases from Maven Central. See [Bundled jars](#bundled-jars) |
 
 Templates: `{{tag}}`, `{{version}}` (tag without `v`), `{{commit}}`, `{{short_commit}}`, and in
 image builds also `{{image}}`, `{{platform}}`, `{{arch}}`. Unknown placeholders are errors.
@@ -458,6 +459,67 @@ artifact:
   diff.
 - **Planning:** a change to a component recipe, its skips or its patches re-runs every parent.
   Components never run on their own.
+
+## Bundled jars
+
+Some images unpack a third-party Java distribution whose jars their own build doesn't control: Apache
+Maven in `/usr/share/maven` in the official maven image, Kafka's release tarball in `/opt/kafka/libs`
+in Strimzi's broker images. No recipe bump reaches those jars, and the distribution may have no fixed
+release yet. `bundledJars` on an image swaps each vulnerable jar for the fixed release from Maven
+Central:
+
+```yaml
+build:
+  images:
+    - name: maven
+      smoke: ["mvn -v", "mvn -B -emp smoke"]   # include a command that loads the swapped jars
+      bundledJars: { paths: [usr/share/maven/], level: patch }
+```
+
+| Field | Default | Meaning |
+|---|---|---|
+| `paths` | required | Directory prefixes (or jar paths) in the image. Fixable findings in jars under them are swapped |
+| `level` | `patch` | How far a jar may move. A fix beyond it is reported as needs-human |
+
+Per image, after the build (and its components) and before the smoke tests:
+- **Planning:** the built image's fixable jar findings under `paths` are planned like Maven source
+  bumps. That means the smallest fixed version within `level`, the [release-age rule](#policy) with its
+  CRITICAL/KEV bypass, and `holds` under the `maven` key. The withdrawn-release check runs too, but
+  Maven Central never withdraws a release, so it has nothing to find there. `overrides` don't apply.
+- **Fix versions:** advisories don't always name a release that exists. Each fix version is matched
+  to Central's releases in the installed jar's flavor: Guava's advisory says `33.7.2`, so a
+  `33.7.1-jre` jar gets `33.7.2-jre`.
+- **Only the artifact's own jar:** the file must be named `artifact-version[-classifier].jar`. A library
+  shaded into another jar, or a renamed jar, isn't swapped, and the report says why.
+- **Download:** from Maven Central, checked against the sha256 Central publishes next to it (sha1 for
+  older releases). Its sha256 becomes the pin.
+- **Swap:** the overlay build that swaps [components](#components) in also copies each new jar **over
+  the old one, keeping the old file name**:
+  - it needs no RUN step, so it works for images without a shell, and for every platform without
+    emulation;
+  - anything that names the jar (a manifest `Class-Path`, a launcher script) keeps working;
+  - scanners read the version from the jar's own `pom.properties`, so Trivy reports the new one.
+
+  The image gets a `patcher.swapped-jars` label listing each swap.
+- **Then** come the smoke tests, Copa and the after-scan. Pick a smoke command that loads the
+  distribution's jars: `mvn -v` doesn't (it passes even with an empty Guava jar), while
+  `mvn -B -emp smoke` starts Maven's DI container offline.
+- **Report:** a *Bundled jars swapped* section lists each swap: coordinates, from → to, CVEs and
+  sha256. Findings left in those jars get a reason starting with `bundled jar:`, e.g. a cooldown, or
+  needs-human beyond `bundledJars.level`.
+- **PR and release:** the swaps are recorded in `generated/<recipe>/<tag>/jars.json`. The release
+  overlays exactly those swaps, after two checks:
+  - each jar is downloaded again and must match its pin;
+  - on every platform, the rebuilt (or vendor) image must still have exactly the jar that was
+    replaced, by sha256.
+
+  A mismatch fails the release, rather than adding a second, unreviewed jar.
+- **Image planning** (`scan.image`) leaves jars under `paths` alone: they aren't built from the source.
+
+A run that only swaps jars (no source changes) still opens a PR: the image changed. For the Kafka
+broker images, the same setting would be `bundledJars: {paths: [opt/kafka/libs/]}` on each image,
+with a smoke command that runs one of Kafka's own tools (e.g. `/opt/kafka/bin/kafka-storage.sh
+random-uuid`), so the JVM starts with `libs/` on its classpath.
 
 ## Global config (`recipes/_global.yaml`)
 

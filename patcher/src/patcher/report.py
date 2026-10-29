@@ -80,6 +80,8 @@ class Summary:
     vex_suggestions: list[dict] = field(default_factory=list)
     components: list[dict] = field(default_factory=list)
     component_runs: list = field(default_factory=list)  # Component objects (their generated/ is copied into ours)
+    jars: list = field(default_factory=list)  # jars.Swap: bundled jars swapped in, per image (written to jars.json)
+    jar_unresolved: list[Unresolved] = field(default_factory=list)  # findings in bundled jars that weren't swapped, and why
     src: str = ""  # the kept attempt's checkout (components build from it)
 
 
@@ -98,7 +100,7 @@ def reason_for(f: Finding, s: Summary, bundled: set[str] = frozenset(), copa: st
     st = vexmod.match(s.vex, f)
     if st:
         return f"VEX {st.status}: {st.impact or st.justification or st.action or ''}".strip()
-    comp = _component_reason(f, s)
+    comp = _component_reason(f, s) or _jar_reason(f, s)
     if comp:
         return comp
     if f.name in BASE_TOOLING.get(f.ecosystem, set()) or f.location.startswith(GLOBAL_NODE_PREFIX):
@@ -143,6 +145,20 @@ def _component_reason(f: Finding, s: Summary) -> str | None:
     return None
 
 
+def _jar_reason(f: Finding, s: Summary) -> str | None:
+    """Findings in a `bundledJars` jar: why it wasn't swapped. A swapped jar keeps its path, so a finding still
+    reported there after the swap gets its own reason."""
+    loc = f.location.strip("/")
+    for u in s.jar_unresolved:
+        if u.vuln_id == f.vuln_id and u.name == f.name and u.target == loc:
+            return f"bundled jar: {u.why}"
+    for sw in s.jars:
+        if sw.path == loc and sw.name == f.name:
+            return (f"bundled jar swapped for {sw.new}, but the scan still reports {f.installed}: check how the scanner "
+                    "identifies this jar")
+    return None
+
+
 def render_markdown(s: Summary) -> str:
     icon = {"success": "✅", "no-changes": "➖", "tests-preexisting": "⚠️"}.get(s.status, "❌")
     out = [f"## {icon} {s.recipe.name} `{s.tag}` — {s.status}", ""]
@@ -180,6 +196,19 @@ def render_markdown(s: Summary) -> str:
             out.append(f"| {c.ecosystem} | `{c.target}` | `{c.name}` | `{c.old}` | `{c.new}` | {c.note[:120]} |")
         if len(s.changes) > MAX_ROWS:
             out.append(f"| … | | | | | {len(s.changes) - MAX_ROWS} more in `bump-plan.json` |")
+        out.append("")
+
+    if s.jars:
+        out += ["### Bundled jars swapped", "",
+                "Replaced with the fixed release from Maven Central, pinned by sha256 (`jars.json`; the release re-applies exactly "
+                "these). Each jar keeps its old file name, with the new release as its content.", "",
+                "| Image | Jar | Coordinates | From → To | Fixes | sha256 |", "|---|---|---|---|---|---|"]
+        swapped: dict[tuple, list[str]] = {}
+        for sw in s.jars:  # the same swap in several images of the line is one row
+            swapped.setdefault((sw.path, sw.name + (f" ({sw.classifier})" if sw.classifier else ""), sw.old, sw.new,
+                                ", ".join(sw.vuln_ids), sw.sha256), []).append(sw.image)
+        out += [f"| {', '.join(images)} | `{path}` | `{name}` | `{old}` → `{new}` | {vulns} | `{sha}` |"
+                for (path, name, old, new, vulns, sha), images in swapped.items()]
         out.append("")
 
     # --- remaining
