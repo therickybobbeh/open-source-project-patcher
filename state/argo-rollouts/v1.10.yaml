@@ -1,0 +1,32 @@
+upstreamTag: v1.10.1
+commit: 356117c8e9a21b74b58c2c01d640aa91994522b5
+revision: 3
+releasedAt: '2026-10-29T18:08:02Z'
+platforms:
+- linux/amd64
+- linux/arm64
+images:
+- name: argo-rollouts
+  ref: ghcr.io/therickybobbeh/argo-rollouts:v1.10.1-patched.3
+  digest: sha256:7fd84f9420b8ec721415c815627545c7273b2ad2de748025994b93998fbc5da4
+  knownFixable:
+  - CVE-2026-78661|golang.org/x/net|bin/rollouts-controller
+  - CVE-2026-97045|golang.org/x/net|bin/rollouts-controller
+  - DLA-4792-1|tzdata|ghcr.io/therickybobbeh/argo-rollouts@sha256:7fd84f9420b8ec721415c815627545c7273b2ad2de748025994b93998fbc5da4
+    (debian 12.15)
+  - DLA-4845-1|ca-certificates|ghcr.io/therickybobbeh/argo-rollouts@sha256:7fd84f9420b8ec721415c815627545c7273b2ad2de748025994b93998fbc5da4
+    (debian 12.15)
+  - DLA-4854-1|tzdata|ghcr.io/therickybobbeh/argo-rollouts@sha256:7fd84f9420b8ec721415c815627545c7273b2ad2de748025994b93998fbc5da4
+    (debian 12.15)
+- name: kubectl-argo-rollouts
+  ref: ghcr.io/therickybobbeh/kubectl-argo-rollouts:v1.10.1-patched.3
+  digest: sha256:05e4e79da028b16db3d56b1fb11eb55e9ee3c59617c139cdba5ce2890eff21c1
+  knownFixable:
+  - CVE-2026-78661|golang.org/x/net|bin/kubectl-argo-rollouts
+  - CVE-2026-97045|golang.org/x/net|bin/kubectl-argo-rollouts
+  - DLA-4792-1|tzdata|ghcr.io/therickybobbeh/kubectl-argo-rollouts@sha256:05e4e79da028b16db3d56b1fb11eb55e9ee3c59617c139cdba5ce2890eff21c1
+    (debian 12.15)
+  - DLA-4845-1|ca-certificates|ghcr.io/therickybobbeh/kubectl-argo-rollouts@sha256:05e4e79da028b16db3d56b1fb11eb55e9ee3c59617c139cdba5ce2890eff21c1
+    (debian 12.15)
+  - DLA-4854-1|tzdata|ghcr.io/therickybobbeh/kubectl-argo-rollouts@sha256:05e4e79da028b16db3d56b1fb11eb55e9ee3c59617c139cdba5ce2890eff21c1
+    (debian 12.15)
