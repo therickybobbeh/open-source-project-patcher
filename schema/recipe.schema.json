@@ -40,9 +40,11 @@
           "type": "array"
         },
         "platforms": {
+          "description": "Platforms the line is released for. The release builds each one on its own native runner (linux/amd64, linux/arm64) and merges them",
           "items": {
             "type": "string"
           },
+          "minItems": 1,
           "title": "Platforms",
           "type": "array"
         },
@@ -673,7 +675,7 @@
           "title": "Tagpattern"
         },
         "platforms": {
-          "description": "Platforms this image exists for, when fewer than build.platforms",
+          "description": "Platforms this image exists for, when fewer than build.platforms: it is built and released for those of build.platforms it lists",
           "items": {
             "type": "string"
           },

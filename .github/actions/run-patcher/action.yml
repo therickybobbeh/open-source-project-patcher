@@ -11,6 +11,13 @@ inputs:
     description: Key for the toolchain/module caches (mise, Go, Cargo, Maven, Gradle, npm, uv, Trivy DB); empty = no cache
     required: false
     default: ""
+  image-cache:
+    description: >-
+      "false": build the patcher image without the GitHub Actions layer cache. For jobs that hold credentials or whose
+      output is released: every job on the branch can write that cache, including jobs that run upstream code, so
+      reading it could run their binaries here. Such jobs also leave `cache-key` empty, for the same reason.
+    required: false
+    default: "true"
 runs:
   using: composite
   steps:
@@ -18,10 +25,15 @@ runs:
 
     - name: Build patcher image
       shell: bash
-      run: >-
-        docker buildx build --load -t patcher:ci
-        --cache-from type=gha,scope=patcher-image --cache-to type=gha,mode=max,scope=patcher-image
-        "$GITHUB_WORKSPACE/patcher"
+      env:
+        IMAGE_CACHE: ${{ inputs.image-cache }}
+      run: |
+        cache=""
+        if [ "$IMAGE_CACHE" != false ]; then
+          cache="--cache-from type=gha,scope=patcher-image --cache-to type=gha,mode=max,scope=patcher-image"
+        fi
+        # shellcheck disable=SC2086  # two flags, or none
+        docker buildx build --load -t patcher:ci $cache "$GITHUB_WORKSPACE/patcher"
 
     - name: Restore toolchain caches
       if: inputs.cache-key != ''

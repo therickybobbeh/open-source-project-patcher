@@ -1,5 +1,5 @@
 # Keeps the tool downloads pinned by version + sha256 in patcher/Dockerfile (mise, trivy, copa, cosign,
-# yq) current; Dependabot can't update ARG pins. Proposes each tool's newest stable release that is at
+# osv-scanner, yq, crane) current; Dependabot can't update ARG pins. Proposes each tool's newest stable release that is at
 # least 14 days old, with checksums read from that release's own checksum file, verifies them by
 # building the image, and opens a PR. Dependabot (.github/dependabot.yml) covers everything else.
 name: tool-pins
@@ -33,7 +33,8 @@ jobs:
         if: steps.pins.outputs.changed == 'true'
         run: |
           docker buildx build --load -t patcher:pins patcher
-          docker run --rm --entrypoint sh patcher:pins -c 'trivy --version && copa --version && mise --version && cosign version && yq --version'
+          docker run --rm --entrypoint sh patcher:pins -c \
+            'trivy --version && copa --version && mise --version && cosign version && yq --version && osv-scanner --version && crane version'
       - id: app-token
         if: steps.pins.outputs.changed == 'true'
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0

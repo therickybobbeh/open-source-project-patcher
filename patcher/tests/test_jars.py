@@ -333,16 +333,22 @@ def test_release_build_overlays_the_recorded_jars(monkeypatch, tmp_path):
     (gen / "jars.json").write_text(json.dumps(jars.to_json([swap()], [])))
     calls = []
     monkeypatch.setattr(pipeline, "prepare_release_source", lambda *a, **k: (tmp_path, {"tag": "3.10.0", "commit": "c"}, {}))
-    monkeypatch.setattr(pipeline, "next_revision", lambda *a: 1)
     monkeypatch.setattr(pipeline, "build_image", lambda src, b, spec, ref, platform, *a, push: calls.append(("build", ref, push))
                         or BuiltImage(spec, ref, platform))
     monkeypatch.setattr(jars, "restage", lambda image, platforms, swaps, ctx: calls.append(("restage", image, platforms, swaps)))
-    monkeypatch.setattr(components, "overlay", lambda base, comps, out, **k: calls.append(("overlay", base, k["tag_ref"], k["files"])))
-    pushed = pipeline.release_build(Repo(tmp_path), r, "m", "linux/amd64", tmp_path / "w", tmp_path / "out")
-    base = "patcher.local/maven:3.10.0-temurin-21-patched.1-base"
+    monkeypatch.setattr(components, "overlay", lambda base, comps, out, **k: calls.append(("overlay", base, k["tag_ref"], k["files"],
+                                                                                           k["push"])))
+    monkeypatch.setattr(pipeline.archive, "export", lambda ref, dest, log=None: calls.append(("save", ref, dest)))
+    built = pipeline.release_build(Repo(tmp_path), r, "m", "linux/amd64", tmp_path / "w", tmp_path / "out")
+    local = "patcher.local/maven:3.10.0-temurin-21-release-amd64"
+    images = tmp_path / "out" / "maven" / "m" / "images" / "amd64"
+    # the swap is overlaid locally and the result saved as an archive: nothing is pushed from the build job
     assert calls == [
-        ("build", base, False),
-        ("restage", base, ["linux/amd64"], [swap()]),
-        ("overlay", base, "ghcr.io/me/maven:3.10.0-temurin-21-patched.1-amd64", [(swap().context_file, f"/{LIB}")]),
-        ("build", "ghcr.io/me/maven:3.10.0-temurin-17-patched.1-amd64", True)]  # nothing recorded for it: a plain build
-    assert pushed[0]["jars"] == [f"/{LIB}: com.google.guava:guava 33.7.2-jre"] and pushed[1]["jars"] == []
+        ("build", f"{local}-base", False),
+        ("restage", f"{local}-base", ["linux/amd64"], [swap()]),
+        ("overlay", f"{local}-base", local, [(swap().context_file, f"/{LIB}")], False),
+        ("save", local, images / "maven-21.tar"),
+        ("build", "patcher.local/maven:3.10.0-temurin-17-release-amd64", False),  # nothing recorded for it: a plain build
+        ("save", "patcher.local/maven:3.10.0-temurin-17-release-amd64", images / "maven-17.tar")]
+    assert built[0]["jars"] == [f"/{LIB}: com.google.guava:guava 33.7.2-jre"] and built[1]["jars"] == []
+    assert built[0]["archive"] == "images/amd64/maven-21.tar"
