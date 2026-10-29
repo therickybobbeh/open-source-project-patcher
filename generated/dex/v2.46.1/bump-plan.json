@@ -1,0 +1,272 @@
+{
+  "recipe": "dex",
+  "line": "v2",
+  "tag": "v2.46.1",
+  "commit": "75eb19238e10fc4750e7efb05a4031b254b04029",
+  "status": "success",
+  "requires": {
+    "go": "1.26.0"
+  },
+  "plan": {
+    "bumps": [
+      {
+        "ecosystem": "gomod",
+        "target": "api/v2/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.57.0",
+        "to": "v0.60.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78659",
+          "CVE-2026-78660",
+          "CVE-2026-78663",
+          "CVE-2026-78669",
+          "CVE-2026-97032"
+        ],
+        "direct": false,
+        "dir": "api/v2"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "api/v2/go.mod",
+        "name": "golang.org/x/text",
+        "installed": "v0.40.0",
+        "to": "v0.41.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-56851"
+        ],
+        "direct": false,
+        "dir": "api/v2"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/go-jose/go-jose/v4",
+        "installed": "v4.1.5",
+        "to": "v4.1.6",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-116587"
+        ],
+        "direct": true,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.59.0",
+        "to": "v0.60.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78659",
+          "CVE-2026-78660",
+          "CVE-2026-78663",
+          "CVE-2026-78669",
+          "CVE-2026-97032"
+        ],
+        "direct": true,
+        "dir": "."
+      }
+    ],
+    "unresolved": [
+      {
+        "ecosystem": "gomod",
+        "target": "api/v2/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.57.0",
+        "vuln_id": "CVE-2026-78661",
+        "severity": "UNKNOWN",
+        "fixed": "0.62.0",
+        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "api/v2/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.57.0",
+        "vuln_id": "CVE-2026-97045",
+        "severity": "UNKNOWN",
+        "fixed": "0.62.0",
+        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.57.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": null,
+        "why": "no fixed version"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.59.0",
+        "vuln_id": "CVE-2026-78661",
+        "severity": "UNKNOWN",
+        "fixed": "0.62.0",
+        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.59.0",
+        "vuln_id": "CVE-2026-97045",
+        "severity": "UNKNOWN",
+        "fixed": "0.62.0",
+        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      }
+    ],
+    "toolchain": {}
+  },
+  "changes": [
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/go-jose/go-jose/v4",
+      "old": "v4.1.5",
+      "new": "v4.1.6",
+      "note": "CVE-2026-116587"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.59.0",
+      "new": "v0.60.0",
+      "note": "CVE-2026-78659, CVE-2026-78660, CVE-2026-78663, CVE-2026-78669, CVE-2026-97032"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "api/v2/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.57.0",
+      "new": "v0.60.0",
+      "note": "CVE-2026-78659, CVE-2026-78660, CVE-2026-78663, CVE-2026-78669, CVE-2026-97032"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "api/v2/go.mod",
+      "name": "golang.org/x/text",
+      "old": "v0.40.0",
+      "new": "v0.41.0",
+      "note": "CVE-2026-56851"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "api/v2/go.mod",
+      "name": "go",
+      "old": "1.25.0",
+      "new": "1.26.0",
+      "note": "required by a bumped dependency"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "golang",
+      "old": "golang:1.27.3-alpine3.24@sha256:f2c872bcee949b7be9c490efd02b48a8a2fbf947cdf533f1c58525ec9d8170fd",
+      "new": "golang:1.27.3-alpine3.24@sha256:d200d2dd76b03a99b52651fd1325aff7dcd35422c35c01bac56571b0507f3deb",
+      "note": "base image refresh"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "alpine",
+      "old": "alpine:3.24.2@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6",
+      "new": "alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a",
+      "note": "3.24.2 -> 3.24.3"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "alpine",
+      "old": "alpine:3.24.2@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6",
+      "new": "alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a",
+      "note": "3.24.2 -> 3.24.3"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "gcr.io/distroless/static-debian13",
+      "old": "static-debian13:nonroot@sha256:e2e927ec666bae08560abb3c55d0659eceabb657f56b6782ab500a9fc7f555e3",
+      "new": "static-debian13:nonroot@sha256:18f4cc26c9ffa7f20a359298be7deadac5c607c8e03a02b8119f1a5fc2f82c99",
+      "note": "base image refresh"
+    }
+  ],
+  "failures": [
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "tonistiigi/xx",
+      "wanted": "1.10.0",
+      "error": "newer tag 1.10.0 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)",
+      "hint": true
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "ghcr.io/hairyhenderson/gomplate",
+      "wanted": "v5.3.1",
+      "error": "newer tag v5.3.1 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)",
+      "hint": true
+    }
+  ],
+  "unresolved": [
+    {
+      "ecosystem": "gomod",
+      "target": "api/v2/go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.60.0",
+      "vuln_id": "CVE-2026-78661",
+      "severity": "UNKNOWN",
+      "fixed": "0.62.0",
+      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "api/v2/go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.60.0",
+      "vuln_id": "CVE-2026-97045",
+      "severity": "UNKNOWN",
+      "fixed": "0.62.0",
+      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.57.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": null,
+      "why": "no fixed version"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.60.0",
+      "vuln_id": "CVE-2026-78661",
+      "severity": "UNKNOWN",
+      "fixed": "0.62.0",
+      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.60.0",
+      "vuln_id": "CVE-2026-97045",
+      "severity": "UNKNOWN",
+      "fixed": "0.62.0",
+      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+    }
+  ],
+  "skips": []
+}
