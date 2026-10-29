@@ -1,0 +1,242 @@
+{
+  "recipe": "gomplate",
+  "line": "gomplate-5.2.0",
+  "tag": "v5.2.0",
+  "commit": "117c916d306b2239081656622f00b802c82c16a0",
+  "status": "success",
+  "requires": {
+    "go": "1.26.5"
+  },
+  "plan": {
+    "bumps": [
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/go-git/go-git/v5",
+        "installed": "v5.19.1",
+        "to": "v5.19.2",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-71556",
+          "CVE-2026-71557"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/go-jose/go-jose/v4",
+        "installed": "v4.1.4",
+        "to": "v4.1.6",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-116585",
+          "CVE-2026-116586",
+          "CVE-2026-116587"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/sdk",
+        "installed": "v1.43.0",
+        "to": "v1.45.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-81870"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.54.0",
+        "to": "v0.56.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-56854",
+          "CVE-2026-56855",
+          "CVE-2026-78662"
+        ],
+        "direct": true,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.56.0",
+        "to": "v0.60.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78659",
+          "CVE-2026-78660",
+          "CVE-2026-78663",
+          "CVE-2026-78669",
+          "CVE-2026-97032"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/text",
+        "installed": "v0.40.0",
+        "to": "v0.41.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-56851"
+        ],
+        "direct": true,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "google.golang.org/grpc",
+        "installed": "v1.81.1",
+        "to": "v1.83.1",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-84303",
+          "CVE-2026-84304",
+          "CVE-2026-84445",
+          "GHSA-hrxh-6v49-42gf"
+        ],
+        "direct": false,
+        "dir": "."
+      }
+    ],
+    "unresolved": [
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.54.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": null,
+        "why": "no fixed version"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.56.0",
+        "vuln_id": "CVE-2026-78661",
+        "severity": "UNKNOWN",
+        "fixed": "0.62.0",
+        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.56.0",
+        "vuln_id": "CVE-2026-97045",
+        "severity": "UNKNOWN",
+        "fixed": "0.62.0",
+        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      }
+    ],
+    "toolchain": {}
+  },
+  "changes": [
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/go-git/go-git/v5",
+      "old": "v5.19.1",
+      "new": "v5.19.2",
+      "note": "CVE-2026-71556, CVE-2026-71557"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/go-jose/go-jose/v4",
+      "old": "v4.1.4",
+      "new": "v4.1.6",
+      "note": "CVE-2026-116585, CVE-2026-116586, CVE-2026-116587"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "google.golang.org/grpc",
+      "old": "v1.81.1",
+      "new": "v1.83.2",
+      "note": "CVE-2026-84303, CVE-2026-84304, CVE-2026-84445, GHSA-hrxh-6v49-42gf"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/sdk",
+      "old": "v1.43.0",
+      "new": "v1.45.0",
+      "note": "CVE-2026-81870"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.56.0",
+      "new": "v0.60.0",
+      "note": "CVE-2026-78659, CVE-2026-78660, CVE-2026-78663, CVE-2026-78669, CVE-2026-97032"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/crypto",
+      "old": "v0.54.0",
+      "new": "v0.56.0",
+      "note": "CVE-2026-56854, CVE-2026-56855, CVE-2026-78662"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/text",
+      "old": "v0.40.0",
+      "new": "v0.41.0",
+      "note": "CVE-2026-56851"
+    }
+  ],
+  "failures": [],
+  "unresolved": [
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.57.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": null,
+      "why": "no fixed version"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.60.0",
+      "vuln_id": "CVE-2026-78661",
+      "severity": "UNKNOWN",
+      "fixed": "0.62.0",
+      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.60.0",
+      "vuln_id": "CVE-2026-97045",
+      "severity": "UNKNOWN",
+      "fixed": "0.62.0",
+      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+    }
+  ],
+  "skips": []
+}
