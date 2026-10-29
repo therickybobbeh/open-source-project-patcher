@@ -161,10 +161,11 @@ started can wait for the credentials to show up. So the job that builds holds no
   therefore dispatches a run per line, and a run's archives only ever come from that line's own build.
 - **No cache where credentials are, or where a release is built.** Any job on a branch can write that branch's GitHub
   Actions cache, the jobs that run upstream code included. A job that reads it can end up running binaries another job
-  planted: the patcher image's layers, toolchains on `PATH`. So every job of `release.yml`, and Copa refresh, builds the
-  patcher image without the layer cache and restores no toolchain cache (`run-patcher` with `image-cache: "false"` and
-  no `cache-key`). The release build takes longer for it, but one project's code can't reach another project's release.
-  The patch jobs still share caches; what they produce is reviewed in the PR.
+  planted: the patcher image's layers, toolchains on `PATH`. So every `release.yml` job that runs the patcher, and Copa
+  refresh, builds the patcher image without the layer cache and restores no toolchain cache (`run-patcher` with
+  `image-cache: "false"` and no `cache-key`), and the plan job's `setup-uv` restores no cache either. The release build
+  takes longer for it, but one project's code can't reach another project's release. The patch jobs still share
+  caches; what they produce is reviewed in the PR.
 
 **Platforms.** `build.platforms` (default `linux/amd64`, `linux/arm64`) are the platforms a line is released for, and
 an image's own `platforms` narrows it to a subset. `release-plan` turns them into the build matrix, one native runner
