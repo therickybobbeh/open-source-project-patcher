@@ -45,6 +45,8 @@ Beyond the rebuild:
 | Strimzi operator | `strimzi` | strimzi/strimzi-kafka-operator | maven, Dockerfile bases | `mvn -DskipITs install` |
 | Strimzi maven-builder | `strimzi-maven-builder` | strimzi/strimzi-kafka-operator | Dockerfile base (UBI) + rebuild | smoke `mvn -v` |
 | Maven (official image) | `maven` | carlossg/docker-maven (branch `main`) | Dockerfile bases (eclipse-temurin); Maven's own jars swapped from Maven Central (`bundledJars`) | upstream bats suite |
+| OpenTelemetry Collector contrib | `otelcol-contrib` | open-telemetry/opentelemetry-collector-releases | gomod of the module ocb generates from the manifest (247 components), Dockerfile bases | none of its own (generated module); smoke `components`, `validate` |
+| Splunk OpenTelemetry Collector | `splunk-otel-collector` | signalfx/splunk-otel-collector | gomod (root + the local modules in the binary) | `make test-all` |
 
 Component recipes (`mode: component`, never released on their own): `helm`, `kustomize`, `git-lfs`,
 `gomplate`, `docker-credential-ecr-login`, `docker-credential-gcr`.

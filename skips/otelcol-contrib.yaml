@@ -1,0 +1,4 @@
+# yaml-language-server: $schema=../schema/skips.schema.json
+# otelcol-contrib runs no upstream test suite (the generated module has none); nothing to skip.
+skips: []
+quarantine: []
