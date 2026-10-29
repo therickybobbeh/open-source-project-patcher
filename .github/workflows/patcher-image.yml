@@ -3,8 +3,9 @@
 name: patcher-image
 
 on:
+  # every PR: `test` is the check branch protection requires, and a PR that never ran it could never merge
+  # (patch PRs touch only generated/, docs PRs only docs/ or wiki/)
   pull_request:
-    paths: ["patcher/**", "recipes/**", "skips/**", "vex/**", "state/**", "schema/**", ".github/**"]
   push:
     branches: [main]
     paths: ["patcher/**"]
