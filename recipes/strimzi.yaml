@@ -21,6 +21,9 @@ ecosystems:
 prepare: ["mvn -B -ntp -q -DskipTests -pl '!systemtest' install"]
 scan:
   offline: true
+  # also plan from the operator image's own jars (opt/strimzi/lib): some versions there (Jackson 3.1.6) aren't
+  # visible to the offline source scan, so a second pass pins them in the root POM's dependencyManagement
+  image: true
   # not in the operator image: system tests/test helpers, docs, and the third-party libs that go into the
   # separate Kafka images (docker-images/artifacts/kafka-thirdparty-libs/*, own Maven projects)
   skipDirs: [systemtest, test, mockkube, development-docs, documentation, packaging, helm-charts,
@@ -49,6 +52,7 @@ build:
         make -C docker-images/operator docker_build DOCKER_ARCHITECTURE={{arch}} RELEASE_VERSION={{version}}
       builtImage: "strimzi/operator:latest"
       smoke: []
+      ownBinaries: [opt/strimzi/]   # the operator's jars; the rest of the image is the UBI/JDK base
 notes:
   - Kafka broker images (quay.io/strimzi/kafka) embed the Apache Kafka binary tarball; their jars can't be bumped through the POMs. Add a separate recipe line if those images need Copa/base refreshes.
   - The maven-builder image is its own recipe (strimzi-maven-builder).
