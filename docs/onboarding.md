@@ -99,11 +99,15 @@ Repeat until the run ends `success`, or `tests-preexisting` with every failure u
    updates (<status>)`, carries the report.
    [Reviewing a patch PR](runbook.md#reviewing-a-patch-pr) covers what to check.
 3. Merge the patch PR. `release.yml` then:
-   - builds each platform on a native runner;
-   - pushes to GHCR;
+   - builds each of the recipe's platforms (`build.platforms`) on a native runner, without registry
+     credentials: the build runs upstream code, so its images leave the job as archives;
+   - pushes them to GHCR from a job that runs no upstream code, then merges the platforms and runs Copa;
    - signs the image and attaches the SBOM, OpenVEX and SLSA provenance;
    - opens a `[<name>] record release of <line>` PR. Merge it: `state/` is what the nightly run and
      `patcher coverage` read.
+
+   If the run fails after the builds, finish it with `rebuild: false`
+   ([runbook](runbook.md#a-release-failed-after-the-builds)).
 
 ## After onboarding
 

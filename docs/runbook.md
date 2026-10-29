@@ -226,6 +226,8 @@ Notes:
   finish: dispatch with `rebuild: true`. A new build always takes a new revision, so the numbers can skip.
 - Image-only recipes build nothing in `build`: their `publish` overlays the vendor image and always redoes the
   revision after the recorded one, so `rebuild` makes no difference for them.
+- The [failure alert](#failure-alerts) of a job closes itself when that job passes in the finishing run. A run with
+  `rebuild: false` skips `build` and `push`, so close their alerts by hand.
 - **Re-run failed jobs** (`gh run rerun --failed`) only for transient failures (a registry or Sigstore blip). A re-run
   uses the workflow and action files of the commit that started the run, so it repeats a failure that a later commit
   fixed. A new dispatch uses the current files.
