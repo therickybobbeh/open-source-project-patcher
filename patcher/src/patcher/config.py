@@ -11,7 +11,7 @@ from typing import Any, TypeVar
 import yaml
 from pydantic import BaseModel
 
-from .models import GlobalConfig, Hold, Line, Override, Recipe, SkipFile, State, VexFile
+from .models import GlobalConfig, Hold, Line, LineState, Override, Recipe, SkipFile, State, VexFile
 
 M = TypeVar("M", bound=BaseModel)
 
@@ -119,17 +119,23 @@ class Repo:
     def overlay_dir(self, name: str) -> Path:
         return self.root / "patches" / name / "files"
 
-    def state_path(self, name: str) -> Path:
-        return self.root / "state" / f"{name}.yaml"
+    def state_path(self, name: str, key: str) -> Path:
+        return self.root / "state" / name / f"{key}.yaml"
 
     def state(self, name: str) -> State:
-        path = self.state_path(name)
-        return load_model(path, State) if path.exists() else State()
+        """One file per release line (`state/<recipe>/<line>.yaml`): lines released together each open a state PR,
+        and those would conflict if they all edited one file. A whole-recipe `state/<recipe>.yaml` still counts."""
+        legacy = self.root / "state" / f"{name}.yaml"
+        state = load_model(legacy, State) if legacy.exists() else State()
+        for path in sorted((self.root / "state" / name).glob("*.yaml")):
+            state.lines[path.stem] = load_model(path, LineState)
+        return state
 
     def save_state(self, name: str, state: State) -> None:
-        path = self.state_path(name)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(yaml.safe_dump(state.model_dump(mode="json"), sort_keys=False))
+        for key, line in state.lines.items():
+            path = self.state_path(name, key)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(yaml.safe_dump(line.model_dump(mode="json"), sort_keys=False))
 
     def generated_dir(self, name: str, tag: str) -> Path:
         return self.root / "generated" / name / tag

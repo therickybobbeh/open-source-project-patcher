@@ -1,49 +1,5 @@
 {
   "$defs": {
-    "LineState": {
-      "additionalProperties": false,
-      "properties": {
-        "upstreamTag": {
-          "title": "Upstreamtag",
-          "type": "string"
-        },
-        "commit": {
-          "title": "Commit",
-          "type": "string"
-        },
-        "revision": {
-          "title": "Revision",
-          "type": "integer"
-        },
-        "releasedAt": {
-          "format": "date-time",
-          "title": "Releasedat",
-          "type": "string"
-        },
-        "platforms": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Platforms",
-          "type": "array"
-        },
-        "images": {
-          "items": {
-            "$ref": "#/$defs/ReleasedImage"
-          },
-          "title": "Images",
-          "type": "array"
-        }
-      },
-      "required": [
-        "upstreamTag",
-        "commit",
-        "revision",
-        "releasedAt"
-      ],
-      "title": "LineState",
-      "type": "object"
-    },
     "ReleasedImage": {
       "additionalProperties": false,
       "properties": {
@@ -79,14 +35,44 @@
   },
   "additionalProperties": false,
   "properties": {
-    "lines": {
-      "additionalProperties": {
-        "$ref": "#/$defs/LineState"
+    "upstreamTag": {
+      "title": "Upstreamtag",
+      "type": "string"
+    },
+    "commit": {
+      "title": "Commit",
+      "type": "string"
+    },
+    "revision": {
+      "title": "Revision",
+      "type": "integer"
+    },
+    "releasedAt": {
+      "format": "date-time",
+      "title": "Releasedat",
+      "type": "string"
+    },
+    "platforms": {
+      "items": {
+        "type": "string"
       },
-      "title": "Lines",
-      "type": "object"
+      "title": "Platforms",
+      "type": "array"
+    },
+    "images": {
+      "items": {
+        "$ref": "#/$defs/ReleasedImage"
+      },
+      "title": "Images",
+      "type": "array"
     }
   },
-  "title": "State",
+  "required": [
+    "upstreamTag",
+    "commit",
+    "revision",
+    "releasedAt"
+  ],
+  "title": "LineState",
   "type": "object"
 }

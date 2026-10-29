@@ -81,7 +81,7 @@ vex/<project>.yaml          decisions for findings we can't fix (published as Op
 patches/<project>/*.patch   hand-written patches applied after checkout
 patches/<project>/files/    files copied over the checkout (e.g. extra Dockerfiles)
 generated/<project>/<tag>/  WRITTEN BY CI, reviewed via PR: deps.patch, bump-plan.json, report.md
-state/<project>.yaml        what was released (tag, revision, digests); written by the release flow
+state/<project>/<line>.yaml what was released per line (tag, revision, digests); written by the release flow
 patcher/                    the Python CLI + the portable patcher image (patcher/Dockerfile)
 scripts/patcher-docker.sh   runs the CLI in the patcher image (used by CI and locally)
 schema/                     JSON schemas (`patcher schema`); recipes reference them for editor validation

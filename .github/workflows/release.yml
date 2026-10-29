@@ -146,7 +146,7 @@ jobs:
           app-id: ${{ vars.PATCHER_APP_ID }}
           private-key: ${{ secrets.PATCHER_APP_PRIVATE_KEY }}
           branch: state/${{ matrix.recipe }}/${{ matrix.line }}
-          add-paths: state/${{ matrix.recipe }}.yaml
+          add-paths: state/${{ matrix.recipe }}/${{ matrix.line }}.yaml
           commit-message: "state: released ${{ matrix.recipe }} ${{ matrix.line }}"
           title: "[${{ matrix.recipe }}] record release of ${{ matrix.line }}"
           body-path: out/${{ matrix.recipe }}/${{ matrix.line }}/release.json
