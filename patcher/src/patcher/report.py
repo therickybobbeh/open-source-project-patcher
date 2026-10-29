@@ -147,6 +147,9 @@ def render_markdown(s: Summary) -> str:
     icon = {"success": "✅", "no-changes": "➖", "tests-preexisting": "⚠️"}.get(s.status, "❌")
     out = [f"## {icon} {s.recipe.name} `{s.tag}` — {s.status}", ""]
     out.append(f"Upstream: {s.recipe.source.url if s.recipe.source else 'n/a'} @ `{s.commit[:12]}` (line `{s.line}`)")
+    if not s.recipe.publish:
+        out += ["", "> **Not published** (`publish: false` in the recipe): merging records this patch set, but the release "
+                    "workflow pushes no image for this recipe."]
     if s.attempts:
         out.append(f"Attempts: {' → '.join(s.attempts)}")
     out.append("")

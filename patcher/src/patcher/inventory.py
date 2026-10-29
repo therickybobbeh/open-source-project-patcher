@@ -87,7 +87,10 @@ def coverage(repo: Repo) -> list[Row]:
         row.recipe, row.line = r.name, key
         state = repo.state(r.name).lines.get(key)
         released = next((i for i in (state.images if state else []) if i.name == spec.key), None)
-        if not state or not released:
+        if not r.publish:
+            row.status = "scanned only"
+            row.note = "publish: false: patched and reported, never pushed; keep running the vendor image"
+        elif not state or not released:
             row.status = "pending first release"
         elif state.upstreamTag == upstream_tag or (line.branch and state.upstreamTag == upstream_tag.lstrip("v")):
             row.status = "patched"

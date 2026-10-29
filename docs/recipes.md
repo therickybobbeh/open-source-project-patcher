@@ -14,6 +14,7 @@ Real recipes are the best examples. See [Worked examples](#worked-examples) at t
 | `name` | string | required | Recipe id, `^[a-z0-9][a-z0-9-]*$`; must match the file name |
 | `description` | string | | Free text |
 | `mode` | `source` \| `image-only` \| `component` | `source` | `image-only`: no source rebuild (closed source); scan, Copa and mirror the upstream image. `component`: patched and tested like a source recipe, but only shipped inside other images ([Components](#components)) |
+| `publish` | bool | `true` | `false`: patch, test, scan and report as usual, but never push images. The release workflow and Copa refresh skip the recipe, and `patcher coverage` shows it as *scanned only*. For images you may not redistribute, e.g. a closed-source vendor image (`apollo-operator`) |
 | `source` | [Source](#source-and-release-lines) | required for `source` | Where upstream lives and which release lines we track |
 | `toolchain` | [Toolchain](#toolchain) | | Toolchains to install with mise |
 | `policy` | [Policy](#policy) | from `_global.yaml` | How far a dependency may move without a human |

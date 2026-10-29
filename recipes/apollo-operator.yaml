@@ -1,6 +1,9 @@
 # yaml-language-server: $schema=../schema/recipe.schema.json
 name: apollo-operator
 description: Apollo GraphOS Operator (docker.io/apollograph/operator); closed source, image-only
+# never pushed to our registry: a closed-source vendor image, whose license may not allow republishing. It is
+# still scanned, its bundled helpers are rebuilt and tested, and the report and PR still happen.
+publish: false
 mode: image-only
 source:
   # no public source; tags are read from the image registry

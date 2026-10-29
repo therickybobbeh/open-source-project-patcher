@@ -1414,6 +1414,12 @@
       "title": "Mode",
       "type": "string"
     },
+    "publish": {
+      "default": true,
+      "description": "false: patch, test, scan and report as usual, but never push images to the registry (release and Copa refresh skip the recipe). For images you may not redistribute, e.g. a closed-source vendor image",
+      "title": "Publish",
+      "type": "boolean"
+    },
     "source": {
       "anyOf": [
         {
