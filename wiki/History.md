@@ -2,10 +2,11 @@
 
 This page is generated from git history by [`build_wiki_history.py`](../scripts/build_wiki_history.py). The complete machine-readable snapshot is [`history.parquet`](history.parquet).
 
-Snapshot through: 2026-10-29T01:04:55-04:00
+Snapshot through: 2026-10-29T01:05:14-04:00
 
 | Date | Commit | Change | Patch artifacts |
 | --- | --- | --- | --- |
+| 2026-10-29 | [`a44168440d`](../commit/a44168440d61c9cc1cba7bc529ca18a321c8d166) | strimzi 1.3.0: dependency updates | generated/strimzi/1.3.0/bump-plan.json<br>generated/strimzi/1.3.0/deps.patch<br>generated/strimzi/1.3.0/report.md |
 | 2026-10-29 | [`09fa1d34ee`](../commit/09fa1d34ee97a34e4dbc37b11616c3c213ee8338) | Release: state PRs that open even when main moved; one state file per line | state/dex.yaml<br>state/dex/v2.yaml<br>state/strimzi-maven-builder.yaml<br>state/strimzi-maven-builder/1.yaml |
 | 2026-10-29 | [`9cf21e17a0`](../commit/9cf21e17a03e084a6e93a93de7fdd786e29498b6) | maven 3.10.0: dependency updates | generated/maven/3.10.0/bump-plan.json<br>generated/maven/3.10.0/deps.patch<br>generated/maven/3.10.0/jars.json<br>generated/maven/3.10.0/report.md |
 | 2026-10-29 | [`9e5ec541a0`](../commit/9e5ec541a0e700ac7ba28c720181ca5149189ed4) | state: released dex v2 | state/dex.yaml |
