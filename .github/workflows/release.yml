@@ -80,9 +80,12 @@ jobs:
           fi
           jq . <<<"$plan"
           jq -r '.skipped[] | "::notice::not released: \(.recipe) \(.line) (\(.reason))"' <<<"$plan"
+          jq -r '.errors[] | "::error::cannot release \(.recipe) \(.line): \(.error)"' <<<"$plan"
+          errors=$(jq '.errors | length' <<<"$plan")
           count=$(jq '.include | length' <<<"$plan")
-          if [ "$count" -gt 1 ]; then
-            # one run per line (see the top of this file); this run releases nothing itself
+          if [ "$count" -gt 1 ] || { [ "$count" -eq 1 ] && [ "$errors" -gt 0 ]; }; then
+            # one run per line (see the top of this file), and this run fails below if any line can't be released:
+            # the lines that can are dispatched first, so they aren't held up
             jq -r '.include[] | [.recipe, .line] | @tsv' <<<"$plan" | while IFS=$'\t' read -r recipe line; do
               gh workflow run release.yml -R "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME" -f recipe="$recipe" -f line="$line"
               echo "::notice::dispatched a release run for $recipe $line"
@@ -101,6 +104,7 @@ jobs:
             echo "build=$build"
             echo "arches=$(jq -c '.arches // []' <<<"$target")"
           } >> "$GITHUB_OUTPUT"
+          [ "$errors" -eq 0 ]   # a line that can't be released fails the run (a CI alert), after the others
 
   # Runs upstream code with the Docker socket: no login, no write permission, no caches (see the top of this file).
   # It pushes nothing (it has nothing to push with); the images it built leave it as archives.
@@ -189,8 +193,10 @@ jobs:
       packages: write
       id-token: write       # keyless cosign
     outputs:
-      subjects: ${{ steps.subjects.outputs.matrix }}
-      count: ${{ steps.subjects.outputs.count }}
+      subjects: ${{ steps.record.outputs.subjects }}
+      count: ${{ steps.record.outputs.count }}
+      state: ${{ steps.record.outputs.state }}
+      release: ${{ steps.record.outputs.release }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -201,13 +207,16 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      # with `--revision`: the one `push` just pushed; without (nothing built in this run): the newest one whose per-arch
-      # images all exist. An image whose final tag exists already (an earlier publish got that far) is kept as it is.
+      # With `--revision`: the one `push` just pushed. A final tag that exists then belongs to something else (a Copa
+      # refresh took the revision) and nothing is published, unless this is a re-run of this job (--finish-existing).
+      # Without (nothing built in this run): the newest revision whose per-arch images all exist, where an image whose
+      # final tag exists already (an earlier publish got that far) is kept as it is.
       - uses: ./.github/actions/run-patcher
         with:
           args: >-
             publish ${{ needs.plan.outputs.recipe }} --line ${{ needs.plan.outputs.line }} --out out
             ${{ needs.push.outputs.revision && format('--revision {0}', needs.push.outputs.revision) || '' }}
+            ${{ github.run_attempt != '1' && '--finish-existing' || '' }}
           image-cache: "false"
       - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
       - name: Sign + attach SBOM and OpenVEX
@@ -233,18 +242,24 @@ jobs:
               scripts/retry.sh 3 cosign attest --yes --type openvex --predicate "$(jq -r .vex <<<"$img")" "$ref"
             fi
           done
-      # one provenance attestation per image (attest-build-provenance takes a single registry subject)
-      - id: subjects
+      # What the next jobs need, as job outputs: a later job could replace an artifact of this run, not another job's
+      # outputs. One provenance attestation per image (attest-build-provenance takes a single registry subject).
+      - id: record
         env:
           RELEASE: out/${{ needs.plan.outputs.recipe }}/${{ needs.plan.outputs.line }}/release.json
+          STATE: state/${{ needs.plan.outputs.recipe }}/${{ needs.plan.outputs.line }}.yaml
         run: |
-          matrix=$(jq -c '{include: [.[] | {repository, digest, image}]}' "$RELEASE")
-          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
-          echo "count=$(jq '.include | length' <<<"$matrix")" >> "$GITHUB_OUTPUT"
-          jq . <<<"$matrix"
+          subjects=$(jq -c '{include: [.[] | {repository, digest, image}]}' "$RELEASE")
+          jq . <<<"$subjects"
+          {
+            echo "subjects=$subjects"
+            echo "count=$(jq '.include | length' <<<"$subjects")"
+            echo "state=$(base64 -w0 "$STATE")"
+            echo "release=$(base64 -w0 "$RELEASE")"
+          } >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: release-${{ needs.plan.outputs.recipe }}-${{ needs.plan.outputs.line }}
+          name: release-${{ needs.plan.outputs.recipe }}-${{ needs.plan.outputs.line }}   # for people; no job reads it
           path: |
             out/${{ needs.plan.outputs.recipe }}/${{ needs.plan.outputs.line }}/release.json
             state/${{ needs.plan.outputs.recipe }}/${{ needs.plan.outputs.line }}.yaml
@@ -253,7 +268,9 @@ jobs:
 
   attest:
     needs: publish
-    if: needs.publish.outputs.count != '0'
+    # `!cancelled()`: when this run built nothing, `push` was skipped, and a plain condition would skip this job too
+    # (GitHub's implied success() also looks at the jobs `publish` needs)
+    if: ${{ !cancelled() && needs.publish.result == 'success' && needs.publish.outputs.count != '0' }}
     runs-on: ubuntu-24.04
     strategy:
       matrix: ${{ fromJSON(needs.publish.outputs.subjects) }}
@@ -264,12 +281,25 @@ jobs:
       id-token: write
       attestations: write
     steps:
-      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+      # finishing a revision an earlier run attested must not attest it a second time
+      - id: has
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SUBJECT: oci://${{ matrix.repository }}@${{ matrix.digest }}
+        run: |
+          if gh attestation verify "$SUBJECT" -R "$GITHUB_REPOSITORY" \
+               --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml" > /dev/null 2>&1; then
+            echo "$SUBJECT: provenance attested already"
+            echo "attested=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.has.outputs.attested != 'true'
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+      - if: steps.has.outputs.attested != 'true'
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-name: ${{ matrix.repository }}
           subject-digest: ${{ matrix.digest }}
@@ -278,7 +308,8 @@ jobs:
   # Last, so state/ only ever records complete releases (signed, SBOM, VEX, provenance). Whatever fails before this
   # leaves an unrecorded revision, which a run with `rebuild: false` finishes.
   state:
-    needs: [plan, attest]
+    needs: [plan, publish, attest]
+    if: ${{ !cancelled() && needs.attest.result == 'success' }}   # see attest
     runs-on: ubuntu-24.04
     name: state ${{ needs.plan.outputs.recipe }} ${{ needs.plan.outputs.line }}
     concurrency:
@@ -291,17 +322,15 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: release-${{ needs.plan.outputs.recipe }}-${{ needs.plan.outputs.line }}
-          path: ${{ runner.temp }}/release
-      # only the line's state file is taken into the checkout
+      # the line's state file and the release record, from publish's outputs (see there)
       - env:
-          FROM: ${{ runner.temp }}/release/state/${{ needs.plan.outputs.recipe }}/${{ needs.plan.outputs.line }}.yaml
+          STATE: ${{ needs.publish.outputs.state }}
+          RELEASE: ${{ needs.publish.outputs.release }}
           TO: state/${{ needs.plan.outputs.recipe }}/${{ needs.plan.outputs.line }}.yaml
         run: |
           mkdir -p "$(dirname "$TO")"
-          cp "$FROM" "$TO"
+          base64 -d <<<"$STATE" > "$TO"
+          base64 -d <<<"$RELEASE" > "$RUNNER_TEMP/release.json"
           git status --short
       - uses: ./.github/actions/open-pr
         with:
@@ -311,5 +340,5 @@ jobs:
           add-paths: state/${{ needs.plan.outputs.recipe }}/${{ needs.plan.outputs.line }}.yaml
           commit-message: "state: released ${{ needs.plan.outputs.recipe }} ${{ needs.plan.outputs.line }}"
           title: "[${{ needs.plan.outputs.recipe }}] record release of ${{ needs.plan.outputs.line }}"
-          body-path: ${{ runner.temp }}/release/out/${{ needs.plan.outputs.recipe }}/${{ needs.plan.outputs.line }}/release.json
+          body-path: ${{ runner.temp }}/release.json
           labels: automated, release

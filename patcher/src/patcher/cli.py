@@ -133,16 +133,19 @@ def release_plan(
     changed_files: Optional[Path] = typer.Option(None, help="File listing the paths a push changed; `-` = stdin"),
     repo: Optional[Path] = RepoOpt,
 ) -> None:
-    """Print what release.yml runs: {"include": [{recipe, line, build, platforms, arches}], "skipped": [...]}."""
+    """Print what release.yml runs: {"include": [{recipe, line, build, platforms, arches}], "skipped": [...],
+    "errors": [...]}. Errors are per target, so the others can still be released."""
     r = _repo(repo)
     if recipe and line and not changed_files:
-        targets = [(recipe, line)]
+        targets, errors = [(recipe, line)], []
     elif changed_files and not (recipe or line):
         text = sys.stdin.read() if str(changed_files) == "-" else changed_files.read_text()
-        targets = pipeline.release_targets(r, [l.strip() for l in text.splitlines() if l.strip()])
+        targets, errors = pipeline.release_targets(r, [l.strip() for l in text.splitlines() if l.strip()])
     else:
         raise typer.BadParameter("give --recipe and --line, or --changed-files")
-    typer.echo(json.dumps(pipeline.release_plan(r, targets)))
+    plan = pipeline.release_plan(r, targets)
+    plan["errors"] = errors + plan["errors"]
+    typer.echo(json.dumps(plan))
 
 
 def _platforms(value: Optional[str]) -> Optional[list[str]]:
@@ -190,12 +193,14 @@ def publish(
     tag: Optional[str] = typer.Option(None),
     revision: Optional[int] = typer.Option(None, help="The revision release-push pushed (default: the highest one whose "
                                                       "per-arch images all exist)"),
+    finish_existing: bool = typer.Option(False, "--finish-existing", help="With --revision: keep a final tag that exists "
+                                         "(a re-run of the same publish) instead of refusing it"),
     out: Path = typer.Option(Path("out")),
     repo: Optional[Path] = RepoOpt,
 ) -> None:
     """Release flow: merge per-arch images, Copa, push final + moving tags, update state/."""
     r = _repo(repo)
-    _emit(pipeline.publish(r, r.load_recipe(recipe), line, _platforms(platforms), out.resolve(), tag, revision))
+    _emit(pipeline.publish(r, r.load_recipe(recipe), line, _platforms(platforms), out.resolve(), tag, revision, finish_existing))
 
 
 @app.command()

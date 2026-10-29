@@ -773,40 +773,54 @@ def release_platforms(recipe: Recipe, only: list[str] | None = None) -> list[str
     return [p for p in recipe.build.platforms if p in used]
 
 
-def release_targets(repo: Repo, changed_files: list[str]) -> list[tuple[str, str]]:
+def release_targets(repo: Repo, changed_files: list[str]) -> tuple[list[tuple[str, str]], list[dict]]:
     """(recipe, line) of every patch set a push added or changed: generated/<recipe>/<tag>/bump-plan.json at exactly
-    that depth. A component's own plan (generated/<recipe>/<tag>/components/<name>/bump-plan.json) is not a release."""
-    targets = []
+    that depth. A component's own plan (generated/<recipe>/<tag>/components/<name>/bump-plan.json) is not a release.
+    Also an error row for each plan that can't be read, so that one bad file doesn't hold up the others."""
+    targets, errors = [], []
     for f in changed_files:
         parts = f.split("/")
         path = repo.root / f
         if len(parts) == 4 and parts[0] == "generated" and parts[3] == "bump-plan.json" and path.is_file():
-            doc = json.loads(path.read_text())
-            targets.append((doc["recipe"], doc["line"]))
-    return list(dict.fromkeys(targets))
+            try:
+                doc = json.loads(path.read_text())
+                targets.append((doc["recipe"], doc["line"]))
+            except (ValueError, KeyError, TypeError) as e:
+                errors.append({"recipe": parts[1], "line": "", "error": f"{f}: unreadable patch set ({e!r})"})
+    return list(dict.fromkeys(targets)), errors
+
+
+def _release_row(repo: Repo, name: str, key: str) -> dict:
+    recipe = repo.load_recipe(name)
+    if recipe.mode == "component":
+        return {"recipe": name, "line": key, "reason": "a component: it ships inside its parents' images"}
+    if not recipe.publish:
+        return {"recipe": name, "line": key, "reason": "publish: false"}
+    _lines(recipe, key)  # an unknown line is an error, not a silent no-op
+    if not recipe.build:
+        raise ValueError(f"{name}: no `build` section, nothing to release")
+    build = recipe.mode != "image-only"  # image-only: `publish` overlays the vendor image itself, in one cross build
+    plats = release_platforms(recipe)
+    if build and (missing := [p for p in plats if p not in RUNNERS]):
+        raise ValueError(f"{name}: no native runner for {', '.join(missing)}; release builds run on {', '.join(RUNNERS)}")
+    return {"recipe": name, "line": key, "build": build, "platforms": plats,
+            "arches": [{"platform": p, "arch": arch_of(p), "runner": RUNNERS[p]} for p in plats if p in RUNNERS]}
 
 
 def release_plan(repo: Repo, targets: list[tuple[str, str]]) -> dict:
     """What release.yml runs for each (recipe, line): `include` rows with whether anything is built, and the platforms
-    with their native runners; `skipped` rows for what is never released, with the reason."""
-    include, skipped = [], []
+    with their native runners; `skipped` rows for what is never released, with the reason; `errors` rows for what can't
+    be released as it is (an unknown recipe or line, a platform without a runner). One target's error doesn't stop the
+    others: release.yml releases those and then fails, which raises a CI alert."""
+    include, skipped, errors = [], [], []
     for name, key in dict.fromkeys(targets):
-        recipe = repo.load_recipe(name)
-        why = ("a component: it ships inside its parents' images" if recipe.mode == "component"
-               else "publish: false" if not recipe.publish else "")
-        if why:
-            skipped.append({"recipe": name, "line": key, "reason": why})
+        try:
+            row = _release_row(repo, name, key)
+        except Exception as e:  # noqa: BLE001 - reported per target; release.yml fails the run after the others
+            errors.append({"recipe": name, "line": key, "error": (str(e).splitlines() or [repr(e)])[0][:300]})
             continue
-        _lines(recipe, key)  # an unknown line is an error, not a silent no-op
-        if not recipe.build:
-            raise ValueError(f"{name}: no `build` section, nothing to release")
-        build = recipe.mode != "image-only"  # image-only: `publish` overlays the vendor image itself, in one cross build
-        plats = release_platforms(recipe)
-        if build and (missing := [p for p in plats if p not in RUNNERS]):
-            raise ValueError(f"{name}: no native runner for {', '.join(missing)}; release builds run on {', '.join(RUNNERS)}")
-        include.append({"recipe": name, "line": key, "build": build, "platforms": plats,
-                        "arches": [{"platform": p, "arch": arch_of(p), "runner": RUNNERS[p]} for p in plats if p in RUNNERS]})
-    return {"include": include, "skipped": skipped}
+        (skipped if "reason" in row else include).append(row)
+    return {"include": include, "skipped": skipped, "errors": errors}
 
 
 @dataclass
@@ -875,14 +889,21 @@ def built_revision(repo: Repo, recipe: Recipe, key: str, tag: str, commit: str =
     each one gets a tag, so the search ends at the first revision without any."""
     tctx = template_ctx(tag, commit)
     first = rev = _first_revision(repo, recipe, key, tag)
+    seen: dict[str, bool] = {}
+
+    def exists(ref: str) -> bool:  # each tag asked once
+        if ref not in seen:
+            seen[ref] = _tag_exists(ref)
+        return seen[ref]
+
     best = None
     while True:
         images = release_images(repo, recipe, tctx, rev, only)
-        exists = {ref: _tag_exists(ref) for i in images for ref in (i.ref, *i.staged)}
-        if not any(exists.values()):
-            break
-        if all(exists[ref] for i in images for ref in i.staged):
+        staged = [ref for i in images for ref in i.staged]
+        if all(exists(ref) for ref in staged):  # stops at the first missing one
             best = rev
+        elif not any(exists(ref) for ref in [i.ref for i in images] + staged):
+            break
         rev += 1
     if best is None:
         raise LookupError(f"{recipe.name} {key}: no revision of {tag} from {first} on has all its per-arch images "
@@ -891,7 +912,8 @@ def built_revision(repo: Repo, recipe: Recipe, key: str, tag: str, commit: str =
     return best
 
 
-_NOT_FOUND = re.compile(r"^ERROR: \S+: not found$", re.M)
+# a tag or repository that isn't there, in buildx's words (`ERROR: <ref>: not found`) or the registry's error codes
+_NOT_FOUND = re.compile(r"^ERROR: \S+: not found$|\bMANIFEST_UNKNOWN\b|\bNAME_UNKNOWN\b|\bmanifest unknown\b", re.M)
 
 
 def _tag_exists(ref: str) -> bool:
@@ -1015,14 +1037,17 @@ def release_push(repo: Repo, recipe: Recipe, key: str, out: Path, images: Path |
 
 
 def publish(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, out: Path, tag: str | None = None,
-            revision: int | None = None) -> list[dict]:
+            revision: int | None = None, finish_existing: bool = False) -> list[dict]:
     """Merge a revision's per-arch images, Copa the result, push the immutable and moving tags, update state.
 
     `revision`: the one `release_push` pushed in this run. Without it (the run built nothing: `rebuild: false`), the
-    highest revision whose per-arch images all exist (`built_revision`). Never a revision state/ records. An image
-    whose final tag exists already, because an earlier publish of this revision failed after pushing it, is finished
-    as it is: no second merge or Copa, so its digest stays; it is tagged, scanned and recorded again, and the workflow
-    signs and attests what is still missing. `platforms` narrows the release (default: the recipe's)."""
+    highest revision whose per-arch images all exist (`built_revision`). Never a revision state/ records.
+
+    Finishing (no `revision`, or `finish_existing` for a re-run of the same publish): an image whose final tag exists
+    already, because an earlier publish of this revision failed after pushing it, is kept as it is: no second merge or
+    Copa, so its digest stays; it is tagged, scanned and recorded again, and the workflow signs and attests what is
+    still missing. Otherwise an existing final tag means something else (a Copa refresh) took the revision since
+    `release_push` chose it, and nothing is published. `platforms` narrows the release (default: the recipe's)."""
     out = out / recipe.name / key
     out.mkdir(parents=True, exist_ok=True)
     if not recipe.publish:
@@ -1044,11 +1069,17 @@ def publish(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, o
     else:
         rev = revision
     swaps = jars.from_generated(gen)  # already in the per-arch images merged here (release_build swapped them)
+    todo = release_images(repo, recipe, tctx, rev, platforms)
+    existing = {img.ref for img in todo if _tag_exists(img.ref)}
+    if existing and revision is not None and not finish_existing:
+        raise RuntimeError(f"{', '.join(sorted(existing))} exists, but this run's push just took revision {rev}: something else "
+                           "(a Copa refresh?) published it since. Nothing is published; dispatch the release again, it takes a "
+                           "new revision")
     released: list[dict] = []
     images: list[ReleasedImage] = []
-    for img in release_images(repo, recipe, tctx, rev, platforms):
+    for img in todo:
         spec, cr = img.spec, None
-        if _tag_exists(img.ref):
+        if img.ref in existing:
             log(f"{img.ref} exists: an earlier publish of revision {rev} got this far; finishing it as it is")
             copa_note = "unchanged: an earlier publish of this revision pushed it"
         else:
@@ -1080,7 +1111,9 @@ def publish(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, o
 
 
 def _publish_image_only(repo: Repo, recipe: Recipe, key: str, platforms: list[str], out: Path) -> list[dict]:
-    """Closed-source images: copy upstream into our registry, Copa what can be patched, record state."""
+    """Closed-source images: copy upstream into our registry, Copa what can be patched, record state. Each run publishes
+    a new revision: the first after the recorded one with no final or `-build` tag yet, so an earlier attempt that
+    failed after pushing is never overwritten."""
     g = repo.global_config()
     line = next(l for l in recipe.source.lines if line_key(l) == key)
     st = repo.state(recipe.name)
@@ -1088,6 +1121,11 @@ def _publish_image_only(repo: Repo, recipe: Recipe, key: str, platforms: list[st
     targets = _image_only_targets(recipe, line)
     prev = st.lines.get(key)
     rev = prev.revision + 1 if prev and prev.upstreamTag == targets[0][1] else 1
+    def finals(rev: int) -> list[str]:
+        return [f"{g.registry}/{spec.name}:{final_tag(repo, tag, rev)}" for spec, tag in targets]
+
+    while any(_tag_exists(ref) for final in finals(rev) for ref in (final, f"{final}-build")):
+        rev += 1
     comps, swaps = {}, {}
     if recipe.components or any(s.bundledJars for s in recipe.build.images):
         gen, _ = find_generated(repo, recipe, key)
@@ -1097,7 +1135,9 @@ def _publish_image_only(repo: Repo, recipe: Recipe, key: str, platforms: list[st
         repo_ref = f"{g.registry}/{spec.name}"
         up_ref = f"{spec.upstream}:{render(spec.upstreamTag, template_ctx(tag, ''))}"
         final = final_tag(repo, tag, rev)
-        plats = [p for p in platforms if not spec.platforms or p in spec.platforms] or spec.platforms
+        plats = image_platforms(recipe, spec, platforms)
+        if not plats:
+            raise ValueError(f"{recipe.name}: image {spec.key} is released for none of {platforms}")
         mine = [comps[c.recipe] for c in components.applicable(recipe, spec.key) if c.recipe in comps]
         mine_jars = swaps.get(spec.key, [])
         if mine or mine_jars:  # vendor image + our rebuilt helpers and swapped jars, all platforms in one cross-compiling build
@@ -1208,12 +1248,22 @@ def refresh(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, o
         repo_ref, cur_tag = img.ref.rsplit(":", 1)
         up_tag = upstream_tag_of(repo, cur_tag)
         final = final_tag(repo, up_tag, rev)
-        plats = [p for p in platforms if not spec.platforms or p in spec.platforms] or spec.platforms  # what this image has
-        cr = copa.for_image(spec, f"{repo_ref}@{img.digest}", final, out, platforms=plats, severities=g.scan.severities,
-                            push=True, src="remote")
+        plats = image_platforms(recipe, spec, platforms)  # the recorded platforms this image has
+        if not plats:
+            images.append(img)
+            continue
+        # Copa pushes to a scratch tag (its per-platform results to <scratch>-<arch>), never to a release's own tags
+        cr = copa.for_image(spec, f"{repo_ref}@{img.digest}", f"{final}-refresh", out, platforms=plats,
+                            severities=g.scan.severities, push=True, src="remote")
         if not (cr and cr.patched_ref):
             images.append(img)
             continue
+        # a release may have taken this revision while Copa ran: then it is the release's, and nothing is overwritten
+        taken = [ref for ref in (f"{repo_ref}:{final}", *(f"{repo_ref}:{final}-{arch_of(p)}" for p in plats)) if _tag_exists(ref)]
+        if taken:
+            raise RuntimeError(f"revision {rev} was taken while Copa ran ({', '.join(taken)}), by a release of this line? "
+                               "Nothing was overwritten; the next rescan refreshes again")
+        run(["docker", "buildx", "imagetools", "create", "-t", f"{repo_ref}:{final}", cr.patched_ref])
         run(["docker", "buildx", "imagetools", "create", "-t", f"{repo_ref}:{up_tag}-patched", f"{repo_ref}:{final}"])
         digest = image_digest(f"{repo_ref}:{final}")
         after = scan_image(f"{repo_ref}@{digest}", out / f"scan-refresh-{spec.key}.json", severities=g.scan.severities,
