@@ -33,7 +33,8 @@ build or a smoke test failed.
 
 | Status | Meaning |
 |---|---|
-| `success` / `no-changes` | Bumps applied (or none needed), tests passed, images built |
+| `success` | Bumps applied, tests passed, images built. Also a rebuild without bumps whose images have fewer fixable findings than upstream's (Copa, rebuilt components, a newer base); its report says so |
+| `no-changes` | Nothing to release, so no PR. When every fixable finding in upstream's images is one the source plan left unresolved (for example a fix still in its release-age wait), the run stops after the scans, without tests or a build |
 | `tests-preexisting` | Tests failed, but the same tests also fail on the unpatched upstream source. Ready for review; labeled `preexisting-test-failures` |
 | `tests-failed` | Tests failed only after the bumps, even with patch-level bumps. Draft |
 | `malicious-dependency` | A bumped version has an OSV malicious-package advisory. Draft; nothing is built. See [below](#malicious-package-check) |
@@ -116,7 +117,7 @@ updated in place.
 
 | Trigger | What runs |
 |---|---|
-| Nightly (03:17 UTC) | Lines whose newest upstream tag isn't released yet, **minus** lines whose patch PR already holds that tag (waiting for review) and lines another run is patching right now |
+| Nightly (03:17 UTC) | Lines whose newest upstream tag isn't released yet, **minus** lines whose patch set for that tag is in a PR (open, or merged into `generated/`: a failed release is re-run with `release.yml`, not re-patched) and lines another run is patching right now. A `no-changes` line comes back every night, so a new fix is picked up the next day; a line with nothing to change costs a clone and the scans |
 | Push to `recipes/`, `skips/`, `patches/`, `vex/` | The lines of the recipes that changed (`_global.yaml`: all of them) |
 | Manual dispatch | The recipe (and line) you name, or every line with `all` |
 
