@@ -30,6 +30,8 @@ def commits() -> list[dict[str, object]]:
             continue
         sha, committed_at, author, subject = lines[0].split("\x1f", 3)
         paths = sorted(path for path in lines[1:] if path)
+        if paths and all(path.startswith("wiki/") for path in paths):
+            continue  # this workflow's own commits: counting them, every run would find "new" history and commit again
         patch_paths = sorted(path for path in paths if path.startswith(("generated/", "state/")))
         rows.append(
             {

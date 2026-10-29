@@ -11,9 +11,8 @@ on:
       - "docs/**"
       - "README.md"
       - "CONTRIBUTING.md"
-  workflow_run:
-    workflows: [patch, release, rescan]
-    types: [completed]
+  # No `workflow_run` after patch/release/rescan: the history is read from git, and those runs only change
+  # git through PRs, whose merges are pushes. (It committed after every nightly and rescan for nothing.)
   workflow_dispatch:
 
 permissions:
@@ -25,16 +24,18 @@ concurrency:
 
 jobs:
   update:
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.event.repository.default_branch }}  # the latest main, not the push that queued this run
           fetch-depth: 0
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
       - name: Build wiki history
-        run: uv run --with pyarrow python scripts/build_wiki_history.py
+        run: uv run --no-project --with pyarrow==26.0.0 python scripts/build_wiki_history.py  # pinned: this job can push to main
       - name: Commit generated history
+        env:
+          BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -44,4 +45,10 @@ jobs:
             exit 0
           fi
           git commit -m "docs: update wiki history"
-          git push
+          # a merge can land while this runs: replay the commit on the newest main (the merge's own push runs this
+          # workflow again, so the history catches up)
+          for attempt in 1 2 3; do
+            git pull -q --rebase origin "$BRANCH" && git push -q origin "HEAD:$BRANCH" && exit 0
+            sleep $((attempt * 5))
+          done
+          exit 1
