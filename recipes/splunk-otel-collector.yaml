@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=../schema/recipe.schema.json
+name: splunk-otel-collector
+description: Splunk Distribution of the OpenTelemetry Collector (quay.io/signalfx/splunk-otel-collector)
+source:
+  repo: signalfx/splunk-otel-collector
+  lines:
+    # the newest release: from v0.154.0 the image has no Smart Agent bundle (collectd, Python, Java), which
+    # carried a quarter of 0.147.0's findings plus native code no scanner sees
+    - name: v0
+      tagPattern: '^v0\.\d+\.\d+$'
+toolchain:
+  go: "1.26"
+ecosystems:
+  - type: gomod
+    # the modules compiled into /otelcol (the root go.mod's local replaces)
+    dirs: [".", baseline, internal/signalfx-agent, "pkg/*/*", pkg/splunkta]
+scan:
+  skipDirs: [examples, internal/tools, packaging, tests]  # examples, release tooling, integration tests: not in the image
+tests:
+  framework: go
+  command: make test-all  # upstream CI's unit tests (with -race), every module; integration tests sit behind build tags
+  env:
+    # -race compiles of the AWS SDK need GBs each: at the default parallelism the compiler and linker got OOM-killed
+    # (in a different package each run, so it looked like a test regression)
+    GOFLAGS: "-p=2"
+  timeoutMinutes: 90
+build:
+  images:
+    - name: splunk-otel-collector
+      upstream: quay.io/signalfx/splunk-otel-collector
+      upstreamTag: "{{version}}"
+      # upstream's `make otelcol` flags, then packaging/docker-otelcol.sh's layout: the binary and collect-libs.sh in
+      # cmd/otelcol/dist/, the Dockerfile built in cmd/otelcol (scratch + journalctl from debian:13 + CA certificates)
+      command: >-
+        mkdir -p cmd/otelcol/dist && cp packaging/collect-libs.sh cmd/otelcol/dist/ &&
+        GOWORK=off CGO_ENABLED=0 GOOS=linux GOARCH={{arch}} go build -trimpath
+        -ldflags "-X github.com/signalfx/splunk-otel-collector/internal/version.Version={{tag}}
+        -X go.opentelemetry.io/collector/internal/version.Version={{tag}}"
+        -o cmd/otelcol/dist/otelcol_linux_{{arch}} ./cmd/otelcol &&
+        docker buildx build --platform {{platform}} -f cmd/otelcol/Dockerfile -t {{image}} --load cmd/otelcol
+      builtImage: "{{image}}"
+      # `validate` loads the default gateway config with every component it uses. The distribution checks these
+      # variables before any command (only --version and --help run without them). Its own argument handling makes
+      # `components` and `--config ... validate` start the service instead, so they can't be smoke tests
+      smoke: ["--version", "validate"]
+      smokeEnv: {SPLUNK_ACCESS_TOKEN: placeholder, SPLUNK_REALM: us0}
+notes:
+  - "Published on quay.io only (not Docker Hub). Every command except --version and --help needs SPLUNK_ACCESS_TOKEN and SPLUNK_REALM, so the smoke tests pass placeholders."
+  - We ran 0.147.0, which still has the Smart Agent bundle; this recipe patches the newest release to upgrade to.

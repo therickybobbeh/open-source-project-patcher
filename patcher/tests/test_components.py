@@ -318,3 +318,17 @@ def test_publish_false_never_pushes(tmp_path):
     assert refresh(repo, r, "v1", ["linux/amd64"], tmp_path / "out") == []
     md = render_markdown(Summary(recipe=r, line="v1", tag="1.6.0", commit="n/a", status="success"))
     assert "**Not published** (`publish: false`" in md
+
+
+def test_smoke_commands_get_the_images_smoke_env(monkeypatch, tmp_path):
+    from patcher import build
+    from patcher.build import BuiltImage
+    from patcher.models import ImageSpec
+
+    seen = []
+    monkeypatch.setattr(build, "run", lambda cmd, **k: seen.append(cmd) or Result(0, "otelcol version v0.163.1", 0.1))
+    spec = ImageSpec(name="splunk-otel-collector", smoke=["components"], smokeEnv={"SPLUNK_REALM": "us0"})
+    img = BuiltImage(spec=spec, ref="img:dev", platform="linux/amd64")
+    assert build.smoke_test(img, tmp_path / "log")
+    cmd = seen[0]
+    assert cmd[cmd.index("-e") + 1] == "SPLUNK_REALM=us0" and cmd.index("-e") < cmd.index("img:dev") < cmd.index("components")

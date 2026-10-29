@@ -310,6 +310,8 @@ class ImageSpec(_Model):
     command: str | None = Field(None, description="Custom build command instead of buildx; must produce `builtImage`")
     builtImage: str | None = Field(None, description="Image ref the custom command produces (template)")
     smoke: list[str] = Field(default_factory=list, description="Args passed to `docker run --rm <image>`; each must exit 0")
+    smokeEnv: dict[str, str] = Field(default_factory=dict, description="Environment for the smoke commands (`docker run -e`), "
+                                     "e.g. placeholder credentials a distribution requires before it will even validate its config")
     ownBinaries: list[str] = Field(default_factory=list, description="Paths or directory prefixes (in the image) of what this source builds, "
                                    "e.g. `usr/local/bin/dex` or `app/`; anything else is a bundled artifact. Empty = guess from the source scan.")
     bundledJars: BundledJars | None = Field(None, description="Jars of a bundled third-party Java distribution: vulnerable ones are "

@@ -628,6 +628,14 @@
           "title": "Smoke",
           "type": "array"
         },
+        "smokeEnv": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Environment for the smoke commands (`docker run -e`), e.g. placeholder credentials a distribution requires before it will even validate its config",
+          "title": "Smokeenv",
+          "type": "object"
+        },
         "ownBinaries": {
           "description": "Paths or directory prefixes (in the image) of what this source builds, e.g. `usr/local/bin/dex` or `app/`; anything else is a bundled artifact. Empty = guess from the source scan.",
           "items": {

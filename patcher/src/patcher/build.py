@@ -73,13 +73,15 @@ def build_image(src: Path, b: Build, spec: ImageSpec, ref: str, platform: str, t
 
 
 def run_container(image: str, args: list[str], *, platform: str, timeout: int, entrypoint: str | None = None,
-                  log: Path | None = None, check: bool = True):
+                  log: Path | None = None, check: bool = True, env: dict[str, str] | None = None):
     """`docker run --rm` with a deadline. Killing the docker CLI leaves the container running, so a
     container that outlives the deadline is removed by name."""
     name = f"patcher-{uuid.uuid4().hex[:12]}"
     cmd = ["docker", "run", "--rm", "--name", name, "--platform", platform]
     if entrypoint:
         cmd += ["--entrypoint", entrypoint]
+    for k, v in (env or {}).items():
+        cmd += ["-e", f"{k}={v}"]
     try:
         return run([*cmd, image, *args], log_file=log, timeout=timeout, check=check, quiet=log is None)
     except CommandError as e:
@@ -92,7 +94,7 @@ def smoke_test(img: BuiltImage, log: Path) -> bool:
     ok = True
     for cmd in img.spec.smoke:
         try:
-            r = run_container(img.ref, shlex.split(cmd), platform=img.platform, timeout=300, log=log)
+            r = run_container(img.ref, shlex.split(cmd), platform=img.platform, timeout=300, log=log, env=img.spec.smokeEnv)
             img.smoke.append({"cmd": cmd, "ok": True, "out": r.out[-500:]})
         except CommandError as e:
             img.smoke.append({"cmd": cmd, "ok": False, "out": e.tail[-500:]})
