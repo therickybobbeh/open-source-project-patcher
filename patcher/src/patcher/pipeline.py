@@ -26,7 +26,7 @@ from .planner import Plan, Unresolved, build_plan
 from .proc import CommandError, first_error, log, output, run
 from .report import BASE_TOOLING, GLOBAL_NODE_PREFIX, ImageOutcome, Summary, render_markdown
 from .scan import ScanReport, scan_fs, scan_image
-from .tests_runner import TestOutcome, only_preexisting, run_tests
+from .tests_runner import TestOutcome, only_preexisting, run_tests, same_setup_failure, setup_error
 from .versions import parse_semver, try_parse
 from .vex import oci_purl, openvex
 
@@ -263,6 +263,20 @@ def run_line(repo: Repo, recipe: Recipe, line: Line, opts: RunOptions) -> Summar
     att, fs_before, attempts = _attempt_with_retry(repo, recipe, tag, commit, out, opts, None)
     summary = _summarize(repo, recipe, key, tag, commit, fs_before, att, attempts)
     summary.images = _build_and_scan(repo, recipe, att, summary, out, opts, tctx, images_before)
+    if summary.status in ("build-failed", "smoke-failed") and opts.retry_patch_level and att.label.startswith("full plan") \
+            and any(c.ecosystem in CVE_ECOSYSTEMS and _level(c) != "patch" for c in att.result.changes):
+        # a bump broke the image build (lodash 4.18.0 broke a webpack UI build) or the image: the same retry as for tests
+        failed_as = summary.status
+        log(f"== {recipe.name} {tag}: {failed_as} with the full plan; retrying with patch-level bumps")
+        retry, _ = _attempt(repo, recipe, tag, commit, out, opts, Level.patch, fs_before)
+        retry_attempts = attempts + [f"{failed_as} → {retry.label}: {_test_word(retry.tests)}"]
+        if retry.tests is None or not retry.tests.ran or retry.tests.passed or retry.tests.preexisting:
+            s2 = _summarize(repo, recipe, key, tag, commit, fs_before, retry, retry_attempts)
+            s2.images = _build_and_scan(repo, recipe, retry, s2, out, opts, tctx, images_before)
+            if s2.status not in ("build-failed", "smoke-failed"):
+                s2.notes.append(f"The full plan's image {failed_as.split('-')[0]} failed; this patch set has patch-level bumps "
+                                "only. The bumps above patch level are listed as not applied.")
+                summary, att = s2, retry
 
     # also (especially) after `no-changes`: a Gradle build without lockfiles shows the source scan nothing
     if _image_planning(recipe) and summary.status in RELEASABLE and summary.images:
@@ -321,6 +335,12 @@ def _attempt_with_retry(repo: Repo, recipe: Recipe, tag: str, commit: str, out: 
     attempts.append(f"unpatched baseline: {_test_word(baseline)}")
     if only_preexisting(att.tests, baseline):
         att.tests.preexisting = list(att.tests.failed)
+        return att, fs_before, attempts
+    if same_setup_failure(att.tests, baseline):
+        # no test ran on either side: the environment, not the bumps; a patch-level retry would fail the same way
+        att.tests.note = ("The suite stopped before any test ran, with the same error on the unpatched source: an "
+                          f"environment problem (patcher image or recipe), not these bumps. Error: {setup_error(att.tests.tail)}")
+        attempts.append("the suite fails the same way on the unpatched source: environment problem")
         return att, fs_before, attempts
     if opts.retry_patch_level and any(c.ecosystem in CVE_ECOSYSTEMS and _level(c) != "patch" for c in att.result.changes):
         retry, _ = _attempt(repo, recipe, tag, commit, out, opts, Level.patch, fs_before, extra)

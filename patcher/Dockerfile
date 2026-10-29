@@ -49,10 +49,11 @@ SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 # (TARGETARCH is only set by BuildKit; the RUNs below fall back to dpkg for the legacy builder / podman.)
 # Build/test prerequisites shared by the upstream projects:
 #  gcc/clang (cgo, -race, jemalloc), protobuf-compiler, tcl/tclx (redis runtest), bats (docker-maven),
-#  gnupg/git (argo-cd tests), sudo (argo-cd hack/install.sh), unzip/zip (strimzi), docker CLI + plugins.
+#  gnupg/git (argo-cd tests), sudo (argo-cd hack/install.sh), unzip/zip (strimzi), libdw-dev (apollo-router's
+#  Linux test dependency rstack/dw-sys), docker CLI + plugins.
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
-      ca-certificates curl git gnupg jq make gcc g++ clang lld pkg-config libssl-dev \
+      ca-certificates curl git gnupg jq make gcc g++ clang lld pkg-config libssl-dev libdw-dev \
       unzip zip xz-utils file procps sudo bats tcl8.6 tclx protobuf-compiler \
  && ARCH="${TARGETARCH:-$(dpkg --print-architecture)}" \
  && install -m 0755 -d /etc/apt/keyrings \
@@ -87,10 +88,13 @@ RUN ARCH="${TARGETARCH:-$(dpkg --print-architecture)}" \
  && install -m 0755 yq /usr/local/bin/yq \
  && rm -rf /tmp/*
 
+# MISE_GO_SET_GOBIN=false: `go install` goes to $GOPATH/bin (/opt/go/bin, on PATH and writable for the test user),
+# not into mise's root-owned Go install dir (Argo CD's tests `go install` go-junit-report as the test user)
 ENV MISE_DATA_DIR=/opt/mise \
     MISE_CACHE_DIR=/opt/mise/cache \
     MISE_YES=1 \
     MISE_EXPERIMENTAL=1 \
+    MISE_GO_SET_GOBIN=false \
     TRIVY_CACHE_DIR=/opt/trivy-cache \
     TRIVY_NO_PROGRESS=true \
     GOPATH=/opt/go \
