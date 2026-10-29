@@ -18,9 +18,11 @@ on:
         description: Re-run every line of every recipe
         type: boolean
         default: false
+  # patcher/ changes are not a trigger: every Dependabot merge would re-run every line. patcher-image.yml
+  # tests the code; dispatch with `all` to re-run everything on purpose.
   push:
     branches: [main]
-    paths: ["recipes/**", "skips/**", "patches/**", "vex/**", "patcher/**"]
+    paths: ["recipes/**", "skips/**", "patches/**", "vex/**"]
 
 permissions:
   contents: read
@@ -110,6 +112,9 @@ jobs:
     concurrency:
       group: pr-${{ matrix.recipe }}-${{ matrix.line }}
       cancel-in-progress: false
+    permissions:
+      contents: write        # only used by the GITHUB_TOKEN fallback in open-pr (no upstream code runs here)
+      pull-requests: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -136,22 +141,15 @@ jobs:
             echo "draft=$(jq -r .draft <<<"$item")"
             echo "body=$(jq -r .body <<<"$item")"
           } >> "$GITHUB_OUTPUT"
-      - id: app-token
-        if: steps.collect.outputs.found == 'true'
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+      - if: steps.collect.outputs.found == 'true'
+        uses: ./.github/actions/open-pr
         with:
           app-id: ${{ vars.PATCHER_APP_ID }}
           private-key: ${{ secrets.PATCHER_APP_PRIVATE_KEY }}
-      - if: steps.collect.outputs.found == 'true'
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
-        with:
-          token: ${{ steps.app-token.outputs.token }}
           branch: patch/${{ matrix.recipe }}/${{ matrix.line }}
-          delete-branch: true
           add-paths: generated/${{ matrix.recipe }}/**
           commit-message: "${{ matrix.recipe }} ${{ steps.collect.outputs.tag }}: dependency updates"
           title: "[${{ matrix.recipe }}] ${{ steps.collect.outputs.tag }}: dependency updates (${{ steps.collect.outputs.status }})"
           body-path: ${{ steps.collect.outputs.body }}
           draft: ${{ steps.collect.outputs.draft }}
           labels: security, automated, ${{ matrix.recipe }}${{ steps.collect.outputs.status == 'tests-preexisting' && ', preexisting-test-failures' || '' }}
-          sign-commits: true

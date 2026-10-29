@@ -913,8 +913,8 @@ def plan_matrix(repo: Repo, *, recipes: list[str] | None = None, changed_files: 
     elif changed_files is not None:
         for f in changed_files:
             parts = f.split("/")
-            if f == "recipes/_global.yaml" or parts[0] == "patcher":
-                return plan_matrix(repo, include_all=True)
+            if f == "recipes/_global.yaml":  # org-wide policy: every line. (patcher/ code changes run nothing here:
+                return plan_matrix(repo, include_all=True)  # patcher-image.yml tests them; dispatch `all` on purpose)
             if parts[0] in ("recipes", "skips", "vex") and len(parts) == 2 and f.endswith(".yaml"):
                 selected[Path(parts[1]).stem] = None
             elif parts[0] == "patches" and len(parts) > 2:

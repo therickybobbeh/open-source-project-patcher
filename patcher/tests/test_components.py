@@ -34,8 +34,11 @@ def test_version_detection_order(tmp_path, monkeypatch):
     assert components.find_version(kz, scan, tmp_path, None, "linux/arm64") == ("5.8.1", "hack/tool-versions.sh")
     # (devel) build info is ignored; versionCommand runs the binary in the image
     monkeypatch.setattr("patcher.build.run", lambda *a, **k: Result(0, "git-lfs/3.7.1 (GitHub; linux arm64; go 1.24.4)\n", 0.1))
+    pulls = []
+    monkeypatch.setattr(components, "run", lambda cmd, **k: pulls.append(cmd) or Result(0, "", 0.1))
     lfs = ref(path="/usr/local/bin/git-lfs", versionCommand=["version"])
     assert components.find_version(lfs, scan, None, "img:ref", "linux/arm64") == ("3.7.1", "`/usr/local/bin/git-lfs version`")
+    assert pulls[0][:3] == ["docker", "pull", "--quiet"]  # pulled first, so pull messages can't be mistaken for the version
     assert components.find_version(ref(path="/usr/local/bin/kustomize"), scan, None, None, "linux/arm64") == (None, "")
 
 

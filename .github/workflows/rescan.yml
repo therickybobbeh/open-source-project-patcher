@@ -54,7 +54,8 @@ jobs:
     runs-on: ubuntu-24.04
     name: copa refresh ${{ matrix.recipe }} ${{ matrix.line }}
     permissions:
-      contents: read
+      contents: write        # only used by the GITHUB_TOKEN fallback in open-pr (the state PR)
+      pull-requests: write
       packages: write
       id-token: write
     steps:
@@ -74,23 +75,17 @@ jobs:
       - name: Sign refreshed images
         run: |
           jq -r '.[] | .repository + "@" + .digest' "out/${{ matrix.recipe }}/${{ matrix.line }}/release.json" \
-            | xargs -r -n1 cosign sign --yes
-      - id: app-token
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+            | xargs -r -n1 scripts/retry.sh 3 cosign sign --yes
+      - uses: ./.github/actions/open-pr
         with:
           app-id: ${{ vars.PATCHER_APP_ID }}
           private-key: ${{ secrets.PATCHER_APP_PRIVATE_KEY }}
-      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
-        with:
-          token: ${{ steps.app-token.outputs.token }}
           branch: state/${{ matrix.recipe }}/${{ matrix.line }}-refresh
-          delete-branch: true
           add-paths: state/${{ matrix.recipe }}.yaml
           commit-message: "state: copa refresh ${{ matrix.recipe }} ${{ matrix.line }}"
           title: "[${{ matrix.recipe }}] copa refresh of ${{ matrix.line }}"
           body-path: out/${{ matrix.recipe }}/${{ matrix.line }}/release.json
           labels: automated, release
-          sign-commits: true
 
   rerun:
     needs: scan
