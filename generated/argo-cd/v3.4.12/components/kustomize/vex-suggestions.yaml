@@ -1,0 +1,10 @@
+# Draft VEX statements from govulncheck reachability. Review each one, then copy the ones you
+# accept into vex/kustomize.yaml. Nothing here is applied automatically.
+statements:
+- vulnerability: CVE-2026-56851
+  status: not_affected
+  justification: vulnerable_code_not_present
+  impact: 'govulncheck (v1.9.0): the vulnerable package of golang.org/x/text is not
+    imported'
+  packages:
+  - golang.org/x/text

@@ -1,0 +1,339 @@
+{
+  "recipe": "kustomize",
+  "line": "kustomize-5.8.1",
+  "tag": "kustomize/v5.8.1",
+  "commit": "9790a1c3efd2fd35f1b768d495112834176581c1",
+  "status": "no-changes",
+  "requires": {},
+  "plan": {
+    "bumps": [],
+    "unresolved": [
+      {
+        "ecosystem": "gomod",
+        "target": "api/go.mod",
+        "name": "golang.org/x/sys",
+        "installed": "v0.35.0",
+        "vuln_id": "CVE-2026-39824",
+        "severity": "UNKNOWN",
+        "fixed": "0.44.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "cmd/config/go.mod",
+        "name": "golang.org/x/sys",
+        "installed": "v0.35.0",
+        "vuln_id": "CVE-2026-39824",
+        "severity": "UNKNOWN",
+        "fixed": "0.44.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "cmd/config/internal/commands/e2e/e2econtainerconfig/go.mod",
+        "name": "golang.org/x/sys",
+        "installed": "v0.35.0",
+        "vuln_id": "CVE-2026-39824",
+        "severity": "UNKNOWN",
+        "fixed": "0.44.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "cmd/config/internal/commands/e2e/e2econtainerenvgenerator/go.mod",
+        "name": "golang.org/x/sys",
+        "installed": "v0.35.0",
+        "vuln_id": "CVE-2026-39824",
+        "severity": "UNKNOWN",
+        "fixed": "0.44.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "cmd/config/internal/commands/e2e/e2econtainermountbind/go.mod",
+        "name": "golang.org/x/sys",
+        "installed": "v0.35.0",
+        "vuln_id": "CVE-2026-39824",
+        "severity": "UNKNOWN",
+        "fixed": "0.44.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "cmd/config/internal/commands/e2e/e2econtainersimplegenerator/go.mod",
+        "name": "golang.org/x/sys",
+        "installed": "v0.35.0",
+        "vuln_id": "CVE-2026-39824",
+        "severity": "UNKNOWN",
+        "fixed": "0.44.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "cmd/gorepomod/go.mod",
+        "name": "golang.org/x/mod",
+        "installed": "v0.27.0",
+        "vuln_id": "CVE-2026-56864",
+        "severity": "HIGH",
+        "fixed": "0.40.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "cmd/gorepomod/go.mod",
+        "name": "golang.org/x/mod",
+        "installed": "v0.27.0",
+        "vuln_id": "CVE-2026-56865",
+        "severity": "HIGH",
+        "fixed": "0.40.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "cmd/gorepomod/go.mod",
+        "name": "golang.org/x/sys",
+        "installed": "v0.35.0",
+        "vuln_id": "CVE-2026-39824",
+        "severity": "UNKNOWN",
+        "fixed": "0.44.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "cmd/gorepomod/go.mod",
+        "name": "golang.org/x/text",
+        "installed": "v0.28.0",
+        "vuln_id": "CVE-2026-56851",
+        "severity": "HIGH",
+        "fixed": "0.41.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "cmd/gorepomod/go.mod",
+        "name": "golang.org/x/text",
+        "installed": "v0.28.0",
+        "vuln_id": "CVE-2026-56852",
+        "severity": "HIGH",
+        "fixed": "0.39.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "cmd/pluginator/go.mod",
+        "name": "golang.org/x/sys",
+        "installed": "v0.35.0",
+        "vuln_id": "CVE-2026-39824",
+        "severity": "UNKNOWN",
+        "fixed": "0.44.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "kustomize/go.mod",
+        "name": "golang.org/x/sys",
+        "installed": "v0.35.0",
+        "vuln_id": "CVE-2026-39824",
+        "severity": "UNKNOWN",
+        "fixed": "0.44.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "kustomize/go.mod",
+        "name": "golang.org/x/text",
+        "installed": "v0.28.0",
+        "vuln_id": "CVE-2026-56851",
+        "severity": "HIGH",
+        "fixed": "0.41.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "kustomize/go.mod",
+        "name": "golang.org/x/text",
+        "installed": "v0.28.0",
+        "vuln_id": "CVE-2026-56852",
+        "severity": "HIGH",
+        "fixed": "0.39.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "kyaml/go.mod",
+        "name": "golang.org/x/sys",
+        "installed": "v0.35.0",
+        "vuln_id": "CVE-2026-39824",
+        "severity": "UNKNOWN",
+        "fixed": "0.44.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      }
+    ],
+    "toolchain": {}
+  },
+  "changes": [],
+  "failures": [],
+  "unresolved": [
+    {
+      "ecosystem": "gomod",
+      "target": "api/go.mod",
+      "name": "golang.org/x/sys",
+      "installed": "v0.35.0",
+      "vuln_id": "CVE-2026-39824",
+      "severity": "UNKNOWN",
+      "fixed": "0.44.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "cmd/config/go.mod",
+      "name": "golang.org/x/sys",
+      "installed": "v0.35.0",
+      "vuln_id": "CVE-2026-39824",
+      "severity": "UNKNOWN",
+      "fixed": "0.44.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "cmd/config/internal/commands/e2e/e2econtainerconfig/go.mod",
+      "name": "golang.org/x/sys",
+      "installed": "v0.35.0",
+      "vuln_id": "CVE-2026-39824",
+      "severity": "UNKNOWN",
+      "fixed": "0.44.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "cmd/config/internal/commands/e2e/e2econtainerenvgenerator/go.mod",
+      "name": "golang.org/x/sys",
+      "installed": "v0.35.0",
+      "vuln_id": "CVE-2026-39824",
+      "severity": "UNKNOWN",
+      "fixed": "0.44.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "cmd/config/internal/commands/e2e/e2econtainermountbind/go.mod",
+      "name": "golang.org/x/sys",
+      "installed": "v0.35.0",
+      "vuln_id": "CVE-2026-39824",
+      "severity": "UNKNOWN",
+      "fixed": "0.44.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "cmd/config/internal/commands/e2e/e2econtainersimplegenerator/go.mod",
+      "name": "golang.org/x/sys",
+      "installed": "v0.35.0",
+      "vuln_id": "CVE-2026-39824",
+      "severity": "UNKNOWN",
+      "fixed": "0.44.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "cmd/gorepomod/go.mod",
+      "name": "golang.org/x/mod",
+      "installed": "v0.27.0",
+      "vuln_id": "CVE-2026-56864",
+      "severity": "HIGH",
+      "fixed": "0.40.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "cmd/gorepomod/go.mod",
+      "name": "golang.org/x/mod",
+      "installed": "v0.27.0",
+      "vuln_id": "CVE-2026-56865",
+      "severity": "HIGH",
+      "fixed": "0.40.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "cmd/gorepomod/go.mod",
+      "name": "golang.org/x/sys",
+      "installed": "v0.35.0",
+      "vuln_id": "CVE-2026-39824",
+      "severity": "UNKNOWN",
+      "fixed": "0.44.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "cmd/gorepomod/go.mod",
+      "name": "golang.org/x/text",
+      "installed": "v0.28.0",
+      "vuln_id": "CVE-2026-56851",
+      "severity": "HIGH",
+      "fixed": "0.41.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "cmd/gorepomod/go.mod",
+      "name": "golang.org/x/text",
+      "installed": "v0.28.0",
+      "vuln_id": "CVE-2026-56852",
+      "severity": "HIGH",
+      "fixed": "0.39.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "cmd/pluginator/go.mod",
+      "name": "golang.org/x/sys",
+      "installed": "v0.35.0",
+      "vuln_id": "CVE-2026-39824",
+      "severity": "UNKNOWN",
+      "fixed": "0.44.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "kustomize/go.mod",
+      "name": "golang.org/x/sys",
+      "installed": "v0.35.0",
+      "vuln_id": "CVE-2026-39824",
+      "severity": "UNKNOWN",
+      "fixed": "0.44.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "kustomize/go.mod",
+      "name": "golang.org/x/text",
+      "installed": "v0.28.0",
+      "vuln_id": "CVE-2026-56851",
+      "severity": "HIGH",
+      "fixed": "0.41.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "kustomize/go.mod",
+      "name": "golang.org/x/text",
+      "installed": "v0.28.0",
+      "vuln_id": "CVE-2026-56852",
+      "severity": "HIGH",
+      "fixed": "0.39.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "kyaml/go.mod",
+      "name": "golang.org/x/sys",
+      "installed": "v0.35.0",
+      "vuln_id": "CVE-2026-39824",
+      "severity": "UNKNOWN",
+      "fixed": "0.44.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    }
+  ],
+  "skips": []
+}
