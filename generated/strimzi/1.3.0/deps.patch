@@ -1,0 +1,57 @@
+diff --git a/docker-images/base/Dockerfile b/docker-images/base/Dockerfile
+index 80fc7a5..3521fcc 100644
+--- a/docker-images/base/Dockerfile
++++ b/docker-images/base/Dockerfile
+@@ -1,7 +1,7 @@
+ #####
+ # Build the helper container image for downloading prerequisites
+ #####
+-FROM registry.access.redhat.com/ubi9/ubi-minimal:latest AS downloader
++FROM registry.access.redhat.com/ubi9/ubi-minimal:latest@sha256:6f3a78179e0b30b930a186e7f68a4af52e51bb82406c9653be10bddd624e40f5 AS downloader
+ 
+ ARG TARGETOS
+ ARG TARGETARCH
+@@ -37,7 +37,7 @@ RUN set -ex; \
+ #####
+ # Build the main container image
+ #####
+-FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
++FROM registry.access.redhat.com/ubi9/ubi-minimal:latest@sha256:6f3a78179e0b30b930a186e7f68a4af52e51bb82406c9653be10bddd624e40f5
+ 
+ LABEL org.opencontainers.image.source='https://github.com/strimzi/strimzi-kafka-operator'
+ 
+diff --git a/pom.xml b/pom.xml
+index 1fb85b0..50b48ab 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -147,6 +147,30 @@
+ 
+     <dependencyManagement>
+         <dependencies>
++            <!-- patcher: CVE-2026-91776, CVE-2026-91777 -->
++            <dependency>
++                <groupId>tools.jackson.core</groupId>
++                <artifactId>jackson-databind</artifactId>
++                <version>3.1.7</version>
++            </dependency>
++            <!-- patcher: CVE-2026-89407, CVE-2026-89425 -->
++            <dependency>
++                <groupId>tools.jackson.core</groupId>
++                <artifactId>jackson-core</artifactId>
++                <version>3.1.7</version>
++            </dependency>
++            <!-- patcher: CVE-2026-108106, CVE-2026-116590, CVE-2026-93451 -->
++            <dependency>
++                <groupId>org.xerial.snappy</groupId>
++                <artifactId>snappy-java</artifactId>
++                <version>1.1.10.9</version>
++            </dependency>
++            <!-- patcher: CVE-2026-106449, CVE-2026-106450, CVE-2026-106451, CVE-2026-106452, CVE-2026-106453, CVE-2026-59949 -->
++            <dependency>
++                <groupId>at.yawk.lz4</groupId>
++                <artifactId>lz4-java</artifactId>
++                <version>1.11.4</version>
++            </dependency>
+             <!-- Runtime and compile time dependencies-->
+             <dependency>
+                 <groupId>io.strimzi</groupId>
