@@ -63,6 +63,7 @@ Component recipes (`mode: component`, never released on their own): `helm`, `kus
 | Doc | For |
 |---|---|
 | [docs/architecture.md](docs/architecture.md) | How it works: components, the end-to-end flow (diagram), trust boundaries, tags and revisions, how the pipeline itself stays current |
+| [docs/onboarding.md](docs/onboarding.md) | Adding a project or vendor image: coverage check, `patcher init`, resolving the draft, a clean first run, merge and release, with a checklist |
 | [docs/recipes.md](docs/recipes.md) | Reference for every recipe field, skip handling per test framework, `_global.yaml`, worked examples |
 | [docs/runbook.md](docs/runbook.md) | Setup, reviewing patch PRs (statuses, malicious packages, VEX suggestions), skips, VEX decisions, releases, onboarding a project, coverage, dependency hygiene, CLI reference |
 | [docs/troubleshooting.md](docs/troubleshooting.md) | Symptom → cause → fix for problems hit while bringing the pipeline up |

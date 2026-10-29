@@ -7,6 +7,7 @@ source-level patching pipeline for the open-source images we run.
 
 - [How it works](Architecture.md): the patch, test, build, Copa and release flow.
 - [Operations runbook](Runbook.md): setup, review, releases, VEX and onboarding.
+- [Onboarding](Onboarding.md): adding a new project or vendor image, from `patcher init` to the first release.
 - [Recipe reference](Recipes.md): ecosystems, policy, release lines and examples.
 - [Contributing](Contributing.md): the safe local development loop and extension points.
 - [Patch history](History.md): a generated overview of commits that touch patch artifacts.
