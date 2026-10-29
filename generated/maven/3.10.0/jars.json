@@ -1,0 +1,35 @@
+{
+  "swaps": [
+    {
+      "image": "maven-temurin-21-noble",
+      "path": "usr/share/maven/lib/guava-33.7.1-jre.jar",
+      "name": "com.google.guava:guava",
+      "old": "33.7.1-jre",
+      "new": "33.7.2-jre",
+      "vuln_ids": [
+        "CVE-2026-102554"
+      ],
+      "classifier": "",
+      "url": "https://repo1.maven.org/maven2/com/google/guava/guava/33.7.2-jre/guava-33.7.2-jre.jar",
+      "sha256": "b530942257fb935f8b2cfaa5f8eb5bd59c555fd8e8d01b8ce98912e077ea606c",
+      "old_sha256": "796d8e28ac64e83a47c4c5935a8fecc4682650a04bbdead738ef0f5a3a0e6c46",
+      "checksum": "sha256"
+    },
+    {
+      "image": "maven-temurin-17-noble",
+      "path": "usr/share/maven/lib/guava-33.7.1-jre.jar",
+      "name": "com.google.guava:guava",
+      "old": "33.7.1-jre",
+      "new": "33.7.2-jre",
+      "vuln_ids": [
+        "CVE-2026-102554"
+      ],
+      "classifier": "",
+      "url": "https://repo1.maven.org/maven2/com/google/guava/guava/33.7.2-jre/guava-33.7.2-jre.jar",
+      "sha256": "b530942257fb935f8b2cfaa5f8eb5bd59c555fd8e8d01b8ce98912e077ea606c",
+      "old_sha256": "796d8e28ac64e83a47c4c5935a8fecc4682650a04bbdead738ef0f5a3a0e6c46",
+      "checksum": "sha256"
+    }
+  ],
+  "unresolved": []
+}
