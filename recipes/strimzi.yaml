@@ -54,5 +54,5 @@ build:
       smoke: []
       ownBinaries: [opt/strimzi/]   # the operator's jars; the rest of the image is the UBI/JDK base
 notes:
-  - Kafka broker images (quay.io/strimzi/kafka) embed the Apache Kafka binary tarball; their jars can't be bumped through the POMs. A recipe for those images would swap them with `bundledJars` on opt/kafka/libs/, as recipes/maven.yaml does for Maven's own jars.
+  - Kafka broker images (quay.io/strimzi/kafka) embed the Apache Kafka binary tarball; their jars can't be bumped through the POMs. Add a separate recipe line if those images need Copa/base refreshes.
   - The maven-builder image is its own recipe (strimzi-maven-builder).
