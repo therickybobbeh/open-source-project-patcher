@@ -1,0 +1,43 @@
+{
+  "recipe": "redis",
+  "line": "v8.10",
+  "tag": "v8.10.3",
+  "commit": "8fd1238a62e5a6090d826e6d5fc53de6ce5f8a82",
+  "status": "success",
+  "requires": {},
+  "plan": {
+    "bumps": [],
+    "unresolved": [],
+    "toolchain": {}
+  },
+  "changes": [
+    {
+      "ecosystem": "dockerfile",
+      "target": "debian/Dockerfile",
+      "name": "debian",
+      "old": "debian:trixie-slim",
+      "new": "debian:trixie-slim@sha256:f6b08b09a05725f9431502d3b5714f5c4576e82c1a84fa1debe0c24a7e0c3ec4",
+      "note": "base image refresh"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "alpine/Dockerfile",
+      "name": "alpine",
+      "old": "alpine:3.23",
+      "new": "alpine:3.23@sha256:ff7f0c727dd796aa36787bfcd9a64bf35a6ce72a73451b3359fde849b6703d63",
+      "note": "base image refresh"
+    }
+  ],
+  "failures": [
+    {
+      "ecosystem": "dockerfile",
+      "target": "alpine/Dockerfile",
+      "name": "alpine",
+      "wanted": "3.24",
+      "error": "newer tag 3.24 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)",
+      "hint": true
+    }
+  ],
+  "unresolved": [],
+  "skips": []
+}
