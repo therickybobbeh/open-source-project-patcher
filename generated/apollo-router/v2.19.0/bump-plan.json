@@ -1,0 +1,150 @@
+{
+  "recipe": "apollo-router",
+  "line": "v2",
+  "tag": "v2.19.0",
+  "commit": "95383e1e952ea7e924dab5d29585d1687f737207",
+  "status": "success",
+  "requires": {},
+  "plan": {
+    "bumps": [
+      {
+        "ecosystem": "cargo",
+        "target": "Cargo.lock",
+        "name": "cmov",
+        "installed": "0.5.3",
+        "to": "0.5.4",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-50185"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "cargo",
+        "target": "Cargo.lock",
+        "name": "quinn-proto",
+        "installed": "0.11.12",
+        "to": "0.11.15",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-31812",
+          "GHSA-4w2j-m93h-cj5j"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "cargo",
+        "target": "Cargo.lock",
+        "name": "rand",
+        "installed": "0.8.5",
+        "to": "0.8.6",
+        "level": "patch",
+        "reasons": [
+          "GHSA-cq8v-f236-94qc"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "cargo",
+        "target": "Cargo.lock",
+        "name": "rand",
+        "installed": "0.9.2",
+        "to": "0.9.3",
+        "level": "patch",
+        "reasons": [
+          "GHSA-cq8v-f236-94qc"
+        ],
+        "direct": false,
+        "dir": "."
+      }
+    ],
+    "unresolved": [
+      {
+        "ecosystem": "cargo",
+        "target": "Cargo.lock",
+        "name": "opentelemetry_sdk",
+        "installed": "0.31.0",
+        "vuln_id": "CVE-2026-48504",
+        "severity": "MEDIUM",
+        "fixed": "0.32.1",
+        "why": "needs-human: fix requires a bump beyond the `minor` policy"
+      }
+    ],
+    "toolchain": {}
+  },
+  "changes": [
+    {
+      "ecosystem": "cargo",
+      "target": "Cargo.lock",
+      "name": "cmov",
+      "old": "0.5.3",
+      "new": "0.5.4",
+      "note": "CVE-2026-50185"
+    },
+    {
+      "ecosystem": "cargo",
+      "target": "Cargo.lock",
+      "name": "quinn-proto",
+      "old": "0.11.12",
+      "new": "0.11.15",
+      "note": "CVE-2026-31812, GHSA-4w2j-m93h-cj5j"
+    },
+    {
+      "ecosystem": "cargo",
+      "target": "Cargo.lock",
+      "name": "rand",
+      "old": "0.8.5",
+      "new": "0.8.6",
+      "note": "GHSA-cq8v-f236-94qc"
+    },
+    {
+      "ecosystem": "cargo",
+      "target": "Cargo.lock",
+      "name": "rand",
+      "old": "0.9.2",
+      "new": "0.9.3",
+      "note": "GHSA-cq8v-f236-94qc"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "dockerfiles/diy/dockerfiles/Dockerfile.repo",
+      "name": "rust",
+      "old": "rust:1.99.0-slim-bookworm",
+      "new": "rust:1.99.1-slim-bookworm@sha256:24707e70a4f1e23d9a7b25202ec43126d28a52294b96aad5c670df1fd1f1d400",
+      "note": "1.99.0-slim-bookworm -> 1.99.1-slim-bookworm"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "dockerfiles/diy/dockerfiles/Dockerfile.repo",
+      "name": "debian",
+      "old": "debian:bookworm-slim",
+      "new": "debian:bookworm-slim@sha256:99c0b25c46d0214d5a2091092e7908907dcaecd6a962cde0ac700acee222b6f3",
+      "note": "base image refresh"
+    }
+  ],
+  "failures": [],
+  "unresolved": [
+    {
+      "ecosystem": "cargo",
+      "target": "Cargo.lock",
+      "name": "opentelemetry_sdk",
+      "installed": "0.31.0",
+      "vuln_id": "CVE-2026-48504",
+      "severity": "MEDIUM",
+      "fixed": "0.32.1",
+      "why": "needs-human: fix requires a bump beyond the `minor` policy"
+    }
+  ],
+  "skips": [
+    {
+      "match": "integration::connectors::authentication::test_aws_sig_v4_signing$",
+      "reason": "Calls live AWS (STS AssumeRole, then a SigV4-signed EC2 DescribeInstances) with upstream CI's role (AWS_ROLE_ARN); see tests/integration/fixtures/connectors_sigv4.router.yaml. Fails the same on the unpatched source",
+      "owner": "platform-team",
+      "expires": "2027-04-30",
+      "filter": null
+    }
+  ]
+}
