@@ -1,0 +1,24 @@
+# Draft VEX statements from govulncheck reachability. Review each one, then copy the ones you
+# accept into vex/helm.yaml. Nothing here is applied automatically.
+statements:
+- vulnerability: GO-2026-5932
+  status: not_affected
+  justification: vulnerable_code_not_present
+  impact: 'govulncheck (v1.9.0): the vulnerable package of golang.org/x/crypto is
+    not imported'
+  packages:
+  - golang.org/x/crypto
+- vulnerability: CVE-2026-78661
+  status: not_affected
+  justification: vulnerable_code_not_present
+  impact: 'govulncheck (v1.9.0): the vulnerable package of golang.org/x/net is not
+    imported'
+  packages:
+  - golang.org/x/net
+- vulnerability: CVE-2026-97045
+  status: not_affected
+  justification: vulnerable_code_not_present
+  impact: 'govulncheck (v1.9.0): the vulnerable package of golang.org/x/net is not
+    imported'
+  packages:
+  - golang.org/x/net
