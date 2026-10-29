@@ -255,6 +255,70 @@ def test_release_reapplies_exactly_the_recorded_swaps(old_jars, monkeypatch, tmp
         jars.restage("base", ["linux/amd64"], recorded["maven-21"], tmp_path / "release")
 
 
+def kafka_recipe() -> Recipe:
+    """An image-only recipe shaped like Strimzi's Kafka broker image: Kafka's own jars in opt/kafka/libs/."""
+    return Recipe.model_validate({"name": "kafka", "mode": "image-only",
+                                  "source": {"repo": "https://quay.io/repository/strimzi/kafka", "lines": [{"name": "k4", "tagPattern": "x"}]},
+                                  "build": {"images": [{"name": "kafka", "upstream": "quay.io/strimzi/kafka",
+                                                        "smoke": ["/opt/kafka/bin/kafka-storage.sh random-uuid"],
+                                                        "bundledJars": {"paths": ["opt/kafka/libs/"]}}]}})
+
+
+KAFKA = jars.Swap("kafka", "opt/kafka/libs/jackson-databind-2.19.0.jar", "com.fasterxml.jackson.core:jackson-databind", "2.19.0", "2.19.1",
+                  ["CVE-2026-1"], url="https://repo1.maven.org/maven2/x/jackson-databind-2.19.1.jar", sha256="cd" * 32, old_sha256="0ld")
+
+
+def kafka_repo(tmp_path, monkeypatch):
+    from patcher import pipeline
+    from patcher.config import Repo
+
+    (tmp_path / "recipes").mkdir()
+    (tmp_path / "recipes" / "_global.yaml").write_text("registry: ghcr.io/me\n")
+    monkeypatch.setattr(pipeline, "_image_only_targets", lambda recipe, line: [(recipe.build.images[0], "0.48.0-kafka-4.1.0")])
+    return Repo(tmp_path)
+
+
+def test_image_only_flow_swaps_jars_into_the_vendor_image(monkeypatch, tmp_path):
+    from patcher import pipeline
+
+    repo, r, calls = kafka_repo(tmp_path, monkeypatch), kafka_recipe(), []
+    monkeypatch.setattr(pipeline, "scan_image", lambda ref, path, **k: calls.append(path.name) or scan())
+    monkeypatch.setattr(jars, "prepare", lambda image, platform, spec, before, recipe, gate, ctx: calls.append(f"jars {image}")
+                        or ([KAFKA], []))
+    monkeypatch.setattr(components, "overlay", lambda base, comps, out, **k: calls.append(("overlay", k["tag_ref"], k["files"])))
+    monkeypatch.setattr(pipeline, "smoke_test", lambda img, log: calls.append(("smoke", img.ref)) or True)
+    opts = pipeline.RunOptions(workdir=tmp_path, out=tmp_path / "out", platform="linux/arm64", copa=False, cooldown=False)
+    s = pipeline.run_line(repo, r, r.source.lines[0], opts)
+    local = "patcher.local/kafka:0.48.0-kafka-4.1.0"
+    assert calls == ["scan-image-before-kafka.json", "jars quay.io/strimzi/kafka:0.48.0-kafka-4.1.0",
+                     ("overlay", local, [(KAFKA.context_file, "/opt/kafka/libs/jackson-databind-2.19.0.jar")]),
+                     ("smoke", local), "scan-image-after-kafka.json"]
+    assert s.status == "success"  # not no-changes: the vendor image changed
+    assert json.loads((tmp_path / "out" / "kafka" / "k4" / "generated" / "jars.json").read_text())["swaps"][0]["new"] == "2.19.1"
+
+
+def test_image_only_release_swaps_the_recorded_jars_on_every_platform(monkeypatch, tmp_path):
+    from patcher import pipeline
+
+    repo, r, calls = kafka_repo(tmp_path, monkeypatch), kafka_recipe(), []
+    gen = tmp_path / "generated" / "kafka" / "0.48.0-kafka-4.1.0"
+    gen.mkdir(parents=True)
+    (gen / "bump-plan.json").write_text(json.dumps({"line": "k4", "tag": "0.48.0-kafka-4.1.0", "status": "success"}))
+    (gen / "jars.json").write_text(json.dumps(jars.to_json([KAFKA], [])))
+    monkeypatch.setattr(jars, "restage", lambda image, platforms, swaps, ctx: calls.append(("restage", image, platforms, swaps)))
+    monkeypatch.setattr(components, "overlay", lambda base, comps, out, **k: calls.append(("overlay", base, k["platforms"], k["tag_ref"])))
+    monkeypatch.setattr(pipeline, "run", lambda cmd, **k: None)  # imagetools create
+    monkeypatch.setattr(pipeline.copa, "for_image", lambda *a, **k: None)
+    monkeypatch.setattr(pipeline, "image_digest", lambda ref: "sha256:abc")
+    monkeypatch.setattr(pipeline, "scan_image", lambda ref, path, **k: scan())
+    plats = ["linux/amd64", "linux/arm64"]
+    released = pipeline.publish(repo, r, "k4", plats, tmp_path / "out")
+    # the vendor image is checked and overlaid for every platform at once: COPY layers, no emulation
+    assert calls == [("restage", "quay.io/strimzi/kafka:0.48.0-kafka-4.1.0", plats, [KAFKA]),
+                     ("overlay", "quay.io/strimzi/kafka:0.48.0-kafka-4.1.0", plats, "ghcr.io/me/kafka:0.48.0-kafka-4.1.0-patched.1-build")]
+    assert released[0]["jars"] == ["/opt/kafka/libs/jackson-databind-2.19.0.jar: com.fasterxml.jackson.core:jackson-databind 2.19.1"]
+
+
 def test_release_build_overlays_the_recorded_jars(monkeypatch, tmp_path):
     from patcher import pipeline
     from patcher.build import BuiltImage
