@@ -44,7 +44,8 @@ runs:
       run: >-
         echo "::warning::vars.PATCHER_APP_ID is not set: opening the PR with GITHUB_TOKEN, so its checks won't run.
         Set up the GitHub App (docs/runbook.md, One-time setup)."
-    - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+    - id: cpr
+      uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
       with:
         token: ${{ steps.app-token.outputs.token || github.token }}
         branch: ${{ inputs.branch }}
@@ -56,3 +57,16 @@ runs:
         draft: ${{ inputs.draft }}
         labels: ${{ inputs.labels }}
         sign-commits: true
+    # create-pull-request sets the draft state only when it opens the PR: a line whose tests failed once would
+    # stay a draft after a run that passes (redis, #9), and one that starts failing would stay ready for review
+    - if: steps.cpr.outputs.pull-request-operation == 'updated'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
+        GH_REPO: ${{ github.repository }}
+        PR: ${{ steps.cpr.outputs.pull-request-number }}
+        DRAFT: ${{ inputs.draft }}
+      run: |
+        if [ "$(gh pr view "$PR" --json isDraft --jq .isDraft)" != "$DRAFT" ]; then
+          if [ "$DRAFT" = true ]; then gh pr ready "$PR" --undo; else gh pr ready "$PR"; fi
+        fi
