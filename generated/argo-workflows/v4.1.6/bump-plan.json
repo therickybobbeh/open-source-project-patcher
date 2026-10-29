@@ -1,0 +1,320 @@
+{
+  "recipe": "argo-workflows",
+  "line": "v4.1",
+  "tag": "v4.1.6",
+  "commit": "43021573c5a35cbafae009043c132dfcef43a112",
+  "status": "success",
+  "requires": {},
+  "plan": {
+    "bumps": [
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/go-jose/go-jose/v4",
+        "installed": "v4.1.4",
+        "to": "v4.1.6",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-116585",
+          "CVE-2026-116586",
+          "CVE-2026-116587"
+        ],
+        "direct": true,
+        "dir": "."
+      },
+      {
+        "ecosystem": "yarn",
+        "target": "ui/yarn.lock",
+        "name": "diff",
+        "installed": "5.1.0",
+        "to": "5.2.2",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-24001"
+        ],
+        "direct": false,
+        "dir": "ui"
+      },
+      {
+        "ecosystem": "yarn",
+        "target": "ui/yarn.lock",
+        "name": "path-to-regexp",
+        "installed": "1.8.0",
+        "to": "1.9.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2024-45296"
+        ],
+        "direct": false,
+        "dir": "ui"
+      },
+      {
+        "ecosystem": "yarn",
+        "target": "ui/yarn.lock",
+        "name": "qs",
+        "installed": "6.16.0",
+        "to": "6.16.1",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-110816"
+        ],
+        "direct": false,
+        "dir": "ui"
+      }
+    ],
+    "unresolved": [
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.57.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": null,
+        "why": "no fixed version"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.60.0",
+        "vuln_id": "CVE-2026-78661",
+        "severity": "UNKNOWN",
+        "fixed": "0.62.0",
+        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.60.0",
+        "vuln_id": "CVE-2026-97045",
+        "severity": "UNKNOWN",
+        "fixed": "0.62.0",
+        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      },
+      {
+        "ecosystem": "yarn",
+        "target": "ui/yarn.lock",
+        "name": "uuid",
+        "installed": "9.0.1",
+        "vuln_id": "CVE-2026-41907",
+        "severity": "MEDIUM",
+        "fixed": "11.1.1, 12.0.1, 13.0.1",
+        "why": "needs-human: fix requires a bump beyond the `minor` policy"
+      }
+    ],
+    "toolchain": {}
+  },
+  "changes": [
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/go-jose/go-jose/v4",
+      "old": "v4.1.4",
+      "new": "v4.1.6",
+      "note": "CVE-2026-116585, CVE-2026-116586, CVE-2026-116587"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "qs",
+      "old": "6.16.0",
+      "new": "6.16.1",
+      "note": "CVE-2026-110816"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "golang",
+      "old": "golang:1.26.10-alpine3.23",
+      "new": "golang:1.26.10-alpine3.23@sha256:34414731924cf2263160f0021f5cf6e1807382d85248f7cb419d4187b96d5e43",
+      "note": "base image refresh"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "node",
+      "old": "node:20-alpine",
+      "new": "node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293",
+      "note": "base image refresh"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "gcr.io/distroless/static-debian13",
+      "old": "static-debian13:latest@sha256:034df5c1737e8241f6ed6423a12e720ee0f6d6f088609ee172f98f6f2166ef5d",
+      "new": "static-debian13:latest@sha256:15f8637509792e05b97d83451b0b6ccfa4abd548f997e406ac1e72c87fe1fa78",
+      "note": "base image refresh"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "gcr.io/distroless/static-debian13",
+      "old": "static-debian13:latest@sha256:034df5c1737e8241f6ed6423a12e720ee0f6d6f088609ee172f98f6f2166ef5d",
+      "new": "static-debian13:latest@sha256:15f8637509792e05b97d83451b0b6ccfa4abd548f997e406ac1e72c87fe1fa78",
+      "note": "base image refresh"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "gcr.io/distroless/static-debian13",
+      "old": "static-debian13:latest@sha256:034df5c1737e8241f6ed6423a12e720ee0f6d6f088609ee172f98f6f2166ef5d",
+      "new": "static-debian13:latest@sha256:15f8637509792e05b97d83451b0b6ccfa4abd548f997e406ac1e72c87fe1fa78",
+      "note": "base image refresh"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "registry.k8s.io/kubectl",
+      "old": "kubectl:v1.36.3@sha256:6e4fce3c83651edb91b74bc67701c5cd263dd8aa3cd4254b1798d6425a5ab789",
+      "new": "kubectl:v1.36.6@sha256:0650805141538d13ccbb6bb9e0dd647bc415bc002898357970211c4d47224396",
+      "note": "v1.36.3 -> v1.36.6"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "alpine",
+      "old": "alpine:3.24",
+      "new": "alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a",
+      "note": "base image refresh"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "alpine",
+      "old": "alpine:3.24",
+      "new": "alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a",
+      "note": "base image refresh"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "alpine",
+      "old": "alpine:3.24",
+      "new": "alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a",
+      "note": "base image refresh"
+    }
+  ],
+  "failures": [
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "diff",
+      "wanted": "5.2.2",
+      "error": "needs-human: yarn.lock has diff on majors [4, 5]; a yarn resolution would force all of them to 5.2.2",
+      "hint": false
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "path-to-regexp",
+      "wanted": "1.9.0",
+      "error": "needs-human: yarn.lock has path-to-regexp on majors [0, 1]; a yarn resolution would force all of them to 1.9.0",
+      "hint": false
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "diff",
+      "wanted": "5.2.2",
+      "error": "needs-human: yarn.lock has diff on majors [4, 5]; a yarn resolution would force all of them to 5.2.2",
+      "hint": false
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "path-to-regexp",
+      "wanted": "1.9.0",
+      "error": "needs-human: yarn.lock has path-to-regexp on majors [0, 1]; a yarn resolution would force all of them to 1.9.0",
+      "hint": false
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "golang",
+      "wanted": "1.27.3-alpine3.23",
+      "error": "newer tag 1.27.3-alpine3.23 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)",
+      "hint": true
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "registry.k8s.io/kubectl",
+      "wanted": "v1.37.2",
+      "error": "newer tag v1.37.2 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)",
+      "hint": true
+    }
+  ],
+  "unresolved": [
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.57.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": null,
+      "why": "no fixed version"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.60.0",
+      "vuln_id": "CVE-2026-78661",
+      "severity": "UNKNOWN",
+      "fixed": "0.62.0",
+      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.60.0",
+      "vuln_id": "CVE-2026-97045",
+      "severity": "UNKNOWN",
+      "fixed": "0.62.0",
+      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "uuid",
+      "installed": "9.0.1",
+      "vuln_id": "CVE-2026-41907",
+      "severity": "MEDIUM",
+      "fixed": "11.1.1, 12.0.1, 13.0.1",
+      "why": "needs-human: fix requires a bump beyond the `minor` policy"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "diff",
+      "installed": "5.1.0",
+      "vuln_id": "CVE-2026-24001",
+      "severity": "",
+      "fixed": "5.2.2",
+      "why": "still at 5.1.0 after 3 round(s)"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "path-to-regexp",
+      "installed": "1.8.0",
+      "vuln_id": "CVE-2024-45296",
+      "severity": "",
+      "fixed": "1.9.0",
+      "why": "still at 1.8.0 after 3 round(s)"
+    }
+  ],
+  "skips": [
+    {
+      "match": "^TestArtifactoryArtifactDriver_Load$",
+      "reason": "Downloads https://github.com/argoproj/argo-workflows over the live network (failed with `unexpected EOF` after 33s); unrelated to dependency updates",
+      "owner": "platform-team",
+      "expires": "2027-04-30",
+      "filter": null
+    }
+  ]
+}
