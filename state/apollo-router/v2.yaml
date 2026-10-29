@@ -1,0 +1,12 @@
+upstreamTag: v2.19.0
+commit: 95383e1e952ea7e924dab5d29585d1687f737207
+revision: 1
+releasedAt: '2026-10-29T17:58:41Z'
+platforms:
+- linux/amd64
+- linux/arm64
+images:
+- name: router
+  ref: ghcr.io/therickybobbeh/router:v2.19.0-patched.1
+  digest: sha256:0ae60ae66fb7c48954b5e7bc9706117ff972b29012a79cef19d8d1e50bc18d16
+  knownFixable: []
