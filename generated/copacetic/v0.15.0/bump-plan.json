@@ -1,0 +1,412 @@
+{
+  "recipe": "copacetic",
+  "line": "v0",
+  "tag": "v0.15.0",
+  "commit": "bce7b4305e378558f20420aa2ca48686cec850d0",
+  "status": "success",
+  "requires": {
+    "go": "1.26.8"
+  },
+  "plan": {
+    "bumps": [
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/aquasecurity/trivy",
+        "installed": "v0.69.3",
+        "to": "v0.72.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-54448",
+          "CVE-2026-55092",
+          "CVE-2026-63328"
+        ],
+        "direct": true,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/containerd/containerd/v2",
+        "installed": "v2.2.5",
+        "to": "v2.2.9",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-53493",
+          "CVE-2026-53495",
+          "CVE-2026-95837",
+          "CVE-2026-95838"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace",
+        "installed": "v1.44.0",
+        "to": "v1.45.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-81870"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/sdk",
+        "installed": "v1.44.0",
+        "to": "v1.45.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-81870"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.54.0",
+        "to": "v0.56.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-56854",
+          "CVE-2026-56855",
+          "CVE-2026-78662"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/mod",
+        "installed": "v0.37.0",
+        "to": "v0.40.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-56864",
+          "CVE-2026-56865"
+        ],
+        "direct": true,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.56.0",
+        "to": "v0.60.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78659",
+          "CVE-2026-78660",
+          "CVE-2026-78663",
+          "CVE-2026-78669",
+          "CVE-2026-97032"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/text",
+        "installed": "v0.40.0",
+        "to": "v0.41.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-56851"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "google.golang.org/grpc",
+        "installed": "v1.83.1",
+        "to": "v1.83.2",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-84445"
+        ],
+        "direct": true,
+        "dir": "."
+      }
+    ],
+    "unresolved": [
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/docker/docker",
+        "installed": "v28.5.2+incompatible",
+        "vuln_id": "CVE-2026-41567",
+        "severity": "HIGH",
+        "fixed": null,
+        "why": "no fixed version"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/docker/docker",
+        "installed": "v28.5.2+incompatible",
+        "vuln_id": "CVE-2026-42306",
+        "severity": "HIGH",
+        "fixed": null,
+        "why": "no fixed version"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/docker/docker",
+        "installed": "v28.5.2+incompatible",
+        "vuln_id": "CVE-2026-33997",
+        "severity": "MEDIUM",
+        "fixed": "29.3.1",
+        "why": "needs-human: fix requires a bump beyond the `minor` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/docker/docker",
+        "installed": "v28.5.2+incompatible",
+        "vuln_id": "CVE-2026-41568",
+        "severity": "MEDIUM",
+        "fixed": null,
+        "why": "no fixed version"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.54.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": null,
+        "why": "no fixed version"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.56.0",
+        "vuln_id": "CVE-2026-78661",
+        "severity": "UNKNOWN",
+        "fixed": "0.62.0",
+        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.56.0",
+        "vuln_id": "CVE-2026-97045",
+        "severity": "UNKNOWN",
+        "fixed": "0.62.0",
+        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      }
+    ],
+    "toolchain": {}
+  },
+  "changes": [
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/containerd/containerd/v2",
+      "old": "v2.2.5",
+      "new": "v2.2.9",
+      "note": "CVE-2026-53493, CVE-2026-53495, CVE-2026-95837, CVE-2026-95838"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "google.golang.org/grpc",
+      "old": "v1.83.1",
+      "new": "v1.83.2",
+      "note": "CVE-2026-84445"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace",
+      "old": "v1.44.0",
+      "new": "v1.45.0",
+      "note": "CVE-2026-81870"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/sdk",
+      "old": "v1.44.0",
+      "new": "v1.45.0",
+      "note": "CVE-2026-81870"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/aquasecurity/trivy",
+      "old": "v0.69.3",
+      "new": "v0.72.0",
+      "note": "CVE-2026-54448, CVE-2026-55092, CVE-2026-63328"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.56.0",
+      "new": "v0.60.0",
+      "note": "CVE-2026-78659, CVE-2026-78660, CVE-2026-78663, CVE-2026-78669, CVE-2026-97032"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/crypto",
+      "old": "v0.54.0",
+      "new": "v0.56.0",
+      "note": "CVE-2026-56854, CVE-2026-56855, CVE-2026-78662"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/text",
+      "old": "v0.40.0",
+      "new": "v0.41.0",
+      "note": "CVE-2026-56851"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/mod",
+      "old": "v0.37.0",
+      "new": "v0.40.0",
+      "note": "CVE-2026-56864, CVE-2026-56865"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go",
+      "old": "1.25.13",
+      "new": "1.26.8",
+      "note": "required by a bumped dependency"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/containerd/containerd/v2",
+      "old": "v2.3.2",
+      "new": "v2.3.6",
+      "note": "CVE-2026-53493, CVE-2026-53495, CVE-2026-95837, CVE-2026-95838"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "frontend.Dockerfile",
+      "name": "ARG GO_VERSION",
+      "old": "1.25.13",
+      "new": "1.26.10",
+      "note": "golang:1.25.13-alpine3.23 -> 1.26.10-alpine3.23"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "frontend.Dockerfile",
+      "name": "gcr.io/distroless/static-debian12",
+      "old": "static-debian12:nonroot",
+      "new": "static-debian12:nonroot@sha256:afa5c872c891853ca7fcf1f12c3edb23f7eeef36189728842dd51042ff57f7ab",
+      "note": "base image refresh"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile.copa",
+      "name": "ARG GO_VERSION",
+      "old": "1.25.13",
+      "new": "1.26.10",
+      "note": "golang:1.25.13-bookworm -> 1.26.10-bookworm"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile.copa",
+      "name": "debian",
+      "old": "debian:12-slim",
+      "new": "debian:12-slim@sha256:99c0b25c46d0214d5a2091092e7908907dcaecd6a962cde0ac700acee222b6f3",
+      "note": "base image refresh"
+    }
+  ],
+  "failures": [],
+  "unresolved": [
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/docker/docker",
+      "installed": "v28.5.2+incompatible",
+      "vuln_id": "CVE-2026-41567",
+      "severity": "HIGH",
+      "fixed": null,
+      "why": "no fixed version"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/docker/docker",
+      "installed": "v28.5.2+incompatible",
+      "vuln_id": "CVE-2026-42306",
+      "severity": "HIGH",
+      "fixed": null,
+      "why": "no fixed version"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/docker/docker",
+      "installed": "v28.5.2+incompatible",
+      "vuln_id": "CVE-2026-33997",
+      "severity": "MEDIUM",
+      "fixed": "29.3.1",
+      "why": "needs-human: fix requires a bump beyond the `minor` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/docker/docker",
+      "installed": "v28.5.2+incompatible",
+      "vuln_id": "CVE-2026-41568",
+      "severity": "MEDIUM",
+      "fixed": null,
+      "why": "no fixed version"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.57.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": null,
+      "why": "no fixed version"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.60.0",
+      "vuln_id": "CVE-2026-78661",
+      "severity": "UNKNOWN",
+      "fixed": "0.62.0",
+      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.60.0",
+      "vuln_id": "CVE-2026-97045",
+      "severity": "UNKNOWN",
+      "fixed": "0.62.0",
+      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+    }
+  ],
+  "skips": []
+}
