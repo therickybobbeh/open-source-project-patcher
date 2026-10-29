@@ -378,7 +378,7 @@ rule was bumped, no cutoff is set, so the fix stays installable.
 
 ```yaml
 build:
-  platforms: [linux/amd64, linux/arm64]
+  platforms: [linux/amd64, linux/arm64]   # the default; each is built on its own native runner at release
   setup: ["make build"]               # optional, before the images
   env: { BUILDX_BUILDER: default }    # optional
   images:
@@ -396,8 +396,9 @@ build:
 
 | Image field | Meaning |
 |---|---|
-| `command` + `builtImage` | Custom build instead of buildx, e.g. `make docker.build`. It must produce `builtImage` |
-| `tagPattern`, `platforms` | Image-only recipes: an image that versions or ships separately from the line (e.g. Apollo's bundle-loader) |
+| `command` + `builtImage` | Custom build instead of buildx, e.g. `make docker.build`. It must produce `builtImage`, for `{{platform}}` only: the release checks that each image it saves is one image of that platform |
+| `platforms` | An image that exists for fewer platforms than `build.platforms` (e.g. Apollo's amd64-only bundle-loader): it is built, pushed and merged for those only. Only platforms also in `build.platforms` count, and at least one must be |
+| `tagPattern` | Image-only recipes: an image that versions separately from the line |
 | `timeoutMinutes` (on `build`) | Per image build, build `setup` command and component overlay (default 60). A build that hangs or fails on a network error is retried once |
 | `copa` | `true` (default): Copa patches leftover OS packages. `false`: off. `{libraries: true, level: patch}`: also patch Python and npm packages inside the image (Copa's experimental library patching, `COPA_EXPERIMENTAL=1`); meant for closed-source images that can't be rebuilt |
 | `bundledJars` | `{paths: [usr/share/maven/], level: patch}`: swap vulnerable jars of a third-party Java distribution the image unpacks for fixed releases from Maven Central. See [Bundled jars](#bundled-jars) |

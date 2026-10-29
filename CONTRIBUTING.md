@@ -70,8 +70,10 @@ Today a framework touches five places (a registry is on the [roadmap](docs/roadm
   - Dockerfile downloads, by version and sha256; `tool-pins.yml` maintains them.
   - GitHub Actions, by commit SHA.
   - Tools run with `go run …@vX` or `uvx --from pkg==X`.
-- **Never run upstream code with credentials.** The patch job has none. See the roadmap for the
-  release job.
+- **Never run upstream code with credentials.** The patch job and the release build have none: the release build
+  hands its images over as archives, which a job without upstream code pushes
+  ([architecture.md](docs/architecture.md#release-flow)). Jobs that can write read no GitHub Actions cache.
+  `patcher/tests/test_workflows.py` checks both.
 - **Upstream commands run with `clean=True`** (no `PATCHER_*`, `TRIVY_*` or `COPA_*` variables),
   and anything long-running gets a timeout.
 - **Nothing is applied silently:** every bump, skip, hold, override and VEX decision appears in the

@@ -201,10 +201,22 @@ Dockerfile (via `patches/`) fixes them.
 
 ## Releases
 
-### `publish` failed halfway
-Re-run **only the publish job**: it finishes the same revision, the highest one whose per-arch builds
-all exist. Re-running the whole workflow builds the next revision instead. Published tags are never
-overwritten.
+### A release failed after the builds (`push`, `publish`, signing, `attest` or the `state/` PR)
+Dispatch `release.yml` for the line with `rebuild: false`: it builds nothing and finishes the newest revision whose
+per-arch images are all in the registry, keeping an image whose final tag an earlier attempt pushed. Re-running the
+failed jobs only helps with transient failures: a re-run uses the workflow files of the commit that started the run.
+See the [runbook](runbook.md#a-release-failed-after-the-builds). Published tags are never overwritten.
+
+### `release-push`: "holds a linux/amd64 image, expected linux/arm64", "expected exactly one image"
+**Cause:** an archive from the build job isn't one image of the platform its path names (`images/<arch>/<image>.tar`).
+The push job checks every archive before it pushes any, so nothing was pushed.
+**Fix:** look at the build job of that platform. A custom build `command` must build `{{platform}}` and produce exactly
+`builtImage`.
+
+### `release-plan`: "no native runner for linux/…"
+**Cause:** `build.platforms` lists a platform without a native GitHub-hosted runner. Release builds run natively,
+one runner per platform: `linux/amd64` and `linux/arm64`.
+**Fix:** remove the platform, or add its runner to `pipeline.RUNNERS` if there is one.
 
 ## Network
 
