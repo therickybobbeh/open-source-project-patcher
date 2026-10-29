@@ -62,6 +62,12 @@ class TestOutcome:
     failed: list[str] = field(default_factory=list)  # failing test ids (JUnit, else parsed from the log)
     preexisting: list[str] = field(default_factory=list)  # failing tests that also fail on the unpatched source
     note: str = ""
+    oom: bool = False  # the Go toolchain was killed while building the tests (out of memory)
+
+
+# the kernel's OOM killer stopping the Go toolchain mid-build ("…/compile: signal: killed"): the packages it hits
+# differ from run to run, so the "failures" say nothing about the bumps
+_TOOLCHAIN_KILLED = re.compile(r"^.*/(?:compile|link|asm|cgo): signal: killed$", re.M)
 
 
 def check_expiry(skips: SkipFile, grace_days: int, today: dt.date | None = None) -> tuple[list[SkipEntry], list[SkipEntry]]:
@@ -225,13 +231,18 @@ def run_tests(src: Path, tests: Tests, skips: SkipFile, out: Path, env: dict[str
             shutil.copy(f, dest)
             junit.append(dest)
     note = timeout_note
+    killed = None if passed or not log_file.is_file() else _TOOLCHAIN_KILLED.search(log_file.read_text(errors="replace"))
+    if killed:
+        note = (f"The Go toolchain was killed while building the tests ({killed.group(0).strip()[:160]}), most likely out of "
+                "memory: the failures say nothing about the bumps. Lower the parallelism (tests.env GOFLAGS: \"-p=2\") or use a "
+                "bigger runner.")
     if not passed and skips.quarantine and junit:
         failing = failed_cases(junit)
         if failing and all(_quarantined(c, skips.quarantine) for c in failing):
             passed, note = True, f"{len(failing)} failing test(s) are all quarantined: " + ", ".join(sorted(failing)[:20])
     failed = [] if passed else (sorted(failed_cases(junit)) if junit else failed_ids(tests.framework, failures))
     return TestOutcome(ran=True, passed=passed, seconds=seconds, command=command, skipped=skips.skips,
-                       junit=[j.name for j in junit], tail=tail, failures=failures, failed=failed, note=note)
+                       junit=[j.name for j in junit], tail=tail, failures=failures, failed=failed, note=note, oom=bool(killed))
 
 
 def failed_ids(framework: str, failure_lines: str) -> list[str]:

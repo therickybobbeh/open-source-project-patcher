@@ -216,3 +216,18 @@ def test_timed_out_suite_reports_duration_and_last_output(tmp_path):
     out = run_tests(tmp_path, tests, SkipFile(), tmp_path / "out", {}, grace_days=30)
     assert not out.passed and out.seconds >= 1
     assert out.note.startswith("The suite timed out after") and "test_token_page" in out.note
+
+
+def test_an_out_of_memory_test_build_is_an_environment_problem(tmp_path):
+    from patcher.models import SkipFile, Tests
+    from patcher.tests_runner import run_tests
+
+    # what Splunk's `go test -race` printed in an 8 GB VM: the compiler killed, in a different package each run
+    killed = "github.com/aws/aws-sdk-go-v2/service/ec2: /opt/go/pkg/tool/linux_arm64/compile: signal: killed"
+    tests = Tests(framework="go", command=f"echo '{killed}'; echo 'FAIL github.com/x/baseline [build failed]'; exit 1")
+    out = run_tests(tmp_path, tests, SkipFile(), tmp_path / "out", {}, grace_days=30)
+    assert not out.passed and out.oom
+    assert "out of memory" in out.note and "service/ec2" in out.note
+    plain = run_tests(tmp_path, Tests(framework="go", command="echo '--- FAIL: TestX (0.00s)'; exit 1"), SkipFile(),
+                      tmp_path / "out2", {}, grace_days=30)
+    assert not plain.oom and plain.note == ""

@@ -85,6 +85,16 @@ finding. Or `skipDirs` it if it isn't part of the shipped image (Strimzi's
 
 ## Upstream tests
 
+### Go tests fail with `[build failed]` in a different package each run (`…/compile: signal: killed`)
+**Cause:** the kernel's OOM killer stopped the Go compiler or linker while it built the test binaries.
+`go test -race` on large dependencies (the AWS SDK in the Splunk collector) needs several GB per compile,
+and Go runs as many compiles as there are CPUs. It hits a different package each time, so the patched and
+baseline runs "fail differently", which looks like a regression.
+**Handled:** the test report says the toolchain ran out of memory, and the pipeline skips the
+baseline run and the patch-level retry, which would only run out again.
+**Fix:** lower the parallelism in the recipe (`tests.env: {GOFLAGS: "-p=2"}`), or use a bigger runner.
+Locally, Docker Desktop's VM memory is the limit (8 GB by default).
+
 ### Tests that expect "permission denied" fail (`An error is expected but got nil`)
 **Cause:** the tests run as root, and root bypasses file permissions. Argo CD and helm have such tests
 (helm's shows up as a push to `localhost:5000` being refused, because the unreadable chart was read).

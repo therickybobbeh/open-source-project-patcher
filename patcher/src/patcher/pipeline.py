@@ -380,6 +380,10 @@ def _attempt_with_retry(repo: Repo, recipe: Recipe, tag: str, commit: str, out: 
     attempts = [f"{att.label}: {_test_word(att.tests)}"]
     if not (att.tests and att.tests.ran and not att.tests.passed):
         return att, fs_before, attempts
+    if att.tests.oom:
+        # the test build ran out of memory: a baseline run or a patch-level retry would only run out again
+        attempts.append("the test build ran out of memory: environment problem")
+        return att, fs_before, attempts
     if not att.result.changes and not att.requires:
         # nothing was changed (any change can matter: Redis tests the tarball a `files` edit picks, the maven
         # image's bats suite builds the Dockerfiles), so this run *is* the unpatched source
