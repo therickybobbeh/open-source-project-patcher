@@ -99,6 +99,29 @@ drafts a `not_affected` statement, also written to `vex-suggestions.yaml` next t
 are **never applied automatically**. To accept one, check the reasoning (govulncheck only sees the
 code paths in this build), then copy it into `vex/<recipe>.yaml` with an `expires` date.
 
+### What's in `generated/`, and why it doesn't pile up
+
+A patch PR adds `generated/<recipe>/<upstream tag>/`:
+- `deps.patch`: the exact diff applied to upstream's source;
+- `bump-plan.json`: the upstream commit, status and changes;
+- `report.md`: the report, also the PR description.
+
+The release rebuilds from exactly these files. There is **one patch set per release line**: the PR
+for a newer upstream tag (say 1.3.1) deletes the line's previous folder (1.3.0) in the same commit,
+and the release ignores the deletion. Old patch sets stay in git history, and the released images
+carry their SBOM, VEX and provenance. Each line has one PR branch (`patch/<recipe>/<line>`) that's
+updated in place.
+
+### What runs when
+
+| Trigger | What runs |
+|---|---|
+| Nightly (03:17 UTC) | Lines whose newest upstream tag isn't released yet, **minus** lines whose patch PR already holds that tag (waiting for review) and lines another run is patching right now |
+| Push to `recipes/`, `skips/`, `patches/`, `vex/` | The lines of the recipes that changed (`_global.yaml`: all of them) |
+| Manual dispatch | The recipe (and line) you name, or every line with `all` |
+
+Two runs never patch the same line at once: the second one waits.
+
 ## Skipping upstream tests
 
 Skip a test only if it needs infrastructure the pipeline doesn't have (cloud credentials, a live
