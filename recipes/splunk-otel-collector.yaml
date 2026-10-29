@@ -39,7 +39,11 @@ build:
         -o cmd/otelcol/dist/otelcol_linux_{{arch}} ./cmd/otelcol &&
         docker buildx build --platform {{platform}} -f cmd/otelcol/Dockerfile -t {{image}} --load cmd/otelcol
       builtImage: "{{image}}"
-      smoke: ["--version", "components"]
+      # `validate` loads the default gateway config with every component it uses. The distribution checks these
+      # variables before any command (only --version and --help run without them). Its own argument handling makes
+      # `components` and `--config ... validate` start the service instead, so they can't be smoke tests
+      smoke: ["--version", "validate"]
+      smokeEnv: {SPLUNK_ACCESS_TOKEN: placeholder, SPLUNK_REALM: us0}
 notes:
-  - Published on quay.io only (not Docker Hub). `validate` needs SPLUNK_ACCESS_TOKEN and SPLUNK_REALM, so the smoke tests stop at `--version` and `components`.
+  - "Published on quay.io only (not Docker Hub). Every command except --version and --help needs SPLUNK_ACCESS_TOKEN and SPLUNK_REALM, so the smoke tests pass placeholders."
   - We ran 0.147.0, which still has the Smart Agent bundle; this recipe patches the newest release to upgrade to.

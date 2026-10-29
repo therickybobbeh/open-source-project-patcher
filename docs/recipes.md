@@ -390,6 +390,7 @@ build:
       context: .
       args: { VERSION: "{{tag}}", BASE_IMAGE: distroless }
       smoke: ["dex version"]          # `docker run --rm <image> dex version` must exit 0
+      # smokeEnv: {SPLUNK_REALM: us0}  # `docker run -e` for the smoke commands, for images that refuse to start without
       ownBinaries: [usr/local/bin/dex]   # everything else is reported as a bundled artifact
       copa: true
 ```
