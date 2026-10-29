@@ -1,0 +1,17 @@
+{
+  "recipe": "docker-credential-gcr",
+  "line": "docker-credential-gcr-2.2.1",
+  "tag": "v2.2.1",
+  "commit": "bdb02de47220ee2a7577d7cd9d02db134b4c8460",
+  "status": "no-changes",
+  "requires": {},
+  "plan": {
+    "bumps": [],
+    "unresolved": [],
+    "toolchain": {}
+  },
+  "changes": [],
+  "failures": [],
+  "unresolved": [],
+  "skips": []
+}
