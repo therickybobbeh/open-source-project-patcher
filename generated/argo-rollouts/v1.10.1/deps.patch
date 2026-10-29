@@ -1,0 +1,1334 @@
+diff --git a/Dockerfile b/Dockerfile
+index 6ee2bde..f42e365 100644
+--- a/Dockerfile
++++ b/Dockerfile
+@@ -3,7 +3,7 @@
+ # Initial stage which pulls prepares build dependencies and CLI tooling we need for our final image
+ # Also used as the image in CI jobs so needs all dependencies
+ ####################################################################################################
+-FROM --platform=$BUILDPLATFORM golang:1.26 AS builder
++FROM --platform=$BUILDPLATFORM golang:1.26@sha256:670bb5aa5349ae03b8516764718486f4f16399134bdc9acd0c46a23f043ab05c AS builder
+ 
+ RUN apt-get update && apt-get install -y \
+     wget \
+@@ -24,7 +24,7 @@ RUN cd ${GOPATH}/src/dummy && \
+ ####################################################################################################
+ # UI build stage
+ ####################################################################################################
+-FROM --platform=$BUILDPLATFORM docker.io/library/node:22 AS argo-rollouts-ui
++FROM --platform=$BUILDPLATFORM docker.io/library/node:22@sha256:18a6d90fd60542269850c80ca03b29b1d9b14d6b221ac7ee8e35b0d33ef904bd AS argo-rollouts-ui
+ 
+ WORKDIR /src
+ RUN npm install -g corepack@0.34.6 && corepack enable
+@@ -41,7 +41,7 @@ RUN NODE_ENV='production' pnpm run build
+ ####################################################################################################
+ # Rollout Controller Build stage which performs the actual build of argo-rollouts binaries
+ ####################################################################################################
+-FROM --platform=$BUILDPLATFORM golang:1.26 AS argo-rollouts-build
++FROM --platform=$BUILDPLATFORM golang:1.26@sha256:670bb5aa5349ae03b8516764718486f4f16399134bdc9acd0c46a23f043ab05c AS argo-rollouts-build
+ 
+ WORKDIR /go/src/github.com/argoproj/argo-rollouts
+ 
+diff --git a/go.mod b/go.mod
+index d41a0f6..c5a56ff 100644
+--- a/go.mod
++++ b/go.mod
+@@ -39,9 +39,9 @@ require (
+ 	github.com/valyala/fasttemplate v1.2.2
+ 	go.yaml.in/yaml/v2 v2.4.4
+ 	golang.org/x/oauth2 v0.36.0
+-	golang.org/x/sync v0.21.0
+-	google.golang.org/genproto/googleapis/api v0.0.0-20260120221211-b8f7ae30c516
+-	google.golang.org/grpc v1.80.0
++	golang.org/x/sync v0.23.0
++	google.golang.org/genproto/googleapis/api v0.0.0-20260526163538-3dc84a4a5aaa
++	google.golang.org/grpc v1.83.2
+ 	google.golang.org/protobuf v1.36.11
+ 	k8s.io/api v0.34.5
+ 	k8s.io/apiextensions-apiserver v0.34.5
+@@ -60,12 +60,13 @@ require (
+ )
+ 
+ require (
+-	cloud.google.com/go v0.120.0 // indirect
+-	cloud.google.com/go/auth v0.15.0 // indirect
+-	cloud.google.com/go/auth/oauth2adapt v0.2.7 // indirect
++	cloud.google.com/go v0.121.6 // indirect
++	cloud.google.com/go/auth v0.18.2 // indirect
++	cloud.google.com/go/auth/oauth2adapt v0.2.8 // indirect
+ 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
+-	cloud.google.com/go/iam v1.4.2 // indirect
+-	cloud.google.com/go/pubsub v1.49.0 // indirect
++	cloud.google.com/go/iam v1.5.3 // indirect
++	cloud.google.com/go/pubsub v1.50.1 // indirect
++	cloud.google.com/go/pubsub/v2 v2.0.0 // indirect
+ 	dario.cat/mergo v1.0.1 // indirect
+ 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
+ 	github.com/MakeNowJust/heredoc v1.0.0 // indirect
+@@ -118,8 +119,8 @@ require (
+ 	github.com/google/go-github/v69 v69.2.0 // indirect
+ 	github.com/google/go-querystring v1.1.0 // indirect
+ 	github.com/google/s2a-go v0.1.9 // indirect
+-	github.com/googleapis/enterprise-certificate-proxy v0.3.6 // indirect
+-	github.com/googleapis/gax-go/v2 v2.14.1 // indirect
++	github.com/googleapis/enterprise-certificate-proxy v0.3.11 // indirect
++	github.com/googleapis/gax-go/v2 v2.17.0 // indirect
+ 	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674 // indirect
+ 	github.com/gregdel/pushover v1.3.1 // indirect
+ 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
+@@ -135,7 +136,7 @@ require (
+ 	github.com/josharian/intern v1.0.0 // indirect
+ 	github.com/jpillora/backoff v1.0.0 // indirect
+ 	github.com/json-iterator/go v1.1.12 // indirect
+-	github.com/klauspost/compress v1.18.0 // indirect
++	github.com/klauspost/compress v1.18.7 // indirect
+ 	github.com/kylelemons/godebug v1.1.0 // indirect
+ 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
+ 	github.com/lunixbochs/vtclean v1.0.0 // indirect
+@@ -179,25 +180,25 @@ require (
+ 	github.com/xlab/treeprint v1.2.0 // indirect
+ 	go.opencensus.io v0.24.0 // indirect
+ 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
+-	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.60.0 // indirect
+-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.59.0 // indirect
+-	go.opentelemetry.io/otel v1.39.0 // indirect
+-	go.opentelemetry.io/otel/metric v1.39.0 // indirect
+-	go.opentelemetry.io/otel/trace v1.39.0 // indirect
++	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.61.0 // indirect
++	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.61.0 // indirect
++	go.opentelemetry.io/otel v1.44.0 // indirect
++	go.opentelemetry.io/otel/metric v1.44.0 // indirect
++	go.opentelemetry.io/otel/trace v1.44.0 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.4 // indirect
+-	golang.org/x/crypto v0.53.0 // indirect
+-	golang.org/x/mod v0.36.0 // indirect
+-	golang.org/x/net v0.56.0 // indirect
+-	golang.org/x/sys v0.46.0 // indirect
+-	golang.org/x/term v0.44.0 // indirect
+-	golang.org/x/text v0.38.0 // indirect
+-	golang.org/x/time v0.11.0 // indirect
+-	golang.org/x/tools v0.45.0 // indirect
++	golang.org/x/crypto v0.57.0 // indirect
++	golang.org/x/mod v0.41.0 // indirect
++	golang.org/x/net v0.60.0 // indirect
++	golang.org/x/sys v0.48.0 // indirect
++	golang.org/x/term v0.46.0 // indirect
++	golang.org/x/text v0.42.0 // indirect
++	golang.org/x/time v0.14.0 // indirect
++	golang.org/x/tools v0.49.0 // indirect
+ 	gomodules.xyz/envconfig v1.3.1-0.20190308184047-426f31af0d45 // indirect
+ 	gomodules.xyz/notify v0.1.1 // indirect
+-	google.golang.org/api v0.227.0 // indirect
+-	google.golang.org/genproto v0.0.0-20250303144028-a0af3efb3deb // indirect
+-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260316180232-0b37fe3546d5 // indirect
++	google.golang.org/api v0.264.0 // indirect
++	google.golang.org/genproto v0.0.0-20260128011058-8636f8732409 // indirect
++	google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa // indirect
+ 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
+ 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
+ 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
+diff --git a/go.sum b/go.sum
+index cbf5cc7..37391b6 100644
+--- a/go.sum
++++ b/go.sum
+@@ -13,12 +13,12 @@ cloud.google.com/go v0.56.0/go.mod h1:jr7tqZxxKOVYizybht9+26Z/gUq7tiRzu+ACVAMbKV
+ cloud.google.com/go v0.57.0/go.mod h1:oXiQ6Rzq3RAkkY7N6t3TcE6jE+CIBBbA36lwQ1JyzZs=
+ cloud.google.com/go v0.62.0/go.mod h1:jmCYTdRCQuc1PHIIJ/maLInMho30T/Y0M4hTdTShOYc=
+ cloud.google.com/go v0.65.0/go.mod h1:O5N8zS7uWy9vkA9vayVHs65eM1ubvY4h553ofrNHObY=
+-cloud.google.com/go v0.120.0 h1:wc6bgG9DHyKqF5/vQvX1CiZrtHnxJjBlKUyF9nP6meA=
+-cloud.google.com/go v0.120.0/go.mod h1:/beW32s8/pGRuj4IILWQNd4uuebeT4dkOhKmkfit64Q=
+-cloud.google.com/go/auth v0.15.0 h1:Ly0u4aA5vG/fsSsxu98qCQBemXtAtJf+95z9HK+cxps=
+-cloud.google.com/go/auth v0.15.0/go.mod h1:WJDGqZ1o9E9wKIL+IwStfyn/+s59zl4Bi+1KQNVXLZ8=
+-cloud.google.com/go/auth/oauth2adapt v0.2.7 h1:/Lc7xODdqcEw8IrZ9SvwnlLX6j9FHQM74z6cBk9Rw6M=
+-cloud.google.com/go/auth/oauth2adapt v0.2.7/go.mod h1:NTbTTzfvPl1Y3V1nPpOgl2w6d/FjO7NNUQaWSox6ZMc=
++cloud.google.com/go v0.121.6 h1:waZiuajrI28iAf40cWgycWNgaXPO06dupuS+sgibK6c=
++cloud.google.com/go v0.121.6/go.mod h1:coChdst4Ea5vUpiALcYKXEpR1S9ZgXbhEzzMcMR66vI=
++cloud.google.com/go/auth v0.18.2 h1:+Nbt5Ev0xEqxlNjd6c+yYUeosQ5TtEUaNcN/3FozlaM=
++cloud.google.com/go/auth v0.18.2/go.mod h1:xD+oY7gcahcu7G2SG2DsBerfFxgPAJz17zz2joOFF3M=
++cloud.google.com/go/auth/oauth2adapt v0.2.8 h1:keo8NaayQZ6wimpNSmW5OPc283g65QNIiLpZnkHRbnc=
++cloud.google.com/go/auth/oauth2adapt v0.2.8/go.mod h1:XQ9y31RkqZCcwJWNSx2Xvric3RrU88hAYYbjDWYDL+c=
+ cloud.google.com/go/bigquery v1.0.1/go.mod h1:i/xbL2UlR5RvWAURpBYZTtm/cXjCha9lbfbpx4poX+o=
+ cloud.google.com/go/bigquery v1.3.0/go.mod h1:PjpwJnslEMmckchkHFfq+HTD2DmtT67aNFKH1/VBDHE=
+ cloud.google.com/go/bigquery v1.4.0/go.mod h1:S8dzgnTigyfTmLBfrtrhyYhwRxG72rYxvftPBK2Dvzc=
+@@ -30,18 +30,20 @@ cloud.google.com/go/compute/metadata v0.9.0 h1:pDUj4QMoPejqq20dK0Pg2N4yG9zIkYGdB
+ cloud.google.com/go/compute/metadata v0.9.0/go.mod h1:E0bWwX5wTnLPedCKqk3pJmVgCBSM6qQI1yTBdEb3C10=
+ cloud.google.com/go/datastore v1.0.0/go.mod h1:LXYbyblFSglQ5pkeyhO+Qmw7ukd3C+pD7TKLgZqpHYE=
+ cloud.google.com/go/datastore v1.1.0/go.mod h1:umbIZjpQpHh4hmRpGhH4tLFup+FVzqBi1b3c64qFpCk=
+-cloud.google.com/go/iam v1.4.2 h1:4AckGYAYsowXeHzsn/LCKWIwSWLkdb0eGjH8wWkd27Q=
+-cloud.google.com/go/iam v1.4.2/go.mod h1:REGlrt8vSlh4dfCJfSEcNjLGq75wW75c5aU3FLOYq34=
+-cloud.google.com/go/kms v1.21.1 h1:r1Auo+jlfJSf8B7mUnVw5K0fI7jWyoUy65bV53VjKyk=
+-cloud.google.com/go/kms v1.21.1/go.mod h1:s0wCyByc9LjTdCjG88toVs70U9W+cc6RKFc8zAqX7nE=
+-cloud.google.com/go/longrunning v0.6.5 h1:sD+t8DO8j4HKW4QfouCklg7ZC1qC4uzVZt8iz3uTW+Q=
+-cloud.google.com/go/longrunning v0.6.5/go.mod h1:Et04XK+0TTLKa5IPYryKf5DkpwImy6TluQ1QTLwlKmY=
++cloud.google.com/go/iam v1.5.3 h1:+vMINPiDF2ognBJ97ABAYYwRgsaqxPbQDlMnbHMjolc=
++cloud.google.com/go/iam v1.5.3/go.mod h1:MR3v9oLkZCTlaqljW6Eb2d3HGDGK5/bDv93jhfISFvU=
++cloud.google.com/go/kms v1.25.0 h1:gVqvGGUmz0nYCmtoxWmdc1wli2L1apgP8U4fghPGSbQ=
++cloud.google.com/go/kms v1.25.0/go.mod h1:XIdHkzfj0bUO3E+LvwPg+oc7s58/Ns8Nd8Sdtljihbk=
++cloud.google.com/go/longrunning v0.8.0 h1:LiKK77J3bx5gDLi4SMViHixjD2ohlkwBi+mKA7EhfW8=
++cloud.google.com/go/longrunning v0.8.0/go.mod h1:UmErU2Onzi+fKDg2gR7dusz11Pe26aknR4kHmJJqIfk=
+ cloud.google.com/go/pubsub v1.0.1/go.mod h1:R0Gpsv3s54REJCy4fxDixWD93lHJMoZTyQ2kNxGRt3I=
+ cloud.google.com/go/pubsub v1.1.0/go.mod h1:EwwdRX2sKPjnvnqCa270oGRyludottCI76h+R3AArQw=
+ cloud.google.com/go/pubsub v1.2.0/go.mod h1:jhfEVHT8odbXTkndysNHCcx0awwzvfOlguIAii9o8iA=
+ cloud.google.com/go/pubsub v1.3.1/go.mod h1:i+ucay31+CNRpDW4Lu78I4xXG+O1r/MAHgjpRVR+TSU=
+-cloud.google.com/go/pubsub v1.49.0 h1:5054IkbslnrMCgA2MAEPcsN3Ky+AyMpEZcii/DoySPo=
+-cloud.google.com/go/pubsub v1.49.0/go.mod h1:K1FswTWP+C1tI/nfi3HQecoVeFvL4HUOB1tdaNXKhUY=
++cloud.google.com/go/pubsub v1.50.1 h1:fzbXpPyJnSGvWXF1jabhQeXyxdbCIkXTpjXHy7xviBM=
++cloud.google.com/go/pubsub v1.50.1/go.mod h1:6YVJv3MzWJUVdvQXG081sFvS0dWQOdnV+oTo++q/xFk=
++cloud.google.com/go/pubsub/v2 v2.0.0 h1:0qS6mRJ41gD1lNmM/vdm6bR7DQu6coQcVwD+VPf0Bz0=
++cloud.google.com/go/pubsub/v2 v2.0.0/go.mod h1:0aztFxNzVQIRSZ8vUr79uH2bS3jwLebwK6q1sgEub+E=
+ cloud.google.com/go/storage v1.0.0/go.mod h1:IhtSnM/ZTZV8YYJWCY8RULGVqBDmpoyjwiyrjsg+URw=
+ cloud.google.com/go/storage v1.5.0/go.mod h1:tpKbwo567HUNpVclU5sGELwQWBDZ8gh0ZeosJ0Rtdos=
+ cloud.google.com/go/storage v1.6.0/go.mod h1:N7U0C8pVQ/+NIKOBQyamJIeKQKkZ+mxpohlUTyfDhBk=
+@@ -162,8 +164,8 @@ github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1/go.mod h1:Q3SI9o4m/ZMn
+ github.com/chzyer/test v1.0.0/go.mod h1:2JlltgoNkt4TW/z9V/IzDdFaMTM2JPIi26O1pF38GC8=
+ github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
+ github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
+-github.com/cncf/xds/go v0.0.0-20251210132809-ee656c7534f5 h1:6xNmx7iTtyBRev0+D/Tv1FZd4SCg8axKApyNyRsAt/w=
+-github.com/cncf/xds/go v0.0.0-20251210132809-ee656c7534f5/go.mod h1:KdCmV+x/BuvyMxRnYBlmVaq4OLiKW6iRQfvC62cvdkI=
++github.com/cncf/xds/go v0.0.0-20260202195803-dba9d589def2 h1:aBangftG7EVZoUb69Os8IaYg++6uMOdKK83QtkkvJik=
++github.com/cncf/xds/go v0.0.0-20260202195803-dba9d589def2/go.mod h1:qwXFYgsP6T7XnJtbKlf1HP8AjxZZyzxMmc+Lq5GjlU4=
+ github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0/go.mod h1:4Zcjuz89kmFXt9morQgcfYZAYZ5n8WHjt81YYWIwtTM=
+ github.com/codeskyblue/go-sh v0.0.0-20190412065543-76bd3d59ff27/go.mod h1:VQx0hjo2oUeQkQUET7wRwradO6f+fN5jzXgB/zROxxE=
+ github.com/cpuguy83/go-md2man/v2 v2.0.2/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
+@@ -188,11 +190,11 @@ github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymF
+ github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
+ github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1mIlRU8Am5FuJP05cCM98=
+ github.com/envoyproxy/go-control-plane v0.14.0 h1:hbG2kr4RuFj222B6+7T83thSPqLjwBIfQawTkC++2HA=
+-github.com/envoyproxy/go-control-plane/envoy v1.36.0 h1:yg/JjO5E7ubRyKX3m07GF3reDNEnfOboJ0QySbH736g=
+-github.com/envoyproxy/go-control-plane/envoy v1.36.0/go.mod h1:ty89S1YCCVruQAm9OtKeEkQLTb+Lkz0k8v9W0Oxsv98=
++github.com/envoyproxy/go-control-plane/envoy v1.37.0 h1:u3riX6BoYRfF4Dr7dwSOroNfdSbEPe9Yyl09/B6wBrQ=
++github.com/envoyproxy/go-control-plane/envoy v1.37.0/go.mod h1:DReE9MMrmecPy+YvQOAOHNYMALuowAnbjjEMkkWOi6A=
+ github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
+-github.com/envoyproxy/protoc-gen-validate v1.3.0 h1:TvGH1wof4H33rezVKWSpqKz5NXWg5VPuZ0uONDT6eb4=
+-github.com/envoyproxy/protoc-gen-validate v1.3.0/go.mod h1:HvYl7zwPa5mffgyeTUHA9zHIH36nmrm7oCbo4YKoSWA=
++github.com/envoyproxy/protoc-gen-validate v1.3.3 h1:MVQghNeW+LZcmXe7SY1V36Z+WFMDjpqGAGacLe2T0ds=
++github.com/envoyproxy/protoc-gen-validate v1.3.3/go.mod h1:TsndJ/ngyIdQRhMcVVGDDHINPLWB7C82oDArY51KfB0=
+ github.com/evanphx/json-patch/v5 v5.9.11 h1:/8HVnzMq13/3x9TPvjG08wUGqBTmZBsCWzjTM0wiaDU=
+ github.com/evanphx/json-patch/v5 v5.9.11/go.mod h1:3j+LviiESTElxA4p3EMKAB9HXj3/XEtnUf6OZxqIQTM=
+ github.com/exponent-io/jsonpath v0.0.0-20210407135951-1de76d718b3f h1:Wl78ApPPB2Wvf/TIe2xdyJxTlb6obmF18d8QdkxNDu4=
+@@ -358,12 +360,12 @@ github.com/google/uuid v1.1.1/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+
+ github.com/google/uuid v1.1.2/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+ github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
+ github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+-github.com/googleapis/enterprise-certificate-proxy v0.3.6 h1:GW/XbdyBFQ8Qe+YAmFU9uHLo7OnF5tL52HFAgMmyrf4=
+-github.com/googleapis/enterprise-certificate-proxy v0.3.6/go.mod h1:MkHOF77EYAE7qfSuSS9PU6g4Nt4e11cnsDUowfwewLA=
++github.com/googleapis/enterprise-certificate-proxy v0.3.11 h1:vAe81Msw+8tKUxi2Dqh/NZMz7475yUvmRIkXr4oN2ao=
++github.com/googleapis/enterprise-certificate-proxy v0.3.11/go.mod h1:RFV7MUdlb7AgEq2v7FmMCfeSMCllAzWxFgRdusoGks8=
+ github.com/googleapis/gax-go/v2 v2.0.4/go.mod h1:0Wqv26UfaUD9n4G6kQubkQ+KchISgw+vpHVxEJEs9eg=
+ github.com/googleapis/gax-go/v2 v2.0.5/go.mod h1:DWXyrwAJ9X0FpwwEdw+IPEYBICEFu5mhpdKc/us6bOk=
+-github.com/googleapis/gax-go/v2 v2.14.1 h1:hb0FFeiPaQskmvakKu5EbCbpntQn48jyHuvrkurSS/Q=
+-github.com/googleapis/gax-go/v2 v2.14.1/go.mod h1:Hb/NubMaVM88SrNkvl8X/o8XWwDJEPqouaLeN2IUxoA=
++github.com/googleapis/gax-go/v2 v2.17.0 h1:RksgfBpxqff0EZkDWYuz9q/uWsTVz+kf43LsZ1J6SMc=
++github.com/googleapis/gax-go/v2 v2.17.0/go.mod h1:mzaqghpQp4JDh3HvADwrat+6M3MOIDp5YKHhb9PAgDY=
+ github.com/googleapis/gnostic v0.2.0/go.mod h1:sJBsCZ4ayReDTBIg8b9dl28c5xFWyhBTVRp3pOg5EKY=
+ github.com/gopackage/ddp v0.0.0-20170117053602-652027933df4 h1:4EZlYQIiyecYJlUbVkFXCXHz1QPhVXcHnQKAzBTPfQo=
+ github.com/gopackage/ddp v0.0.0-20170117053602-652027933df4/go.mod h1:lEO7XoHJ/xNRBCxrn4h/CEB67h0kW1B0t4ooP2yrjUA=
+@@ -435,8 +437,8 @@ github.com/julienschmidt/httprouter v1.3.0/go.mod h1:JR6WtHb+2LUe8TCKY3cZOxFyyO8
+ github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
+ github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
+ github.com/klauspost/compress v1.13.5/go.mod h1:/3/Vjq9QcHkK5uEr5lBEmyoZ1iFhe47etQ6QUkpK6sk=
+-github.com/klauspost/compress v1.18.0 h1:c/Cqfb0r+Yi+JtIEq73FWXVkRonBlf0CRNYc8Zttxdo=
+-github.com/klauspost/compress v1.18.0/go.mod h1:2Pp+KzxcywXVXMr50+X0Q/Lsb43OQHYWRCY2AiWywWQ=
++github.com/klauspost/compress v1.18.7 h1:aUyZsS4kH3QTKurYhAOwAHxllVPnOthb3vPfnF1Ehjw=
++github.com/klauspost/compress v1.18.7/go.mod h1:cwPg85FWrGar70rWktvGQj8/hthj3wpl0PGDogxkrSQ=
+ github.com/klauspost/cpuid v1.2.3/go.mod h1:Pj4uuM528wm8OyEC2QMXAi2YiTZ96dNQPGgoMS4s3ek=
+ github.com/klauspost/cpuid v1.3.1/go.mod h1:bYW4mA6ZgKPob1/Dlai2LviZJO7KGI3uoWLd42rAQw4=
+ github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
+@@ -723,8 +725,8 @@ github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9dec
+ github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
+ github.com/yuin/goldmark v1.4.1/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
+ github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
+-go.einride.tech/aip v0.68.1 h1:16/AfSxcQISGN5z9C5lM+0mLYXihrHbQ1onvYTr93aQ=
+-go.einride.tech/aip v0.68.1/go.mod h1:XaFtaj4HuA3Zwk9xoBtTWgNubZ0ZZXv9BZJCkuKuWbg=
++go.einride.tech/aip v0.73.0 h1:bPo4oqBo2ZQeBKo4ZzLb1kxYXTY1ysJhpvQyfuGzvps=
++go.einride.tech/aip v0.73.0/go.mod h1:Mj7rFbmXEgw0dq1dqJ7JGMvYCZZVxmGOR3S4ZcV5LvQ=
+ go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
+ go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=
+ go.opencensus.io v0.22.2/go.mod h1:yxeiOL68Rb0Xd1ddK5vPZ/oVn4vY4Ynel7k9FzqtOIw=
+@@ -734,20 +736,20 @@ go.opencensus.io v0.24.0 h1:y73uSU6J157QMP2kn2r30vwW1A2W2WFwSCGnAVxeaD0=
+ go.opencensus.io v0.24.0/go.mod h1:vNK8G9p7aAivkbmorf4v+7Hgx+Zs0yY+0fOtgBfjQKo=
+ go.opentelemetry.io/auto/sdk v1.2.1 h1:jXsnJ4Lmnqd11kwkBV2LgLoFMZKizbCi5fNZ/ipaZ64=
+ go.opentelemetry.io/auto/sdk v1.2.1/go.mod h1:KRTj+aOaElaLi+wW1kO/DZRXwkF4C5xPbEe3ZiIhN7Y=
+-go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.60.0 h1:x7wzEgXfnzJcHDwStJT+mxOz4etr2EcexjqhBvmoakw=
+-go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.60.0/go.mod h1:rg+RlpR5dKwaS95IyyZqj5Wd4E13lk/msnTS0Xl9lJM=
+-go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.59.0 h1:CV7UdSGJt/Ao6Gp4CXckLxVRRsRgDHoI8XjbL3PDl8s=
+-go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.59.0/go.mod h1:FRmFuRJfag1IZ2dPkHnEoSFVgTVPUd2qf5Vi69hLb8I=
+-go.opentelemetry.io/otel v1.39.0 h1:8yPrr/S0ND9QEfTfdP9V+SiwT4E0G7Y5MO7p85nis48=
+-go.opentelemetry.io/otel v1.39.0/go.mod h1:kLlFTywNWrFyEdH0oj2xK0bFYZtHRYUdv1NklR/tgc8=
+-go.opentelemetry.io/otel/metric v1.39.0 h1:d1UzonvEZriVfpNKEVmHXbdf909uGTOQjA0HF0Ls5Q0=
+-go.opentelemetry.io/otel/metric v1.39.0/go.mod h1:jrZSWL33sD7bBxg1xjrqyDjnuzTUB0x1nBERXd7Ftcs=
+-go.opentelemetry.io/otel/sdk v1.39.0 h1:nMLYcjVsvdui1B/4FRkwjzoRVsMK8uL/cj0OyhKzt18=
+-go.opentelemetry.io/otel/sdk v1.39.0/go.mod h1:vDojkC4/jsTJsE+kh+LXYQlbL8CgrEcwmt1ENZszdJE=
+-go.opentelemetry.io/otel/sdk/metric v1.39.0 h1:cXMVVFVgsIf2YL6QkRF4Urbr/aMInf+2WKg+sEJTtB8=
+-go.opentelemetry.io/otel/sdk/metric v1.39.0/go.mod h1:xq9HEVH7qeX69/JnwEfp6fVq5wosJsY1mt4lLfYdVew=
+-go.opentelemetry.io/otel/trace v1.39.0 h1:2d2vfpEDmCJ5zVYz7ijaJdOF59xLomrvj7bjt6/qCJI=
+-go.opentelemetry.io/otel/trace v1.39.0/go.mod h1:88w4/PnZSazkGzz/w84VHpQafiU4EtqqlVdxWy+rNOA=
++go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.61.0 h1:q4XOmH/0opmeuJtPsbFNivyl7bCt7yRBbeEm2sC/XtQ=
++go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.61.0/go.mod h1:snMWehoOh2wsEwnvvwtDyFCxVeDAODenXHtn5vzrKjo=
++go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.61.0 h1:F7Jx+6hwnZ41NSFTO5q4LYDtJRXBf2PD0rNBkeB/lus=
++go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.61.0/go.mod h1:UHB22Z8QsdRDrnAtX4PntOl36ajSxcdUMt1sF7Y6E7Q=
++go.opentelemetry.io/otel v1.44.0 h1:JjwHmHpA4iZ3wBxluu2fbbE7j4kqlE8jXyAyPXH7HqU=
++go.opentelemetry.io/otel v1.44.0/go.mod h1:BMgjTHL9WPRlRjL2oZCBTL4whCGtXch2H4BhOPIAyYc=
++go.opentelemetry.io/otel/metric v1.44.0 h1:1w0gILTcHdr3YI+ixLyjemwrVnsMURbTZFrSYCdDdmc=
++go.opentelemetry.io/otel/metric v1.44.0/go.mod h1:8O7hanEPBNgEMmybD3s2VBKcgWOCsA6tzHBPODAiquo=
++go.opentelemetry.io/otel/sdk v1.44.0 h1:nHYwb9lK+fJPU/dnT6s7W7Z8itMWyqrnVfbheVYrZ58=
++go.opentelemetry.io/otel/sdk v1.44.0/go.mod h1:Osuydd3Se74nqjAKxid74N5eC+jfEqfTegHRnq58oK0=
++go.opentelemetry.io/otel/sdk/metric v1.44.0 h1:3LlKgI+VjbVsjNRFZJZAJ30WjXC5VkNRks6si09iEfI=
++go.opentelemetry.io/otel/sdk/metric v1.44.0/go.mod h1:5B5pMARnXxKhltooO4xUuCBorl65a4EpnTalObqOigA=
++go.opentelemetry.io/otel/trace v1.44.0 h1:jxF5CsGYCe74MCRx2X4g7WsY/VBKRqqpNvXlX/6gtIk=
++go.opentelemetry.io/otel/trace v1.44.0/go.mod h1:oLl1jrMQAVo6v3GAggN+1VH9VIz9iUSvW53sW1Q8PIE=
+ go.uber.org/goleak v1.3.0 h1:2K3zAYmnTNqV73imy9J1T3WC+gmCePx2hEGkimedGto=
+ go.uber.org/goleak v1.3.0/go.mod h1:CoHD4mav9JJNrW/WLlf7HGZPjdw8EucARQHekz1X6bE=
+ go.yaml.in/yaml/v2 v2.4.2/go.mod h1:081UH+NErpNdqlCXm3TtEran0rJZGxAYx9hb/ELlsPU=
+@@ -782,8 +784,8 @@ golang.org/x/crypto v0.25.0/go.mod h1:T+wALwcMOSE0kXgUAnPAHqTLW+XHgcELELW8VaDgm/
+ golang.org/x/crypto v0.26.0/go.mod h1:GY7jblb9wI+FOo5y8/S2oY4zWP07AkOJ4+jxCqdqn54=
+ golang.org/x/crypto v0.28.0/go.mod h1:rmgy+3RHxRZMyY0jjAJShp2zgEdOqj2AO7U0pYmeQ7U=
+ golang.org/x/crypto v0.36.0/go.mod h1:Y4J0ReaxCR1IMaabaSMugxJES1EpwhBHhv2bDHklZvc=
+-golang.org/x/crypto v0.53.0 h1:QZ4Muo8THX6CizN2vPPd5fBGHyogrdK9fG4wLPFUsto=
+-golang.org/x/crypto v0.53.0/go.mod h1:DNLU434OwVakk9PzuwV8w62mAJpRJL3vsgcfp4Qnsio=
++golang.org/x/crypto v0.57.0 h1:3ZVCjf8Ggz7zneR/EHRVx68Ctf+2pmIMP2UFhh9cC6M=
++golang.org/x/crypto v0.57.0/go.mod h1:Fdz0i5U6CoizGwLda9DttjSk6qlZo25zYNtR+ycvuZA=
+ golang.org/x/exp v0.0.0-20190121172915-509febef88a4/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
+ golang.org/x/exp v0.0.0-20190306152737-a1d7652674e8/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
+ golang.org/x/exp v0.0.0-20190510132918-efd6b22b2522/go.mod h1:ZjyILWgesfNpC6sMxTJOJm9Kp84zZh5NQWvqDGG3Qr8=
+@@ -831,8 +833,8 @@ golang.org/x/mod v0.18.0/go.mod h1:hTbmBsO62+eylJbnUtE2MGJUyE7QWk4xUqPFrRgJ+7c=
+ golang.org/x/mod v0.19.0/go.mod h1:hTbmBsO62+eylJbnUtE2MGJUyE7QWk4xUqPFrRgJ+7c=
+ golang.org/x/mod v0.20.0/go.mod h1:hTbmBsO62+eylJbnUtE2MGJUyE7QWk4xUqPFrRgJ+7c=
+ golang.org/x/mod v0.21.0/go.mod h1:6SkKJ3Xj0I0BrPOZoBy3bdMptDDU9oJrpohJ3eWZ1fY=
+-golang.org/x/mod v0.36.0 h1:JJjpVx6myfUsUdAzZuOSTTmRE0PfZeNWzzvKrP7amb4=
+-golang.org/x/mod v0.36.0/go.mod h1:moc6ELqsWcOw5Ef3xVprK5ul/MvtVvkIXLziUOICjUQ=
++golang.org/x/mod v0.41.0 h1:qJmnOUb4YB+FsEuM3HcWucdZASCPGhsX6uljO6pog0c=
++golang.org/x/mod v0.41.0/go.mod h1:Ek9pY8RKWXwsWvd3rQiHYtMqkjSUV+s1Rj7j4H5Ur6o=
+ golang.org/x/net v0.0.0-20180724234803-3673e40ba225/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
+ golang.org/x/net v0.0.0-20180826012351-8a410e7b638d/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
+ golang.org/x/net v0.0.0-20180906233101-161cd47e91fd/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
+@@ -900,8 +902,8 @@ golang.org/x/net v0.27.0/go.mod h1:dDi0PyhWNoiUOrAS8uXv/vnScO4wnHQO4mj9fn/RytE=
+ golang.org/x/net v0.28.0/go.mod h1:yqtgsTWOOnlGLG9GFRrK3++bGOUEkNBoHZc8MEDWPNg=
+ golang.org/x/net v0.30.0/go.mod h1:2wGyMJ5iFasEhkwi13ChkO/t1ECNC4X4eBKkVFyYFlU=
+ golang.org/x/net v0.38.0/go.mod h1:ivrbrMbzFq5J41QOQh0siUuly180yBYtLp+CKbEaFx8=
+-golang.org/x/net v0.56.0 h1:Rw8j/hFzGvJUZwNBXnAtf5sVDVt+65SK2C7IxCxZt5o=
+-golang.org/x/net v0.56.0/go.mod h1:D3Ku6r+V6JROoZK144D2XfMHFcMq/0zSfLelVTCFKec=
++golang.org/x/net v0.60.0 h1:79p50tfZlm0J9YfoDsSi639qSXNGVwEzOPLCxM2FsYU=
++golang.org/x/net v0.60.0/go.mod h1:2DA/G1UfVbCpQPeWTmMPGY7Cs2PkBkwu743bVX5PIVg=
+ golang.org/x/oauth2 v0.0.0-20180821212333-d2e6202438be/go.mod h1:N/0e6XlmueqKjAGxoOufVs8QHGRruUQn6yWY3a++T0U=
+ golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421/go.mod h1:gOpvHmFTYa4IltrdGE7lF6nIHvwfUNPOp7c8zoXwtLw=
+ golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45/go.mod h1:gOpvHmFTYa4IltrdGE7lF6nIHvwfUNPOp7c8zoXwtLw=
+@@ -931,8 +933,8 @@ golang.org/x/sync v0.6.0/go.mod h1:Czt+wKu1gCyEFDUtn0jG5QVvpJ6rzVqr5aXyt9drQfk=
+ golang.org/x/sync v0.7.0/go.mod h1:Czt+wKu1gCyEFDUtn0jG5QVvpJ6rzVqr5aXyt9drQfk=
+ golang.org/x/sync v0.8.0/go.mod h1:Czt+wKu1gCyEFDUtn0jG5QVvpJ6rzVqr5aXyt9drQfk=
+ golang.org/x/sync v0.12.0/go.mod h1:1dzgHSNfp02xaA81J2MS99Qcpr2w7fw1gpm99rleRqA=
+-golang.org/x/sync v0.21.0 h1:HLII4xRRTtCRkxYp4HNFF0Js/Og6q2i++KXbg0gHCwM=
+-golang.org/x/sync v0.21.0/go.mod h1:9xrNwdLfx4jkKbNva9FpL6vEN7evnE43NNNJQ2LF3+0=
++golang.org/x/sync v0.23.0 h1:KameEIfc1IkluZyXWLn39Wd4tURc6GbCiISGiZm2bQk=
++golang.org/x/sync v0.23.0/go.mod h1:sUUOizhqBxiL6pEWpqNLUiaJn1ShEbZ6BBqskPbjZm0=
+ golang.org/x/sys v0.0.0-20180830151530-49385e6e1522/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
+ golang.org/x/sys v0.0.0-20180905080454-ebe1bf3edb33/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
+ golang.org/x/sys v0.0.0-20180909124046-d0be0721c37e/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
+@@ -1017,8 +1019,8 @@ golang.org/x/sys v0.23.0/go.mod h1:/VUhepiaJMQUp4+oa/7Zr1D23ma6VTLIYjOOTFZPUcA=
+ golang.org/x/sys v0.24.0/go.mod h1:/VUhepiaJMQUp4+oa/7Zr1D23ma6VTLIYjOOTFZPUcA=
+ golang.org/x/sys v0.26.0/go.mod h1:/VUhepiaJMQUp4+oa/7Zr1D23ma6VTLIYjOOTFZPUcA=
+ golang.org/x/sys v0.31.0/go.mod h1:BJP2sWEmIv4KK5OTEluFJCKSidICx8ciO85XgH3Ak8k=
+-golang.org/x/sys v0.46.0 h1:noSf2Fq6F8DBgS+LysIkx7rIExoNHJsxOAtPp4rthXw=
+-golang.org/x/sys v0.46.0/go.mod h1:4GL1E5IUh+htKOUEOaiffhrAeqysfVGipDYzABqnCmw=
++golang.org/x/sys v0.48.0 h1:bbX/i/6MgT9BVLM9RT1thmxL04yeTAhbEz4SyadbXoo=
++golang.org/x/sys v0.48.0/go.mod h1:hNLxWAXmnKAxqDtdwIYC4bM9oQPEecfsnNMuSxOs3og=
+ golang.org/x/telemetry v0.0.0-20240228155512-f48c80bd79b2/go.mod h1:TeRTkGYfJXctD9OcfyVLyj2J3IxLnKwHJR8f4D8a3YE=
+ golang.org/x/telemetry v0.0.0-20240521205824-bda55230c457/go.mod h1:pRgIJT+bRLFKnoM1ldnzKoxTIn14Yxz928LQRYYgIN0=
+ golang.org/x/term v0.0.0-20201117132131-f5c789dd3221/go.mod h1:Nr5EML6q2oocZ2LXRh80K7BxOlk5/8JxuGnuhpl+muw=
+@@ -1046,8 +1048,8 @@ golang.org/x/term v0.22.0/go.mod h1:F3qCibpT5AMpCRfhfT53vVJwhLtIVHhB9XDjfFvnMI4=
+ golang.org/x/term v0.23.0/go.mod h1:DgV24QBUrK6jhZXl+20l6UWznPlwAHm1Q1mGHtydmSk=
+ golang.org/x/term v0.25.0/go.mod h1:RPyXicDX+6vLxogjjRxjgD2TKtmAO6NZBsBRfrOLu7M=
+ golang.org/x/term v0.30.0/go.mod h1:NYYFdzHoI5wRh/h5tDMdMqCqPJZEuNqVR5xJLd/n67g=
+-golang.org/x/term v0.44.0 h1:0rLvDRCtNj0gZkyIXhCyOb2OAzEhLVqc4B+hrsBhrmc=
+-golang.org/x/term v0.44.0/go.mod h1:7ze4MdzUzLXpSAoFP1H0bOI9aXDqveSvatT5vKcFh2Y=
++golang.org/x/term v0.46.0 h1:3+OXuTbaKDgwk8jTi3aSLHRlmWqHEUDUtxnbFigO4YE=
++golang.org/x/term v0.46.0/go.mod h1:+K02xbkittuwc0Am4abfA3Fc+XRGXkvBXNO88NCXPoc=
+ golang.org/x/text v0.0.0-20170915032832-14c0d48ead0c/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
+ golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
+ golang.org/x/text v0.3.1-0.20180807135948-17ff2d5776d2/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
+@@ -1070,14 +1072,14 @@ golang.org/x/text v0.16.0/go.mod h1:GhwF1Be+LQoKShO3cGOHzqOgRrGaYc9AvblQOmPVHnI=
+ golang.org/x/text v0.17.0/go.mod h1:BuEKDfySbSR4drPmRPG/7iBdf8hvFMuRexcpahXilzY=
+ golang.org/x/text v0.19.0/go.mod h1:BuEKDfySbSR4drPmRPG/7iBdf8hvFMuRexcpahXilzY=
+ golang.org/x/text v0.23.0/go.mod h1:/BLNzu4aZCJ1+kcD0DNRotWKage4q2rGVAg4o22unh4=
+-golang.org/x/text v0.38.0 h1:sXmwo9DwP3OK9EZ7PqAdaooSGozfl/3a6/xJcbzPRhE=
+-golang.org/x/text v0.38.0/go.mod h1:YXZt3QhHUKYT53r2lLKFIVi6Ao1jdzrTR/KQ09qyxF4=
++golang.org/x/text v0.42.0 h1:JbOZXgfeCPU9gacVtYliJqOhD+zhrEqK4LfdpmlUZqI=
++golang.org/x/text v0.42.0/go.mod h1:ojzP1Z+2QtioaF8DTtO8K5q7JWVVYwZKenzujK0Zd0E=
+ golang.org/x/time v0.0.0-20181108054448-85acf8d2951c/go.mod h1:tRJNPiyCQ0inRvYxbN9jk5I+vvW/OXSQhTDSoE431IQ=
+ golang.org/x/time v0.0.0-20190308202827-9d24e82272b4/go.mod h1:tRJNPiyCQ0inRvYxbN9jk5I+vvW/OXSQhTDSoE431IQ=
+ golang.org/x/time v0.0.0-20191024005414-555d28b269f0/go.mod h1:tRJNPiyCQ0inRvYxbN9jk5I+vvW/OXSQhTDSoE431IQ=
+ golang.org/x/time v0.9.0/go.mod h1:3BpzKBy/shNhVucY/MWOyx10tF3SFh9QdLuxbVysPQM=
+-golang.org/x/time v0.11.0 h1:/bpjEDfN9tkoN/ryeYHnv5hcMlc8ncjMcM4XBk5NWV0=
+-golang.org/x/time v0.11.0/go.mod h1:CDIdPxbZBQxdj6cxyCIdrNogrJKMJ7pr37NYpMcMDSg=
++golang.org/x/time v0.14.0 h1:MRx4UaLrDotUKUdCIqzPC48t1Y9hANFKIRpNx+Te8PI=
++golang.org/x/time v0.14.0/go.mod h1:eL/Oa2bBBK0TkX57Fyni+NgnyQQN4LitPmob2Hjnqw4=
+ golang.org/x/tools v0.0.0-20180917221912-90fa682c2a6e/go.mod h1:n7NCudcB/nEzxVGmLbDWY5pfWTLqBcC2KZ6jyYvM4mQ=
+ golang.org/x/tools v0.0.0-20190114222345-bf090417da8b/go.mod h1:n7NCudcB/nEzxVGmLbDWY5pfWTLqBcC2KZ6jyYvM4mQ=
+ golang.org/x/tools v0.0.0-20190226205152-f727befe758c/go.mod h1:9Yl7xja0Znq3iFh3HoIrodX9oNMXvdceNzlUR8zjMvY=
+@@ -1142,8 +1144,8 @@ golang.org/x/tools v0.22.0/go.mod h1:aCwcsjqvq7Yqt6TNyX7QMU2enbQ/Gt0bo6krSeEri+c
+ golang.org/x/tools v0.23.0/go.mod h1:pnu6ufv6vQkll6szChhK3C3L/ruaIv5eBeztNG8wtsI=
+ golang.org/x/tools v0.24.0/go.mod h1:YhNqVBIfWHdzvTLs0d8LCuMhkKUgSUKldakyV7W/WDQ=
+ golang.org/x/tools v0.26.0/go.mod h1:TPVVj70c7JJ3WCazhD8OdXcZg/og+b9+tH/KxylGwH0=
+-golang.org/x/tools v0.45.0 h1:18qN3FAooORvApf5XjCXgsuayZOEtXf6JK18I3+ONa8=
+-golang.org/x/tools v0.45.0/go.mod h1:LuUGqqaXcXMEFEruIVJVm5mgDD8vww/z/SR1gQ4uE/0=
++golang.org/x/tools v0.49.0 h1:3NI7VXzL9+1WZD52Dx2ttoPwD5DWrFGpl9mFZDlmisI=
++golang.org/x/tools v0.49.0/go.mod h1:SJNXV9DBKT0UbdttsQjbfJlAE/q+y36++zo3uL3N0Oo=
+ golang.org/x/tools/go/expect v0.1.0-deprecated h1:jY2C5HGYR5lqex3gEniOQL0r7Dq5+VGVgY1nudX5lXY=
+ golang.org/x/tools/go/expect v0.1.0-deprecated/go.mod h1:eihoPOH+FgIqa3FpoTwguz/bVUSGBlGQU67vpBeOrBY=
+ golang.org/x/tools/go/packages/packagestest v0.1.1-deprecated h1:1h2MnaIAIXISqTFKdENegdpAgUXz6NrPEsbIeWaBRvM=
+@@ -1175,8 +1177,8 @@ google.golang.org/api v0.24.0/go.mod h1:lIXQywCXRcnZPGlsd8NbLnOjtAoL6em04bJ9+z0M
+ google.golang.org/api v0.28.0/go.mod h1:lIXQywCXRcnZPGlsd8NbLnOjtAoL6em04bJ9+z0MncE=
+ google.golang.org/api v0.29.0/go.mod h1:Lcubydp8VUV7KeIHD9z2Bys/sm/vGKnG1UHuDBSrHWM=
+ google.golang.org/api v0.30.0/go.mod h1:QGmEvQ87FHZNiUVJkT14jQNYJ4ZJjdRF23ZXz5138Fc=
+-google.golang.org/api v0.227.0 h1:QvIHF9IuyG6d6ReE+BNd11kIB8hZvjN8Z5xY5t21zYc=
+-google.golang.org/api v0.227.0/go.mod h1:EIpaG6MbTgQarWF5xJvX0eOJPK9n/5D4Bynb9j2HXvQ=
++google.golang.org/api v0.264.0 h1:+Fo3DQXBK8gLdf8rFZ3uLu39JpOnhvzJrLMQSoSYZJM=
++google.golang.org/api v0.264.0/go.mod h1:fAU1xtNNisHgOF5JooAs8rRaTkl2rT3uaoNGo9NS3R8=
+ google.golang.org/appengine v1.1.0/go.mod h1:EbEs0AVv82hx2wNQdGPgUI5lhzA/G0D9YwlJXL52JkM=
+ google.golang.org/appengine v1.4.0/go.mod h1:xpcJRLb0r/rnEns0DIKYYv+WjYCduHsrkT7/EB5XEv4=
+ google.golang.org/appengine v1.5.0/go.mod h1:xpcJRLb0r/rnEns0DIKYYv+WjYCduHsrkT7/EB5XEv4=
+@@ -1213,12 +1215,12 @@ google.golang.org/genproto v0.0.0-20200618031413-b414f8b61790/go.mod h1:jDfRM7Fc
+ google.golang.org/genproto v0.0.0-20200729003335-053ba62fc06f/go.mod h1:FWY/as6DDZQgahTzZj3fqbO1CbirC29ZNUFHwi0/+no=
+ google.golang.org/genproto v0.0.0-20200804131852-c06518451d9c/go.mod h1:FWY/as6DDZQgahTzZj3fqbO1CbirC29ZNUFHwi0/+no=
+ google.golang.org/genproto v0.0.0-20200825200019-8632dd797987/go.mod h1:FWY/as6DDZQgahTzZj3fqbO1CbirC29ZNUFHwi0/+no=
+-google.golang.org/genproto v0.0.0-20250303144028-a0af3efb3deb h1:ITgPrl429bc6+2ZraNSzMDk3I95nmQln2fuPstKwFDE=
+-google.golang.org/genproto v0.0.0-20250303144028-a0af3efb3deb/go.mod h1:sAo5UzpjUwgFBCzupwhcLcxHVDK7vG5IqI30YnwX2eE=
+-google.golang.org/genproto/googleapis/api v0.0.0-20260120221211-b8f7ae30c516 h1:vmC/ws+pLzWjj/gzApyoZuSVrDtF1aod4u/+bbj8hgM=
+-google.golang.org/genproto/googleapis/api v0.0.0-20260120221211-b8f7ae30c516/go.mod h1:p3MLuOwURrGBRoEyFHBT3GjUwaCQVKeNqqWxlcISGdw=
+-google.golang.org/genproto/googleapis/rpc v0.0.0-20260316180232-0b37fe3546d5 h1:aJmi6DVGGIStN9Mobk/tZOOQUBbj0BPjZjjnOdoZKts=
+-google.golang.org/genproto/googleapis/rpc v0.0.0-20260316180232-0b37fe3546d5/go.mod h1:4Hqkh8ycfw05ld/3BWL7rJOSfebL2Q+DVDeRgYgxUU8=
++google.golang.org/genproto v0.0.0-20260128011058-8636f8732409 h1:VQZ/yAbAtjkHgH80teYd2em3xtIkkHd7ZhqfH2N9CsM=
++google.golang.org/genproto v0.0.0-20260128011058-8636f8732409/go.mod h1:rxKD3IEILWEu3P44seeNOAwZN4SaoKaQ/2eTg4mM6EM=
++google.golang.org/genproto/googleapis/api v0.0.0-20260526163538-3dc84a4a5aaa h1:Kjn0N0tCrDgiAFW+lGO4JZ3ck44CehvJQMAwj9QF0G8=
++google.golang.org/genproto/googleapis/api v0.0.0-20260526163538-3dc84a4a5aaa/go.mod h1:q4lMZS6kskjT5HvCPrnnypcDPVJqT/f4nfxmkE7gryY=
++google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa h1:mZHHdPZl0dbGHCflZgAq/Q468DWVFcU2whhB2KAo8fk=
++google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa/go.mod h1:4Hqkh8ycfw05ld/3BWL7rJOSfebL2Q+DVDeRgYgxUU8=
+ google.golang.org/grpc v1.19.0/go.mod h1:mqu4LbDTu4XGKhr4mRzUsmM4RtVoemTSY81AxZiDr8c=
+ google.golang.org/grpc v1.20.1/go.mod h1:10oTOabMzJvdu6/UiuZezV6QK5dSlG84ov/aaiqXj38=
+ google.golang.org/grpc v1.21.1/go.mod h1:oYelfM1adQP15Ek0mdvEgi9Df8B9CZIaU1084ijfRaM=
+@@ -1233,8 +1235,8 @@ google.golang.org/grpc v1.30.0/go.mod h1:N36X2cJ7JwdamYAgDz+s+rVMFjt3numwzf/HckM
+ google.golang.org/grpc v1.31.0/go.mod h1:N36X2cJ7JwdamYAgDz+s+rVMFjt3numwzf/HckM8pak=
+ google.golang.org/grpc v1.33.1/go.mod h1:fr5YgcSWrqhRRxogOsw7RzIpsmvOZ6IcH4kBYTpR3n0=
+ google.golang.org/grpc v1.33.2/go.mod h1:JMHMWHQWaTccqQQlmk3MJZS+GWXOdAesneDmEnv2fbc=
+-google.golang.org/grpc v1.80.0 h1:Xr6m2WmWZLETvUNvIUmeD5OAagMw3FiKmMlTdViWsHM=
+-google.golang.org/grpc v1.80.0/go.mod h1:ho/dLnxwi3EDJA4Zghp7k2Ec1+c2jqup0bFkw07bwF4=
++google.golang.org/grpc v1.83.2 h1:EManeRomTObA0BU7I8vXgg/78uE5MJ9M8B39EX2WscU=
++google.golang.org/grpc v1.83.2/go.mod h1:YPI1hK3kDked6iHvgX3tR0y+nX/qpMFKhPgFsokw1S8=
+ google.golang.org/protobuf v0.0.0-20200109180630-ec00e32a8dfd/go.mod h1:DFci5gLYBciE7Vtevhsrf46CRTquxDuWsQurQQe4oz8=
+ google.golang.org/protobuf v0.0.0-20200221191635-4d8936d0db64/go.mod h1:kwYJMbMJ01Woi6D6+Kah6886xMZcty6N08ah7+eCXa0=
+ google.golang.org/protobuf v0.0.0-20200228230310-ab0ca4ff8a60/go.mod h1:cfTl7dwQJ+fmap5saPgwCLgHXTUD7jkjRqWcaiX5VyM=
+diff --git a/ui/pnpm-lock.yaml b/ui/pnpm-lock.yaml
+index 8481795..db76fa3 100644
+--- a/ui/pnpm-lock.yaml
++++ b/ui/pnpm-lock.yaml
+@@ -6,11 +6,16 @@ settings:
+ 
+ overrides:
+   '@types/react': 16.9.3
+-  moment: 2.29.4
++  moment: 2.31.0
+   '@types/react-dom': ^16.8.2
+   normalize-url: 4.5.1
+   rxjs: 6.6.7
+   formidable: 2.1.2
++  '@babel/runtime@7.23.5': 7.26.10
++  lodash@4.17.21: 4.18.1
++  lodash-es@4.17.21: 4.18.1
++  min-document@2.19.0: 2.19.1
++  path-to-regexp@1.8.0: 1.9.0
+ 
+ importers:
+ 
+@@ -30,10 +35,10 @@ importers:
+         version: 0.2.6(@fortawesome/fontawesome-svg-core@6.4.0)(react@17.0.2)
+       antd:
+         specifier: ^5.4.2
+-        version: 5.11.5(moment@2.29.4)(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
++        version: 5.11.5(moment@2.31.0)(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       argo-ui:
+         specifier: git+https://github.com/argoproj/argo-ui.git#5ff344ac9692c14dd108468bd3c020c3c75181cb
+-        version: https://codeload.github.com/argoproj/argo-ui/tar.gz/5ff344ac9692c14dd108468bd3c020c3c75181cb(@types/react@16.9.3)(antd@5.11.5(moment@2.29.4)(react-dom@17.0.2(react@17.0.2))(react@17.0.2))(jquery@4.0.0)(moment@2.29.4)(react-dom@17.0.2(react@17.0.2))(react@17.0.2)(rxjs@6.6.7)(what-input@5.2.12)
++        version: https://codeload.github.com/argoproj/argo-ui/tar.gz/5ff344ac9692c14dd108468bd3c020c3c75181cb(@types/react@16.9.3)(antd@5.11.5(moment@2.31.0)(react-dom@17.0.2(react@17.0.2))(react@17.0.2))(jquery@4.0.0)(moment@2.31.0)(react-dom@17.0.2(react@17.0.2))(react@17.0.2)(rxjs@6.6.7)(what-input@5.2.12)
+       classnames:
+         specifier: 2.2.6
+         version: 2.2.6
+@@ -41,8 +46,8 @@ importers:
+         specifier: ^3.0.0
+         version: 3.0.0(encoding@0.1.13)
+       moment:
+-        specifier: 2.29.4
+-        version: 2.29.4
++        specifier: 2.31.0
++        version: 2.31.0
+       moment-timezone:
+         specifier: ^0.5.33
+         version: 0.5.43
+@@ -1311,8 +1316,8 @@ packages:
+   '@babel/runtime-corejs3@7.14.0':
+     resolution: {integrity: sha512-0R0HTZWHLk6G8jIk0FtoX+AatCtKnswS98VhXwGImFc759PJRp4Tru0PQYZofyijTFUr+gT8Mu7sgXVJLQ0ceg==}
+ 
+-  '@babel/runtime@7.23.5':
+-    resolution: {integrity: sha512-NdUTHcPe4C99WxPub+K9l9tK5/lV4UXIoaHSYgzco9BCyjKAAwzdBI+wWtYqHt7LJdbo74ZjRPJgzVweq1sz0w==}
++  '@babel/runtime@7.26.10':
++    resolution: {integrity: sha512-2WJMeRQPHKSPemqk/awGrAiuFfzBmOIPXKizAsVhWH9YJqLZ0H+HS4c8loHGgW6utJ3E/ejXQUsiGaQy2NZ9Fw==}
+     engines: {node: '>=6.9.0'}
+ 
+   '@babel/template@7.28.6':
+@@ -2391,7 +2396,7 @@ packages:
+     peerDependencies:
+       '@types/react': 16.9.3
+       antd: ^4.16.13
+-      moment: 2.29.4
++      moment: 2.31.0
+       react: ^16.9.3
+       react-dom: ^16.9.3
+       rxjs: 6.6.7
+@@ -4914,8 +4919,8 @@ packages:
+     resolution: {integrity: sha512-iPZK6eYjbxRu3uB4/WZ3EsEIMJFMqAoopl3R+zuq0UjcAm/MO6KCweDgPfP3elTztoKP3KtnVHxTn2NHBSDVUw==}
+     engines: {node: '>=10'}
+ 
+-  lodash-es@4.17.21:
+-    resolution: {integrity: sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==}
++  lodash-es@4.18.1:
++    resolution: {integrity: sha512-J8xewKD/Gk22OZbhpOVSwcs60zhd95ESDwezOFuA3/099925PdHJ7OFHNTGtajL3AlZkykD32HykiMo+BIBI8A==}
+ 
+   lodash.clonedeep@4.5.0:
+     resolution: {integrity: sha512-H5ZhCF25riFd9uB5UCkVKo61m3S/xZk1x4wA6yp/L3RFP6Z/eHH1ymQcGLo7J3GMPfm0V/7m1tryHuGVxpqEBQ==}
+@@ -4935,8 +4940,8 @@ packages:
+   lodash.uniq@4.5.0:
+     resolution: {integrity: sha512-xfBaXQd9ryd9dlSDvnvI0lvxfLJlYAZzXomUYzLKtUeOQvOP5piqAWuGtrhWeqaXK9hhoM/iyJc5AV+XfsX3HQ==}
+ 
+-  lodash@4.17.21:
+-    resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
++  lodash@4.18.1:
++    resolution: {integrity: sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q==}
+ 
+   loose-envify@1.4.0:
+     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
+@@ -5039,8 +5044,8 @@ packages:
+     resolution: {integrity: sha512-OqbOk5oEQeAZ8WXWydlu9HJjz9WVdEIvamMCcXmuqUYjTknH/sqsWvhQ3vgwKFRR1HpjvNBKQ37nbJgYzGqGcg==}
+     engines: {node: '>=6'}
+ 
+-  min-document@2.19.0:
+-    resolution: {integrity: sha512-9Wy1B3m3f66bPPmU5hdA4DR4PB2OfDU/+GS3yAB7IQozE3tqXaVv2zOjgla7MEGSRv95+ILmOuvhLkOK6wJtCQ==}
++  min-document@2.19.1:
++    resolution: {integrity: sha512-8lqe85PkqQJzIcs2iD7xW/WSxcncC3/DPVbTOafKNJDIMXwGfwXS350mH4SJslomntN2iYtFBuC0yNO3CEap6g==}
+ 
+   min-indent@1.0.1:
+     resolution: {integrity: sha512-I9jwMn07Sy/IwOj3zVkVik2JTvgpaykDZEigL6Rx6N9LbMywwUSMtxET+7lVoDLLd3O3IXwJwvuuns8UB/HeAg==}
+@@ -5113,8 +5118,8 @@ packages:
+   moment-timezone@0.5.43:
+     resolution: {integrity: sha512-72j3aNyuIsDxdF1i7CEgV2FfxM1r6aaqJyLB2vwb33mXYyoyLly+F1zbWqhA3/bVIoJ4szlUoMbUnVdid32NUQ==}
+ 
+-  moment@2.29.4:
+-    resolution: {integrity: sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==}
++  moment@2.31.0:
++    resolution: {integrity: sha512-0acOTfMiWOheYS4eoWb80yYMb/JLvVv9SHbs2PehaDzfUG0Bw855SKyk0IKTnPGa5+U2bmi3W68l1+sGLX/pvw==}
+ 
+   ms@2.0.0:
+     resolution: {integrity: sha512-Tpp60P6IUJDTuOq/5Z8cdskzJujfwqfOTkrwIwj7IRISpnkJnT6SyJ4PCPnGMoFjC9ddhal5KVIYtAt97ix05A==}
+@@ -5367,8 +5372,8 @@ packages:
+   path-to-regexp@0.1.13:
+     resolution: {integrity: sha512-A/AGNMFN3c8bOlvV9RreMdrv7jsmF9XIfDeCd87+I8RNg6s78BhJxMu69NEMHBSJFxKidViTEdruRwEk/WIKqA==}
+ 
+-  path-to-regexp@1.8.0:
+-    resolution: {integrity: sha512-n43JRhlUKUAlibEJhPeir1ncUID16QnEjNpwzNdO3Lm4ywrBpBZ5oLD0I6br9evr1Y9JTqwRtAh7JLoOzAQdVA==}
++  path-to-regexp@1.9.0:
++    resolution: {integrity: sha512-xIp7/apCFJuUHdDLWe8O1HIkb0kQrOMb/0u6FXQjemHn/ii5LrIzU6bdECnsiTF/GjZkMEKg1xdiZwNqDYlZ6g==}
+ 
+   path-type@4.0.0:
+     resolution: {integrity: sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==}
+@@ -6109,7 +6114,7 @@ packages:
+       date-fns: '>= 2.x'
+       dayjs: '>= 1.x'
+       luxon: '>= 3.x'
+-      moment: 2.29.4
++      moment: 2.31.0
+       react: '>=16.9.0'
+       react-dom: '>=16.9.0'
+     peerDependenciesMeta:
+@@ -7796,7 +7801,7 @@ snapshots:
+ 
+   '@ant-design/cssinjs@1.18.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)':
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       '@emotion/hash': 0.8.0
+       '@emotion/unitless': 0.7.5
+       classnames: 2.3.2
+@@ -7812,7 +7817,7 @@ snapshots:
+     dependencies:
+       '@ant-design/colors': 7.0.0
+       '@ant-design/icons-svg': 4.3.1
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       classnames: 2.2.6
+       rc-util: 5.38.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       react: 17.0.2
+@@ -7820,7 +7825,7 @@ snapshots:
+ 
+   '@ant-design/react-slick@1.0.2(react@17.0.2)':
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       classnames: 2.2.6
+       json2mq: 0.2.0
+       react: 17.0.2
+@@ -9253,7 +9258,7 @@ snapshots:
+       core-js-pure: 3.49.0
+       regenerator-runtime: 0.13.11
+ 
+-  '@babel/runtime@7.23.5':
++  '@babel/runtime@7.26.10':
+     dependencies:
+       regenerator-runtime: 0.14.0
+ 
+@@ -9843,7 +9848,7 @@ snapshots:
+ 
+   '@rc-component/color-picker@1.4.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)':
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       '@ctrl/tinycolor': 3.6.1
+       classnames: 2.2.6
+       rc-util: 5.38.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+@@ -9852,18 +9857,18 @@ snapshots:
+ 
+   '@rc-component/context@1.4.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)':
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       rc-util: 5.38.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       react: 17.0.2
+       react-dom: 17.0.2(react@17.0.2)
+ 
+   '@rc-component/mini-decimal@1.0.1':
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+ 
+   '@rc-component/mutate-observer@1.1.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)':
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       classnames: 2.3.2
+       rc-util: 5.38.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       react: 17.0.2
+@@ -9871,7 +9876,7 @@ snapshots:
+ 
+   '@rc-component/portal@1.1.2(react-dom@17.0.2(react@17.0.2))(react@17.0.2)':
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       classnames: 2.3.2
+       rc-util: 5.38.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       react: 17.0.2
+@@ -9879,7 +9884,7 @@ snapshots:
+ 
+   '@rc-component/tour@1.10.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)':
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       '@rc-component/portal': 1.1.2(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       '@rc-component/trigger': 1.18.2(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       classnames: 2.3.2
+@@ -9889,7 +9894,7 @@ snapshots:
+ 
+   '@rc-component/trigger@1.18.2(react-dom@17.0.2(react@17.0.2))(react@17.0.2)':
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       '@rc-component/portal': 1.1.2(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       classnames: 2.3.2
+       rc-motion: 2.9.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+@@ -10031,7 +10036,7 @@ snapshots:
+   '@testing-library/dom@7.31.0':
+     dependencies:
+       '@babel/code-frame': 7.29.0
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       '@types/aria-query': 4.2.1
+       aria-query: 4.2.2
+       chalk: 4.1.2
+@@ -10041,25 +10046,25 @@ snapshots:
+ 
+   '@testing-library/jest-dom@5.12.0':
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       '@types/testing-library__jest-dom': 5.9.5
+       aria-query: 4.2.2
+       chalk: 3.0.0
+       css: 3.0.0
+       css.escape: 1.5.1
+-      lodash: 4.17.21
++      lodash: 4.18.1
+       redent: 3.0.0
+ 
+   '@testing-library/react@11.2.6(react-dom@17.0.2(react@17.0.2))(react@17.0.2)':
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       '@testing-library/dom': 7.31.0
+       react: 17.0.2
+       react-dom: 17.0.2(react@17.0.2)
+ 
+   '@testing-library/user-event@12.8.3(@testing-library/dom@7.31.0)':
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       '@testing-library/dom': 7.31.0
+ 
+   '@tippy.js/react@3.1.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)':
+@@ -10638,13 +10643,13 @@ snapshots:
+ 
+   ansi-styles@5.2.0: {}
+ 
+-  antd@5.11.5(moment@2.29.4)(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
++  antd@5.11.5(moment@2.31.0)(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+       '@ant-design/colors': 7.0.0
+       '@ant-design/cssinjs': 1.18.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       '@ant-design/icons': 5.2.6(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       '@ant-design/react-slick': 1.0.2(react@17.0.2)
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       '@ctrl/tinycolor': 3.6.1
+       '@rc-component/color-picker': 1.4.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       '@rc-component/mutate-observer': 1.1.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+@@ -10669,7 +10674,7 @@ snapshots:
+       rc-motion: 2.9.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       rc-notification: 5.3.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       rc-pagination: 3.7.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+-      rc-picker: 3.14.6(dayjs@1.11.7)(moment@2.29.4)(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
++      rc-picker: 3.14.6(dayjs@1.11.7)(moment@2.31.0)(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       rc-progress: 3.5.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       rc-rate: 2.12.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       rc-resize-observer: 1.4.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+@@ -10704,17 +10709,17 @@ snapshots:
+ 
+   arg@5.0.2: {}
+ 
+-  argo-ui@https://codeload.github.com/argoproj/argo-ui/tar.gz/5ff344ac9692c14dd108468bd3c020c3c75181cb(@types/react@16.9.3)(antd@5.11.5(moment@2.29.4)(react-dom@17.0.2(react@17.0.2))(react@17.0.2))(jquery@4.0.0)(moment@2.29.4)(react-dom@17.0.2(react@17.0.2))(react@17.0.2)(rxjs@6.6.7)(what-input@5.2.12):
++  argo-ui@https://codeload.github.com/argoproj/argo-ui/tar.gz/5ff344ac9692c14dd108468bd3c020c3c75181cb(@types/react@16.9.3)(antd@5.11.5(moment@2.31.0)(react-dom@17.0.2(react@17.0.2))(react@17.0.2))(jquery@4.0.0)(moment@2.31.0)(react-dom@17.0.2(react@17.0.2))(react@17.0.2)(rxjs@6.6.7)(what-input@5.2.12):
+     dependencies:
+       '@fortawesome/fontawesome-free': 6.5.1
+       '@tippy.js/react': 3.1.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       '@types/react': 16.9.3
+-      antd: 5.11.5(moment@2.29.4)(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
++      antd: 5.11.5(moment@2.31.0)(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       classnames: 2.2.6
+       core-js: 3.33.3
+       foundation-sites: 6.6.3(jquery@4.0.0)(what-input@5.2.12)
+       history: 4.10.1
+-      moment: 2.29.4
++      moment: 2.31.0
+       moment-timezone: 0.5.43
+       prop-types: 15.8.1
+       react: 17.0.2
+@@ -10739,7 +10744,7 @@ snapshots:
+ 
+   aria-query@4.2.2:
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       '@babel/runtime-corejs3': 7.14.0
+ 
+   aria-query@5.3.2: {}
+@@ -10918,7 +10923,7 @@ snapshots:
+ 
+   babel-plugin-macros@3.1.0:
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       cosmiconfig: 7.0.0
+       resolve: 1.22.12
+ 
+@@ -11028,7 +11033,7 @@ snapshots:
+       '@babel/preset-env': 7.29.2(@babel/core@7.23.3)
+       '@babel/preset-react': 7.28.5(@babel/core@7.23.3)
+       '@babel/preset-typescript': 7.28.5(@babel/core@7.23.3)
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       babel-plugin-macros: 3.1.0
+       babel-plugin-transform-react-remove-prop-types: 0.4.24
+     transitivePeerDependencies:
+@@ -11774,7 +11779,7 @@ snapshots:
+ 
+   dom-helpers@3.4.0:
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+ 
+   dom-scroll-into-view@1.0.1: {}
+ 
+@@ -12089,7 +12094,7 @@ snapshots:
+       '@babel/plugin-syntax-flow': 7.28.6(@babel/core@7.23.3)
+       '@babel/plugin-transform-react-jsx': 7.28.6(@babel/core@7.23.3)
+       eslint: 7.26.0
+-      lodash: 4.17.21
++      lodash: 4.18.1
+       string-natural-compare: 3.0.1
+ 
+   eslint-plugin-import@2.32.0(@typescript-eslint/parser@5.62.0(eslint@7.26.0)(typescript@5.0.4))(eslint@7.26.0):
+@@ -12237,7 +12242,7 @@ snapshots:
+       js-yaml: 3.14.1
+       json-stable-stringify-without-jsonify: 1.0.1
+       levn: 0.4.1
+-      lodash: 4.17.21
++      lodash: 4.18.1
+       minimatch: 3.1.5
+       natural-compare: 1.4.0
+       optionator: 0.9.1
+@@ -12613,7 +12618,7 @@ snapshots:
+ 
+   global@4.4.0:
+     dependencies:
+-      min-document: 2.19.0
++      min-document: 2.19.1
+       process: 0.11.10
+ 
+   globals@11.12.0: {}
+@@ -12700,7 +12705,7 @@ snapshots:
+ 
+   history@4.10.1:
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       loose-envify: 1.4.0
+       resolve-pathname: 3.0.0
+       tiny-invariant: 1.3.1
+@@ -12744,7 +12749,7 @@ snapshots:
+     dependencies:
+       '@types/html-minifier-terser': 6.1.0
+       html-minifier-terser: 6.1.0
+-      lodash: 4.17.21
++      lodash: 4.18.1
+       pretty-error: 4.0.0
+       tapable: 2.3.3
+     optionalDependencies:
+@@ -14020,7 +14025,7 @@ snapshots:
+     dependencies:
+       p-locate: 5.0.0
+ 
+-  lodash-es@4.17.21: {}
++  lodash-es@4.18.1: {}
+ 
+   lodash.clonedeep@4.5.0: {}
+ 
+@@ -14034,7 +14039,7 @@ snapshots:
+ 
+   lodash.uniq@4.5.0: {}
+ 
+-  lodash@4.17.21: {}
++  lodash@4.18.1: {}
+ 
+   loose-envify@1.4.0:
+     dependencies:
+@@ -14117,7 +14122,7 @@ snapshots:
+ 
+   mimic-fn@2.1.0: {}
+ 
+-  min-document@2.19.0:
++  min-document@2.19.1:
+     dependencies:
+       dom-walk: 0.1.2
+ 
+@@ -14125,7 +14130,7 @@ snapshots:
+ 
+   mini-create-react-context@0.4.1(prop-types@15.8.1)(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       prop-types: 15.8.1
+       react: 17.0.2
+       tiny-warning: 1.0.3
+@@ -14188,9 +14193,9 @@ snapshots:
+ 
+   moment-timezone@0.5.43:
+     dependencies:
+-      moment: 2.29.4
++      moment: 2.31.0
+ 
+-  moment@2.29.4: {}
++  moment@2.31.0: {}
+ 
+   ms@2.0.0: {}
+ 
+@@ -14461,7 +14466,7 @@ snapshots:
+ 
+   path-to-regexp@0.1.13: {}
+ 
+-  path-to-regexp@1.8.0:
++  path-to-regexp@1.9.0:
+     dependencies:
+       isarray: 0.0.1
+ 
+@@ -14963,7 +14968,7 @@ snapshots:
+ 
+   pretty-error@4.0.0:
+     dependencies:
+-      lodash: 4.17.21
++      lodash: 4.18.1
+       renderkid: 3.0.0
+ 
+   pretty-format@26.6.2:
+@@ -15079,7 +15084,7 @@ snapshots:
+ 
+   rc-cascader@3.20.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       array-tree-filter: 2.1.0
+       classnames: 2.3.2
+       rc-select: 14.10.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+@@ -15090,7 +15095,7 @@ snapshots:
+ 
+   rc-checkbox@3.1.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       classnames: 2.3.2
+       rc-util: 5.38.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       react: 17.0.2
+@@ -15098,7 +15103,7 @@ snapshots:
+ 
+   rc-collapse@3.7.2(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       classnames: 2.2.6
+       rc-motion: 2.9.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       rc-util: 5.38.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+@@ -15107,7 +15112,7 @@ snapshots:
+ 
+   rc-dialog@9.3.4(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       '@rc-component/portal': 1.1.2(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       classnames: 2.2.6
+       rc-motion: 2.9.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+@@ -15117,7 +15122,7 @@ snapshots:
+ 
+   rc-drawer@6.5.2(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       '@rc-component/portal': 1.1.2(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       classnames: 2.2.6
+       rc-motion: 2.9.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+@@ -15127,7 +15132,7 @@ snapshots:
+ 
+   rc-dropdown@4.1.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       '@rc-component/trigger': 1.18.2(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       classnames: 2.2.6
+       rc-util: 5.38.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+@@ -15136,7 +15141,7 @@ snapshots:
+ 
+   rc-field-form@1.40.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       async-validator: 4.2.5
+       rc-util: 5.38.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       react: 17.0.2
+@@ -15144,7 +15149,7 @@ snapshots:
+ 
+   rc-image@7.5.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       '@rc-component/portal': 1.1.2(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       classnames: 2.2.6
+       rc-dialog: 9.3.4(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+@@ -15155,7 +15160,7 @@ snapshots:
+ 
+   rc-input-number@8.4.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       '@rc-component/mini-decimal': 1.0.1
+       classnames: 2.2.6
+       rc-input: 1.3.6(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+@@ -15165,7 +15170,7 @@ snapshots:
+ 
+   rc-input@1.3.6(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       classnames: 2.2.6
+       rc-util: 5.38.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       react: 17.0.2
+@@ -15173,7 +15178,7 @@ snapshots:
+ 
+   rc-mentions@2.9.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       '@rc-component/trigger': 1.18.2(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       classnames: 2.2.6
+       rc-input: 1.3.6(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+@@ -15185,7 +15190,7 @@ snapshots:
+ 
+   rc-menu@9.12.2(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       '@rc-component/trigger': 1.18.2(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       classnames: 2.2.6
+       rc-motion: 2.9.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+@@ -15196,7 +15201,7 @@ snapshots:
+ 
+   rc-motion@2.9.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       classnames: 2.2.6
+       rc-util: 5.38.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       react: 17.0.2
+@@ -15204,7 +15209,7 @@ snapshots:
+ 
+   rc-notification@5.3.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       classnames: 2.2.6
+       rc-motion: 2.9.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       rc-util: 5.38.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+@@ -15213,7 +15218,7 @@ snapshots:
+ 
+   rc-overflow@1.3.2(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       classnames: 2.2.6
+       rc-resize-observer: 1.4.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       rc-util: 5.38.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+@@ -15222,15 +15227,15 @@ snapshots:
+ 
+   rc-pagination@3.7.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       classnames: 2.2.6
+       rc-util: 5.38.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       react: 17.0.2
+       react-dom: 17.0.2(react@17.0.2)
+ 
+-  rc-picker@3.14.6(dayjs@1.11.7)(moment@2.29.4)(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
++  rc-picker@3.14.6(dayjs@1.11.7)(moment@2.31.0)(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       '@rc-component/trigger': 1.18.2(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       classnames: 2.2.6
+       rc-util: 5.38.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+@@ -15238,11 +15243,11 @@ snapshots:
+       react-dom: 17.0.2(react@17.0.2)
+     optionalDependencies:
+       dayjs: 1.11.7
+-      moment: 2.29.4
++      moment: 2.31.0
+ 
+   rc-progress@3.5.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       classnames: 2.2.6
+       rc-util: 5.38.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       react: 17.0.2
+@@ -15250,7 +15255,7 @@ snapshots:
+ 
+   rc-rate@2.12.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       classnames: 2.2.6
+       rc-util: 5.38.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       react: 17.0.2
+@@ -15258,7 +15263,7 @@ snapshots:
+ 
+   rc-resize-observer@1.4.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       classnames: 2.2.6
+       rc-util: 5.38.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       react: 17.0.2
+@@ -15267,7 +15272,7 @@ snapshots:
+ 
+   rc-segmented@2.2.2(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       classnames: 2.2.6
+       rc-motion: 2.9.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       rc-util: 5.38.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+@@ -15276,7 +15281,7 @@ snapshots:
+ 
+   rc-select@14.10.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       '@rc-component/trigger': 1.18.2(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       classnames: 2.2.6
+       rc-motion: 2.9.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+@@ -15288,7 +15293,7 @@ snapshots:
+ 
+   rc-slider@10.4.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       classnames: 2.2.6
+       rc-util: 5.38.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       react: 17.0.2
+@@ -15296,7 +15301,7 @@ snapshots:
+ 
+   rc-steps@6.0.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       classnames: 2.2.6
+       rc-util: 5.38.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       react: 17.0.2
+@@ -15304,7 +15309,7 @@ snapshots:
+ 
+   rc-switch@4.1.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       classnames: 2.2.6
+       rc-util: 5.38.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       react: 17.0.2
+@@ -15312,7 +15317,7 @@ snapshots:
+ 
+   rc-table@7.36.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       '@rc-component/context': 1.4.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       classnames: 2.2.6
+       rc-resize-observer: 1.4.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+@@ -15323,7 +15328,7 @@ snapshots:
+ 
+   rc-tabs@12.13.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       classnames: 2.2.6
+       rc-dropdown: 4.1.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       rc-menu: 9.12.2(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+@@ -15335,7 +15340,7 @@ snapshots:
+ 
+   rc-textarea@1.5.3(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       classnames: 2.2.6
+       rc-input: 1.3.6(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       rc-resize-observer: 1.4.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+@@ -15345,7 +15350,7 @@ snapshots:
+ 
+   rc-tooltip@6.1.2(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       '@rc-component/trigger': 1.18.2(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       classnames: 2.3.2
+       react: 17.0.2
+@@ -15353,7 +15358,7 @@ snapshots:
+ 
+   rc-tree-select@5.15.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       classnames: 2.2.6
+       rc-select: 14.10.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       rc-tree: 5.8.2(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+@@ -15363,7 +15368,7 @@ snapshots:
+ 
+   rc-tree@5.8.2(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       classnames: 2.2.6
+       rc-motion: 2.9.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       rc-util: 5.38.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+@@ -15373,7 +15378,7 @@ snapshots:
+ 
+   rc-upload@4.3.5(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       classnames: 2.2.6
+       rc-util: 5.38.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       react: 17.0.2
+@@ -15381,14 +15386,14 @@ snapshots:
+ 
+   rc-util@5.38.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       react: 17.0.2
+       react-dom: 17.0.2(react@17.0.2)
+       react-is: 18.2.0
+ 
+   rc-virtual-list@3.11.3(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       classnames: 2.2.6
+       rc-resize-observer: 1.4.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+       rc-util: 5.38.1(react-dom@17.0.2(react@17.0.2))(react@17.0.2)
+@@ -15505,11 +15510,11 @@ snapshots:
+ 
+   react-proxy@3.0.0-alpha.1:
+     dependencies:
+-      lodash: 4.17.21
++      lodash: 4.18.1
+ 
+   react-redux@5.1.2(react@17.0.2)(redux@3.7.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       hoist-non-react-statics: 3.3.2
+       invariant: 2.2.4
+       loose-envify: 1.4.0
+@@ -15523,7 +15528,7 @@ snapshots:
+ 
+   react-resize-detector@8.1.0(react-dom@17.0.2(react@17.0.2))(react@17.0.2):
+     dependencies:
+-      lodash: 4.17.21
++      lodash: 4.18.1
+       react: 17.0.2
+       react-dom: 17.0.2(react@17.0.2)
+ 
+@@ -15539,7 +15544,7 @@ snapshots:
+ 
+   react-router-dom@5.2.0(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       history: 4.10.1
+       loose-envify: 1.4.0
+       prop-types: 15.8.1
+@@ -15554,19 +15559,19 @@ snapshots:
+       hoist-non-react-statics: 2.5.5
+       invariant: 2.2.4
+       loose-envify: 1.4.0
+-      path-to-regexp: 1.8.0
++      path-to-regexp: 1.9.0
+       prop-types: 15.8.1
+       react: 17.0.2
+       warning: 4.0.3
+ 
+   react-router@5.2.0(react@17.0.2):
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       history: 4.10.1
+       hoist-non-react-statics: 3.3.2
+       loose-envify: 1.4.0
+       mini-create-react-context: 0.4.1(prop-types@15.8.1)(react@17.0.2)
+-      path-to-regexp: 1.8.0
++      path-to-regexp: 1.9.0
+       prop-types: 15.8.1
+       react: 17.0.2
+       react-is: 16.13.1
+@@ -15732,7 +15737,7 @@ snapshots:
+     dependencies:
+       classnames: 2.2.6
+       eventemitter3: 4.0.7
+-      lodash: 4.17.21
++      lodash: 4.18.1
+       prop-types: 15.8.1
+       react: 17.0.2
+       react-dom: 17.0.2(react@17.0.2)
+@@ -15775,8 +15780,8 @@ snapshots:
+ 
+   redux@3.7.2:
+     dependencies:
+-      lodash: 4.17.21
+-      lodash-es: 4.17.21
++      lodash: 4.18.1
++      lodash-es: 4.18.1
+       loose-envify: 1.4.0
+       symbol-observable: 1.2.0
+ 
+@@ -15809,7 +15814,7 @@ snapshots:
+ 
+   regenerator-transform@0.14.5:
+     dependencies:
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+ 
+   regex-parser@2.2.11: {}
+ 
+@@ -15861,7 +15866,7 @@ snapshots:
+       css-select: 4.3.0
+       dom-converter: 0.2.0
+       htmlparser2: 6.1.0
+-      lodash: 4.17.21
++      lodash: 4.18.1
+       strip-ansi: 6.0.1
+ 
+   require-directory@2.1.1: {}
+@@ -16952,7 +16957,7 @@ snapshots:
+       chalk: 4.1.2
+       commander: 6.2.1
+       gzip-size: 6.0.0
+-      lodash: 4.17.21
++      lodash: 4.18.1
+       opener: 1.5.2
+       sirv: 1.0.11
+       ws: 7.4.5
+@@ -17116,7 +17121,7 @@ snapshots:
+ 
+   whatwg-url@8.5.0:
+     dependencies:
+-      lodash: 4.17.21
++      lodash: 4.18.1
+       tr46: 2.0.2
+       webidl-conversions: 6.1.0
+ 
+@@ -17195,7 +17200,7 @@ snapshots:
+       '@apideck/better-ajv-errors': 0.3.7(ajv@8.20.0)
+       '@babel/core': 7.23.3
+       '@babel/preset-env': 7.14.2(@babel/core@7.23.3)
+-      '@babel/runtime': 7.23.5
++      '@babel/runtime': 7.26.10
+       '@rollup/plugin-babel': 5.3.1(@babel/core@7.23.3)(@types/babel__core@7.20.5)(rollup@2.80.0)
+       '@rollup/plugin-node-resolve': 11.2.1(rollup@2.80.0)
+       '@rollup/plugin-replace': 2.4.2(rollup@2.80.0)
+@@ -17205,7 +17210,7 @@ snapshots:
+       fast-json-stable-stringify: 2.1.0
+       fs-extra: 9.1.0
+       glob: 7.1.7
+-      lodash: 4.17.21
++      lodash: 4.18.1
+       pretty-bytes: 5.6.0
+       rollup: 2.80.0
+       rollup-plugin-terser: 7.0.2(rollup@2.80.0)
+diff --git a/ui/pnpm-workspace.yaml b/ui/pnpm-workspace.yaml
+index 0890725..37b5fd5 100644
+--- a/ui/pnpm-workspace.yaml
++++ b/ui/pnpm-workspace.yaml
+@@ -8,8 +8,13 @@ allowBuilds:
+   core-js-pure: false
+ overrides:
+   '@types/react': 16.9.3
+-  moment: 2.29.4
++  moment: 2.31.0
+   '@types/react-dom': ^16.8.2
+   normalize-url: 4.5.1
+   rxjs: 6.6.7
+   formidable: 2.1.2
++  '@babel/runtime@7.23.5': 7.26.10
++  lodash@4.17.21: 4.18.1
++  lodash-es@4.17.21: 4.18.1
++  min-document@2.19.0: 2.19.1
++  path-to-regexp@1.8.0: 1.9.0
