@@ -1,0 +1,47 @@
+name: wiki history
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "generated/**"
+      - "state/**"
+      - "recipes/**"
+      - "inventory.yaml"
+      - "docs/**"
+      - "README.md"
+      - "CONTRIBUTING.md"
+  workflow_run:
+    workflows: [patch, release, rescan]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: wiki-history
+  cancel-in-progress: false
+
+jobs:
+  update:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+      - name: Build wiki history
+        run: uv run --with pyarrow python scripts/build_wiki_history.py
+      - name: Commit generated history
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add wiki/history.parquet wiki/History.md
+          if git diff --cached --quiet; then
+            echo "Wiki history is already current."
+            exit 0
+          fi
+          git commit -m "docs: update wiki history"
+          git push
