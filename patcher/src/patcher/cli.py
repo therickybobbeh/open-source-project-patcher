@@ -13,7 +13,7 @@ from pydantic import ValidationError
 from . import pipeline
 from .build import native_platform
 from .config import Repo, find_repo_root, line_key, load_model
-from .models import GlobalConfig, Inventory, Recipe, SkipFile, State, VexFile
+from .models import GlobalConfig, Inventory, LineState, Recipe, SkipFile, State, VexFile
 from .proc import log
 
 app = typer.Typer(add_completion=False, no_args_is_help=True, help=__doc__)
@@ -39,6 +39,7 @@ def validate(repo: Optional[Path] = RepoOpt) -> None:
     checks += [(p, SkipFile) for p in sorted((r.root / "skips").glob("*.yaml"))]
     checks += [(p, VexFile) for p in sorted((r.root / "vex").glob("*.yaml"))]
     checks += [(p, State) for p in sorted((r.root / "state").glob("*.yaml"))]
+    checks += [(p, LineState) for p in sorted((r.root / "state").glob("*/*.yaml"))]
     if (r.root / "inventory.yaml").exists():
         checks.append((r.root / "inventory.yaml", Inventory))
     names = {p.stem for p in r.recipe_paths()}
@@ -49,6 +50,8 @@ def validate(repo: Optional[Path] = RepoOpt) -> None:
                 r.load_recipe(path.stem)  # merge with _global too
             if model in (SkipFile, VexFile, State) and path.stem not in names and path.name != "inventory.yaml":
                 raise ValueError(f"no recipe named {path.stem!r}")
+            if model is LineState and path.parent.name not in names:
+                raise ValueError(f"no recipe named {path.parent.name!r}")
             typer.echo(f"ok    {path.relative_to(r.root)}")
         except (ValidationError, ValueError) as e:
             errors += 1
@@ -64,7 +67,7 @@ def validate(repo: Optional[Path] = RepoOpt) -> None:
 def schema(out: Path = typer.Option(Path("schema"), help="Directory for the JSON schemas")) -> None:
     """Write JSON schemas for recipes, skip files, VEX files and state (for editor validation)."""
     out.mkdir(parents=True, exist_ok=True)
-    for name, model in [("global", GlobalConfig), ("recipe", Recipe), ("skips", SkipFile), ("vex", VexFile), ("state", State),
+    for name, model in [("global", GlobalConfig), ("recipe", Recipe), ("skips", SkipFile), ("vex", VexFile), ("state", LineState),
                         ("inventory", Inventory)]:
         (out / f"{name}.schema.json").write_text(json.dumps(model.model_json_schema(), indent=2) + "\n")
         typer.echo(f"wrote {out / f'{name}.schema.json'}")

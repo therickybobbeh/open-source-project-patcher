@@ -81,7 +81,7 @@ jobs:
           app-id: ${{ vars.PATCHER_APP_ID }}
           private-key: ${{ secrets.PATCHER_APP_PRIVATE_KEY }}
           branch: state/${{ matrix.recipe }}/${{ matrix.line }}-refresh
-          add-paths: state/${{ matrix.recipe }}.yaml
+          add-paths: state/${{ matrix.recipe }}/${{ matrix.line }}.yaml
           commit-message: "state: copa refresh ${{ matrix.recipe }} ${{ matrix.line }}"
           title: "[${{ matrix.recipe }}] copa refresh of ${{ matrix.line }}"
           body-path: out/${{ matrix.recipe }}/${{ matrix.line }}/release.json

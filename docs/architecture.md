@@ -32,7 +32,7 @@ remain. What can't be rebuilt gets what is possible:
 | `patcher` CLI | `patcher/src/patcher/` | All of the logic (below). Every workflow job is a thin wrapper around one CLI command |
 | Patcher image | `patcher/Dockerfile` | The CLI plus every tool it shells out to (trivy, copa, mise, cosign, yq, docker CLI, buildx, compose, compilers). All pinned |
 | Generated patch sets | `generated/<project>/<tag>/` | Written by CI and reviewed through PRs: `deps.patch`, `bump-plan.json`, `report.md`, and `jars.json` when bundled jars are swapped |
-| Release state | `state/<project>.yaml` | What was published: tag, revision, platforms, digests, and the fixable findings known at release time |
+| Release state | `state/<project>/<line>.yaml` (one file per line, so lines released together don't conflict) | What was published: tag, revision, platforms, digests, and the fixable findings known at release time |
 | Workflows | `.github/workflows/` | `patch`, `release`, `rescan`, `patcher-image`, `tool-pins`, plus Dependabot (`.github/dependabot.yml`) |
 
 ### Inside the CLI
@@ -65,7 +65,7 @@ flowchart TD
     patch --> pr["patch.yml: pr job<br/>generated/{project}/{tag}/ to a PR in this repo<br/>(draft if tests failed)"]
     pr --> review{"human review"}
     review -->|merge| release["release.yml<br/>per-arch build on native runners, merge,<br/>Copa, cosign sign, SBOM + OpenVEX attest,<br/>SLSA provenance"]
-    release --> state["PR updating state/{project}.yaml"]
+    release --> state["PR updating state/{project}/{line}.yaml"]
     state --> rescan["rescan.yml, daily<br/>scan published images"]
     rescan -->|new OS-only findings| refresh["Copa refresh to the next revision<br/>(no rebuild)"]
     rescan -->|new language findings| plan

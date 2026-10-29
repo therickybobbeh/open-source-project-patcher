@@ -44,6 +44,25 @@ runs:
       run: >-
         echo "::warning::vars.PATCHER_APP_ID is not set: opening the PR with GITHUB_TOKEN, so its checks won't run.
         Set up the GitHub App (docs/runbook.md, One-time setup)."
+    # create-pull-request branches from this checkout: the commit that started the run. When main has moved on
+    # since with workflow changes (merges during an hour-long run), GitHub refuses the token a branch whose
+    # workflow files differ from main's ("Resource not accessible by integration" on creating the ref; all six
+    # releases of 2026-10-29 failed this way). So the changes move onto the latest commit of the branch first.
+    # The paths each caller commits are written by one run per line at a time, so they don't conflict.
+    - shell: bash
+      env:
+        TOKEN: ${{ steps.app-token.outputs.token || github.token }}
+      run: |
+        branch=$(git rev-parse --abbrev-ref HEAD)
+        [ "$branch" != HEAD ] || exit 0  # detached: no base to move to
+        auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)"
+        git -c "http.https://github.com/.extraheader=$auth" fetch -q --no-tags origin "$branch"
+        [ "$(git rev-parse HEAD)" != "$(git rev-parse FETCH_HEAD)" ] || exit 0
+        echo "$branch moved on since this run started: moving the changes onto $(git rev-parse --short FETCH_HEAD)"
+        dirty=$(git status --porcelain)
+        [ -z "$dirty" ] || git stash push -q --include-untracked
+        git checkout -q -B "$branch" FETCH_HEAD
+        [ -z "$dirty" ] || git stash pop -q
     - id: cpr
       uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
       with:
