@@ -2,10 +2,11 @@
 
 This page is generated from git history by [`build_wiki_history.py`](../scripts/build_wiki_history.py). The complete machine-readable snapshot is [`history.parquet`](history.parquet).
 
-Snapshot through: 2026-10-29T13:44:24-04:00
+Snapshot through: 2026-10-29T14:09:38-04:00
 
 | Date | Commit | Change | Patch artifacts |
 | --- | --- | --- | --- |
+| 2026-10-29 | [`809be7fb7f`](../commit/809be7fb7f6376ae1a0ff0fbeef27e9d02a2563b) | Merge pull request #36 from therickybobbeh/state/copacetic/v0 | state/copacetic/v0.yaml |
 | 2026-10-29 | [`ac46f5fda8`](../commit/ac46f5fda80363377aa9065cba6d084689533b64) | apollo-router v2.19.0: dependency updates | generated/apollo-router/v2.19.0/bump-plan.json<br>generated/apollo-router/v2.19.0/deps.patch<br>generated/apollo-router/v2.19.0/report.md |
 | 2026-10-29 | [`a44168440d`](../commit/a44168440d61c9cc1cba7bc529ca18a321c8d166) | strimzi 1.3.0: dependency updates | generated/strimzi/1.3.0/bump-plan.json<br>generated/strimzi/1.3.0/deps.patch<br>generated/strimzi/1.3.0/report.md |
 | 2026-10-29 | [`09fa1d34ee`](../commit/09fa1d34ee97a34e4dbc37b11616c3c213ee8338) | Release: state PRs that open even when main moved; one state file per line | state/dex.yaml<br>state/dex/v2.yaml<br>state/strimzi-maven-builder.yaml<br>state/strimzi-maven-builder/1.yaml |
