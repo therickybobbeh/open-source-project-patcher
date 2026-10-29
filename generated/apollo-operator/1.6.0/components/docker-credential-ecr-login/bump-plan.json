@@ -1,0 +1,50 @@
+{
+  "recipe": "docker-credential-ecr-login",
+  "line": "docker-credential-ecr-login-0.12.0",
+  "tag": "v0.12.0",
+  "commit": "7ff7d6bd7a06408ddb9646c9ebccf97dbd190d55",
+  "status": "success",
+  "requires": {
+    "go": "1.25.0"
+  },
+  "plan": {
+    "bumps": [
+      {
+        "ecosystem": "gomod",
+        "target": "ecr-login/go.mod",
+        "name": "golang.org/x/sys",
+        "installed": "v0.20.0",
+        "to": "v0.44.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-39824"
+        ],
+        "direct": false,
+        "dir": "ecr-login"
+      }
+    ],
+    "unresolved": [],
+    "toolchain": {}
+  },
+  "changes": [
+    {
+      "ecosystem": "gomod",
+      "target": "ecr-login/go.mod",
+      "name": "golang.org/x/sys",
+      "old": "v0.20.0",
+      "new": "v0.44.0",
+      "note": "CVE-2026-39824"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "ecr-login/go.mod",
+      "name": "go",
+      "old": "1.24",
+      "new": "1.25.0",
+      "note": "required by a bumped dependency"
+    }
+  ],
+  "failures": [],
+  "unresolved": [],
+  "skips": []
+}

@@ -1,0 +1,13 @@
+{
+  "recipe": "apollo-operator",
+  "line": "v1",
+  "tag": "1.6.0",
+  "commit": "n/a",
+  "status": "success",
+  "requires": {},
+  "plan": {},
+  "changes": [],
+  "failures": [],
+  "unresolved": [],
+  "skips": []
+}
