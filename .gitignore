@@ -8,3 +8,5 @@ __pycache__/
 .ruff_cache/
 # macOS
 .DS_Store
+# Claude Code agent worktrees (nested git checkouts)
+.claude/worktrees/

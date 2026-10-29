@@ -205,3 +205,14 @@ def test_withdrawn_fix_versions_are_replaced():
     assert [(b.name, b.to) for b in plan.bumps] == [("lodash", "4.18.1")]  # even CRITICAL never gets the withdrawn one
     assert any("withdrawn" in n and "4.18.1" in n for n in plan.notes)
     assert g.check("pnpm", "lodash", "4.18.0", "CRITICAL", "CVE-2026-4800")[1].startswith("4.18.0 was withdrawn by its registry")
+
+
+def test_timed_out_suite_reports_duration_and_last_output(tmp_path):
+    from patcher.models import SkipFile, Tests
+    from patcher.tests_runner import run_tests
+
+    tests = Tests(framework="pytest", command="echo 'tests/test_pages.py::test_token_page'; sleep 30 & wait", timeoutMinutes=1)
+    tests.timeoutMinutes = 0.02  # ~1 second, for the test
+    out = run_tests(tmp_path, tests, SkipFile(), tmp_path / "out", {}, grace_days=30)
+    assert not out.passed and out.seconds >= 1
+    assert out.note.startswith("The suite timed out after") and "test_token_page" in out.note
