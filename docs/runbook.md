@@ -17,8 +17,9 @@ For the people who review patch PRs and operate the pipeline. Background is in
    security updates*. Version updates are configured in `.github/dependabot.yml` (see
    [Dependency hygiene](#dependency-hygiene-of-this-repo)).
 3. **Branch protection on `main`:** require the `test` job of `patcher-image.yml` (unit tests,
-   `patcher validate`, schema and lock-file drift). Dependabot, tool-pins and patch PRs all go
-   through it.
+   `patcher validate`, schema and lock-file drift). It runs on every PR, so Dependabot, tool-pins,
+   patch, state and docs PRs all report it. Bot PRs only run checks once the GitHub App (step 1) opens
+   them.
 4. **GHCR:** images are published to `ghcr.io/<owner>/<image>` and start **private**. Make them
    public, or give your clusters' pull secrets access.
 5. **Release lines:** edit each recipe's `source.lines` to the versions you actually run.
