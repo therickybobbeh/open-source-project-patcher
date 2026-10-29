@@ -42,15 +42,20 @@ jobs:
           if [ "$EVENT" = workflow_dispatch ]; then
             matrix=$(jq -cn --arg r "$RECIPE" --arg l "$LINE" '{include: [{recipe: $r, line: $l}]}')
           else
-            # every generated/<recipe>/<tag>/bump-plan.json touched by this push (deletions ignored)
+            # every generated/<recipe>/<tag>/bump-plan.json touched by this push (deletions ignored). Only that
+            # depth: in a git pathspec `*` also matches `/`, which would pick up the components' own plans
+            # (generated/dex/<tag>/components/gomplate/bump-plan.json) as separate releases
             matrix=$(git diff --name-only --diff-filter=AM "$BEFORE" HEAD -- 'generated/*/*/bump-plan.json' \
+              | grep -E '^generated/[^/]+/[^/]+/bump-plan\.json$' \
               | xargs -r -n1 jq -c '{recipe, line}' | jq -sc '{include: unique}')
           fi
-          # recipes with `publish: false` (a vendor image we may not redistribute) are never released
+          # never released: recipes with `publish: false` (a vendor image we may not redistribute), and
+          # components (they ship inside their parents' images)
           skip=$(for r in $(jq -r '.include[].recipe' <<<"$matrix" | sort -u); do
-                   [ "$(yq '.publish' "recipes/$r.yaml")" = false ] && echo "$r"; done | jq -Rsc 'split("\n") | map(select(length > 0))')
+                   if [ "$(yq '.publish' "recipes/$r.yaml")" = false ] || [ "$(yq '.mode' "recipes/$r.yaml")" = component ]; then
+                     echo "$r"; fi; done | jq -Rsc 'split("\n") | map(select(length > 0))')
           matrix=$(jq -c --argjson skip "$skip" '{include: [.include[] | select(.recipe as $r | $skip | index($r) | not)]}' <<<"$matrix")
-          [ "$skip" = "[]" ] || echo "::notice::not released (publish: false): $(jq -r 'join(", ")' <<<"$skip")"
+          [ "$skip" = "[]" ] || echo "::notice::not released (publish: false or a component): $(jq -r 'join(", ")' <<<"$skip")"
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
           echo "count=$(jq '.include | length' <<<"$matrix")" >> "$GITHUB_OUTPUT"
           jq . <<<"$matrix"
