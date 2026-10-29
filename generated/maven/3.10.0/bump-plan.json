@@ -1,0 +1,42 @@
+{
+  "recipe": "maven",
+  "line": "maven3",
+  "tag": "3.10.0",
+  "commit": "8ef234bed02d88f4edcc1907880f567db1362a76",
+  "status": "success",
+  "requires": {},
+  "plan": {
+    "bumps": [],
+    "unresolved": [],
+    "toolchain": {}
+  },
+  "changes": [
+    {
+      "ecosystem": "dockerfile",
+      "target": "eclipse-temurin-17-noble/Dockerfile",
+      "name": "eclipse-temurin",
+      "old": "eclipse-temurin:17-jdk-noble",
+      "new": "eclipse-temurin:17-jdk-noble@sha256:78dde986267ae7cac62fe7ef624c2a5cee2036b6822933d39fd3870618b91526",
+      "note": "base image refresh"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "eclipse-temurin-17-noble/Dockerfile",
+      "name": "eclipse-temurin",
+      "old": "eclipse-temurin:17-jdk-noble",
+      "new": "eclipse-temurin:17-jdk-noble@sha256:78dde986267ae7cac62fe7ef624c2a5cee2036b6822933d39fd3870618b91526",
+      "note": "base image refresh"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "eclipse-temurin-21-noble/Dockerfile",
+      "name": "eclipse-temurin",
+      "old": "eclipse-temurin:21-jdk-noble",
+      "new": "eclipse-temurin:21-jdk-noble@sha256:57424b1d8eca9c4cf8a4fe226207027911f08d6758628891bf59fcfb53777029",
+      "note": "base image refresh"
+    }
+  ],
+  "failures": [],
+  "unresolved": [],
+  "skips": []
+}
