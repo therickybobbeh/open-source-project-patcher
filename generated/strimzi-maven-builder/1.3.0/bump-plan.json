@@ -1,0 +1,26 @@
+{
+  "recipe": "strimzi-maven-builder",
+  "line": "1",
+  "tag": "1.3.0",
+  "commit": "0d138c48b936d07cfb4715a27fda2948cdee0fe5",
+  "status": "success",
+  "requires": {},
+  "plan": {
+    "bumps": [],
+    "unresolved": [],
+    "toolchain": {}
+  },
+  "changes": [
+    {
+      "ecosystem": "dockerfile",
+      "target": "docker-images/maven-builder/Dockerfile",
+      "name": "registry.access.redhat.com/ubi9/openjdk-21",
+      "old": "openjdk-21:1.24",
+      "new": "openjdk-21:1.24@sha256:66175ec6c53f655a24c1c3f81c52b3e281c6918c917435b1014eb75cd11fbe75",
+      "note": "base image refresh"
+    }
+  ],
+  "failures": [],
+  "unresolved": [],
+  "skips": []
+}
