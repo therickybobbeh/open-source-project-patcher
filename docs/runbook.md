@@ -122,7 +122,7 @@ updated in place.
 | Trigger | What runs |
 |---|---|
 | Nightly (03:17 UTC) | Lines whose newest upstream tag isn't released yet, **minus** lines whose patch set for that tag is in a PR (open, or merged into `generated/`: a failed release is re-run with `release.yml`, not re-patched) and lines another run is patching right now. A `no-changes` line comes back every night, so a new fix is picked up the next day; a line with nothing to change costs a clone and the scans |
-| Push to `recipes/`, `skips/`, `patches/`, `vex/` | The lines of the recipes that changed (`_global.yaml`: all of them) |
+| Push to `recipes/`, `skips/`, `patches/`, `vex/` | The lines of the recipes that changed (`_global.yaml`: all of them). A file whose only changes are comments, formatting, or a recipe's `description` or `notes` runs nothing; the next run picks the text up |
 | Manual dispatch | The recipe (and line) you name, or every line with `all` |
 
 Two runs never patch the same line at once: the second one waits.
