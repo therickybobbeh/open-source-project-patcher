@@ -2,11 +2,12 @@
 
 This page is generated from git history by [`build_wiki_history.py`](../scripts/build_wiki_history.py). The complete machine-readable snapshot is [`history.parquet`](history.parquet).
 
-Snapshot through: 2026-10-30T14:20:40-04:00
+Snapshot through: 2026-10-30T14:21:44-04:00
 
 | Date | Commit | Change | Patch artifacts |
 | --- | --- | --- | --- |
-| 2026-10-30 | [`121e65022f`](../commit/121e65022f468fefceb81948980e6716b0fa2db8) | Merge pull request #74 from therickybobbeh/state/splunk-otel-collector/v0 | state/otelcol-contrib/v0.153.yaml |
+| 2026-10-30 | [`121e65022f`](../commit/121e65022f468fefceb81948980e6716b0fa2db8) | Merge pull request #74 from therickybobbeh/state/splunk-otel-collector/v0 | state/argo-cd/v3.5.yaml |
+| 2026-10-30 | [`9d80611c26`](../commit/9d80611c26089c4982d16835e0c3c9c2f8d7067f) | state: released otelcol-contrib v0.153 | state/otelcol-contrib/v0.153.yaml |
 | 2026-10-30 | [`1cf74f5819`](../commit/1cf74f5819f34a001e6fe2bcae7b0b20374c9a26) | state: released copacetic v0 | state/copacetic/v0.yaml |
 | 2026-10-30 | [`7fd6561c00`](../commit/7fd6561c004d7f82a6e5bc936bea2a204d426e8c) | state: released splunk-otel-collector v0 | state/splunk-otel-collector/v0.yaml |
 | 2026-10-30 | [`fca03793a5`](../commit/fca03793a5109172d21badfa3341a7debf991708) | Merge pull request #61 from therickybobbeh/patch/splunk-otel-collector/v0 | generated/argo-cd/v3.4.12/bump-plan.json<br>generated/argo-cd/v3.4.12/components/git-lfs/bump-plan.json<br>generated/argo-cd/v3.4.12/components/git-lfs/report.md<br>generated/argo-cd/v3.4.12/deps.patch<br>generated/argo-cd/v3.4.12/report.md |
