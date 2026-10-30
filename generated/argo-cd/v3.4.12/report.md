@@ -27,7 +27,8 @@ Upstream: https://github.com/argoproj/argo-cd @ `590e562a5ae6` (line `v3.4`)
 | gomod | `gitops-engine/go.mod` | `golang.org/x/text` | `v0.29.0` | `v0.41.0` | CVE-2026-56851, CVE-2026-56852 |
 | gomod | `gitops-engine/go.mod` | `github.com/moby/spdystream` | `v0.5.0` | `v0.5.1` | CVE-2026-35469 |
 | dockerfile | `Dockerfile` | `docker.io/library/golang` | `golang:1.26.10@sha256:5c3f3f28a273c9b61698b2d34f18375929790ab1f1d3835d032d21e2b31eae0c` | `golang:1.26.10@sha256:670bb5aa5349ae03b8516764718486f4f16399134bdc9acd0c46a23f043ab05c` | base image refresh |
-| dockerfile | `Dockerfile` | `ARG BASE_IMAGE` | `ubuntu:26.04@sha256:f3d28607ddd78734bb7f71f117f3c6706c666b8b76cbff7c9ff6e5718d46ff64` | `ubuntu:26.04@sha256:0e73b71479e7bc5f006bca872e25c3cd680dc052a0116f90d63ae363537db0dd` | base image refresh |
+| dockerfile | `Dockerfile` | `ARG BASE_IMAGE` | `ubuntu:26.04@sha256:f3d28607ddd78734bb7f71f117f3c6706c666b8b76cbff7c9ff6e5718d46ff64` | `ubuntu:26.04@sha256:6a06111c3b0a8600feadb270aec771dc239bf407b25625f93f44ab00e11f4d3c` | base image refresh |
+| dockerfile | `Dockerfile` | `docker.io/library/node` | `node:23.0.0@sha256:9d09fa506f5b8465c5221cbd6f980e29ae0ce9a3119e2b9bc0842e6a3f37bb59` | `node:24.22.2@sha256:e7add2a490bb17d97b485b8641bd88455fff7839ade0f5eba493c3508124d413` | 23.0.0 -> 24.22.2 (minVersions: the 24 line) |
 | dockerfile | `Dockerfile` | `docker.io/library/golang` | `golang:1.26.10@sha256:5c3f3f28a273c9b61698b2d34f18375929790ab1f1d3835d032d21e2b31eae0c` | `golang:1.26.10@sha256:670bb5aa5349ae03b8516764718486f4f16399134bdc9acd0c46a23f043ab05c` | base image refresh |
 
 ### Still fixable after patching
@@ -99,11 +100,10 @@ Upstream: https://github.com/argoproj/argo-cd @ `590e562a5ae6` (line `v3.4`)
 ### Newer releases beyond the policy (not applied)
 
 - `docker.io/library/golang` → `1.27.3` in `Dockerfile`: newer tag 1.27.3 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)
-- `docker.io/library/node` → `23.11.1` in `Dockerfile`: newer tag 23.11.1 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)
 
 ### Upstream tests
 
-✅ passed in 12.0 min — `make test-local`
+✅ passed in 9.6 min — `make test-local`
 
 Skipped tests (from `skips/argo-cd.yaml`):
 
