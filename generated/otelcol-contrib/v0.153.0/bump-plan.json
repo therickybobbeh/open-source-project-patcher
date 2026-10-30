@@ -1,0 +1,592 @@
+{
+  "recipe": "otelcol-contrib",
+  "line": "v0.153",
+  "tag": "v0.153.0",
+  "commit": "6c0352ec0d8e3c9c01107449f2474ce70883443c",
+  "status": "success",
+  "requires": {
+    "go": "1.26.0"
+  },
+  "plan": {
+    "bumps": [
+      {
+        "ecosystem": "gomod",
+        "target": "distributions/otelcol-contrib/gen/go.mod",
+        "name": "github.com/apache/thrift",
+        "installed": "v0.23.1-0.20260429145742-d2acd3c49e58",
+        "to": "v0.24.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-43871"
+        ],
+        "direct": false,
+        "dir": "distributions/otelcol-contrib/gen"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "distributions/otelcol-contrib/gen/go.mod",
+        "name": "github.com/cilium/ebpf",
+        "installed": "v0.21.0",
+        "to": "v0.22.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-10722"
+        ],
+        "direct": false,
+        "dir": "distributions/otelcol-contrib/gen"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "distributions/otelcol-contrib/gen/go.mod",
+        "name": "github.com/go-jose/go-jose/v4",
+        "installed": "v4.1.4",
+        "to": "v4.1.6",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-116585",
+          "CVE-2026-116586",
+          "CVE-2026-116587"
+        ],
+        "direct": false,
+        "dir": "distributions/otelcol-contrib/gen"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "distributions/otelcol-contrib/gen/go.mod",
+        "name": "github.com/klauspost/compress",
+        "installed": "v1.18.6",
+        "to": "v1.18.7",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-63209"
+        ],
+        "direct": false,
+        "dir": "distributions/otelcol-contrib/gen"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "distributions/otelcol-contrib/gen/go.mod",
+        "name": "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sentryexporter",
+        "installed": "v0.153.0",
+        "to": "v0.154.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-47256"
+        ],
+        "direct": true,
+        "dir": "distributions/otelcol-contrib/gen"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "distributions/otelcol-contrib/gen/go.mod",
+        "name": "github.com/rabbitmq/amqp091-go",
+        "installed": "v1.11.0",
+        "to": "v1.14.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-107386",
+          "CVE-2026-77403",
+          "CVE-2026-77404",
+          "CVE-2026-77405",
+          "CVE-2026-77406",
+          "CVE-2026-77407",
+          "CVE-2026-77408",
+          "CVE-2026-77410",
+          "CVE-2026-77411",
+          "CVE-2026-77412",
+          "CVE-2026-79921"
+        ],
+        "direct": false,
+        "dir": "distributions/otelcol-contrib/gen"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "distributions/otelcol-contrib/gen/go.mod",
+        "name": "github.com/snowflakedb/gosnowflake/v2",
+        "installed": "v2.0.2",
+        "to": "v2.2.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-86597"
+        ],
+        "direct": false,
+        "dir": "distributions/otelcol-contrib/gen"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "distributions/otelcol-contrib/gen/go.mod",
+        "name": "go.mongodb.org/mongo-driver/v2",
+        "installed": "v2.3.1",
+        "to": "v2.4.2",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-2303"
+        ],
+        "direct": false,
+        "dir": "distributions/otelcol-contrib/gen"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "distributions/otelcol-contrib/gen/go.mod",
+        "name": "go.opentelemetry.io/ebpf-profiler",
+        "installed": "v0.0.202618",
+        "to": "v0.0.202622",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-48496"
+        ],
+        "direct": false,
+        "dir": "distributions/otelcol-contrib/gen"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "distributions/otelcol-contrib/gen/go.mod",
+        "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace",
+        "installed": "v1.43.0",
+        "to": "v1.45.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-81870"
+        ],
+        "direct": false,
+        "dir": "distributions/otelcol-contrib/gen"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "distributions/otelcol-contrib/gen/go.mod",
+        "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc",
+        "installed": "v1.43.0",
+        "to": "v1.45.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-81870"
+        ],
+        "direct": false,
+        "dir": "distributions/otelcol-contrib/gen"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "distributions/otelcol-contrib/gen/go.mod",
+        "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp",
+        "installed": "v1.43.0",
+        "to": "v1.45.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-81870"
+        ],
+        "direct": false,
+        "dir": "distributions/otelcol-contrib/gen"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "distributions/otelcol-contrib/gen/go.mod",
+        "name": "go.opentelemetry.io/otel/schema",
+        "installed": "v0.0.16",
+        "to": "v0.0.17",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-45287"
+        ],
+        "direct": false,
+        "dir": "distributions/otelcol-contrib/gen"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "distributions/otelcol-contrib/gen/go.mod",
+        "name": "go.opentelemetry.io/otel/sdk",
+        "installed": "v1.43.0",
+        "to": "v1.45.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-81870"
+        ],
+        "direct": false,
+        "dir": "distributions/otelcol-contrib/gen"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "distributions/otelcol-contrib/gen/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.52.0",
+        "to": "v0.56.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-56854",
+          "CVE-2026-56855",
+          "CVE-2026-78662"
+        ],
+        "direct": false,
+        "dir": "distributions/otelcol-contrib/gen"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "distributions/otelcol-contrib/gen/go.mod",
+        "name": "golang.org/x/mod",
+        "installed": "v0.36.0",
+        "to": "v0.40.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-56864",
+          "CVE-2026-56865"
+        ],
+        "direct": false,
+        "dir": "distributions/otelcol-contrib/gen"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "distributions/otelcol-contrib/gen/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.55.0",
+        "to": "v0.60.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-46600",
+          "CVE-2026-78659",
+          "CVE-2026-78660",
+          "CVE-2026-78663",
+          "CVE-2026-78669",
+          "CVE-2026-97032"
+        ],
+        "direct": false,
+        "dir": "distributions/otelcol-contrib/gen"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "distributions/otelcol-contrib/gen/go.mod",
+        "name": "golang.org/x/text",
+        "installed": "v0.37.0",
+        "to": "v0.41.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-56851",
+          "CVE-2026-56852"
+        ],
+        "direct": false,
+        "dir": "distributions/otelcol-contrib/gen"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "distributions/otelcol-contrib/gen/go.mod",
+        "name": "google.golang.org/grpc",
+        "installed": "v1.81.1",
+        "to": "v1.83.1",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-84303",
+          "CVE-2026-84304",
+          "CVE-2026-84445",
+          "GHSA-hrxh-6v49-42gf"
+        ],
+        "direct": false,
+        "dir": "distributions/otelcol-contrib/gen"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "distributions/otelcol-contrib/gen/go.mod",
+        "name": "software.sslmate.com/src/go-pkcs12",
+        "installed": "v0.7.1",
+        "to": "v0.7.2",
+        "level": "patch",
+        "reasons": [
+          "GHSA-mpwr-8vm7-h73f"
+        ],
+        "direct": false,
+        "dir": "distributions/otelcol-contrib/gen"
+      }
+    ],
+    "unresolved": [
+      {
+        "ecosystem": "gomod",
+        "target": "distributions/otelcol-contrib/gen/go.mod",
+        "name": "go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc",
+        "installed": "v0.19.0",
+        "vuln_id": "CVE-2026-81871",
+        "severity": "MEDIUM",
+        "fixed": "0.21.0",
+        "why": "held: same lockstep as go.opentelemetry.io/otel/sdk/log"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "distributions/otelcol-contrib/gen/go.mod",
+        "name": "go.opentelemetry.io/otel/sdk/log",
+        "installed": "v0.19.0",
+        "vuln_id": "CVE-2026-81872",
+        "severity": "MEDIUM",
+        "fixed": "0.21.0",
+        "why": "held: moves in lockstep with the log exporters and bridges; bumped alone it breaks the build (fixed in newer collector releases)"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "distributions/otelcol-contrib/gen/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.52.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": null,
+        "why": "no fixed version"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "distributions/otelcol-contrib/gen/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.55.0",
+        "vuln_id": "CVE-2026-78661",
+        "severity": "UNKNOWN",
+        "fixed": "0.62.0",
+        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "distributions/otelcol-contrib/gen/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.55.0",
+        "vuln_id": "CVE-2026-97045",
+        "severity": "UNKNOWN",
+        "fixed": "0.62.0",
+        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
+      }
+    ],
+    "toolchain": {}
+  },
+  "changes": [
+    {
+      "ecosystem": "gomod",
+      "target": "distributions/otelcol-contrib/gen/go.mod",
+      "name": "github.com/go-jose/go-jose/v4",
+      "old": "v4.1.4",
+      "new": "v4.1.6",
+      "note": "CVE-2026-116585, CVE-2026-116586, CVE-2026-116587"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "distributions/otelcol-contrib/gen/go.mod",
+      "name": "go.mongodb.org/mongo-driver/v2",
+      "old": "v2.3.1",
+      "new": "v2.4.2",
+      "note": "CVE-2026-2303"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "distributions/otelcol-contrib/gen/go.mod",
+      "name": "github.com/snowflakedb/gosnowflake/v2",
+      "old": "v2.0.2",
+      "new": "v2.2.0",
+      "note": "CVE-2026-86597"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "distributions/otelcol-contrib/gen/go.mod",
+      "name": "google.golang.org/grpc",
+      "old": "v1.81.1",
+      "new": "v1.83.2",
+      "note": "CVE-2026-84303, CVE-2026-84304, CVE-2026-84445, GHSA-hrxh-6v49-42gf"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "distributions/otelcol-contrib/gen/go.mod",
+      "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace",
+      "old": "v1.43.0",
+      "new": "v1.45.0",
+      "note": "CVE-2026-81870"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "distributions/otelcol-contrib/gen/go.mod",
+      "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc",
+      "old": "v1.43.0",
+      "new": "v1.45.0",
+      "note": "CVE-2026-81870"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "distributions/otelcol-contrib/gen/go.mod",
+      "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp",
+      "old": "v1.43.0",
+      "new": "v1.45.0",
+      "note": "CVE-2026-81870"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "distributions/otelcol-contrib/gen/go.mod",
+      "name": "go.opentelemetry.io/otel/sdk",
+      "old": "v1.43.0",
+      "new": "v1.45.0",
+      "note": "CVE-2026-81870"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "distributions/otelcol-contrib/gen/go.mod",
+      "name": "github.com/klauspost/compress",
+      "old": "v1.18.6",
+      "new": "v1.18.7",
+      "note": "CVE-2026-63209"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "distributions/otelcol-contrib/gen/go.mod",
+      "name": "github.com/rabbitmq/amqp091-go",
+      "old": "v1.11.0",
+      "new": "v1.14.0",
+      "note": "CVE-2026-107386, CVE-2026-77403, CVE-2026-77404, CVE-2026-77405, CVE-2026-77406, CVE-2026-77407, CVE-2026-77408, CVE-2026-77410, CVE-2026-77411, CVE-2026-77412, CVE-2026-79921"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "distributions/otelcol-contrib/gen/go.mod",
+      "name": "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sentryexporter",
+      "old": "v0.153.0",
+      "new": "v0.154.0",
+      "note": "CVE-2026-47256"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "distributions/otelcol-contrib/gen/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.55.0",
+      "new": "v0.60.0",
+      "note": "CVE-2026-46600, CVE-2026-78659, CVE-2026-78660, CVE-2026-78663, CVE-2026-78669, CVE-2026-97032"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "distributions/otelcol-contrib/gen/go.mod",
+      "name": "golang.org/x/crypto",
+      "old": "v0.52.0",
+      "new": "v0.56.0",
+      "note": "CVE-2026-56854, CVE-2026-56855, CVE-2026-78662"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "distributions/otelcol-contrib/gen/go.mod",
+      "name": "golang.org/x/text",
+      "old": "v0.37.0",
+      "new": "v0.41.0",
+      "note": "CVE-2026-56851, CVE-2026-56852"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "distributions/otelcol-contrib/gen/go.mod",
+      "name": "golang.org/x/mod",
+      "old": "v0.36.0",
+      "new": "v0.40.0",
+      "note": "CVE-2026-56864, CVE-2026-56865"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "distributions/otelcol-contrib/gen/go.mod",
+      "name": "github.com/apache/thrift",
+      "old": "v0.23.1-0.20260429145742-d2acd3c49e58",
+      "new": "v0.24.0",
+      "note": "CVE-2026-43871"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "distributions/otelcol-contrib/gen/go.mod",
+      "name": "github.com/cilium/ebpf",
+      "old": "v0.21.0",
+      "new": "v0.22.0",
+      "note": "CVE-2026-10722"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "distributions/otelcol-contrib/gen/go.mod",
+      "name": "software.sslmate.com/src/go-pkcs12",
+      "old": "v0.7.1",
+      "new": "v0.7.2",
+      "note": "GHSA-mpwr-8vm7-h73f"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "distributions/otelcol-contrib/gen/go.mod",
+      "name": "go.opentelemetry.io/ebpf-profiler",
+      "old": "v0.0.202618",
+      "new": "v0.0.202622",
+      "note": "CVE-2026-48496"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "distributions/otelcol-contrib/gen/go.mod",
+      "name": "go.opentelemetry.io/otel/schema",
+      "old": "v0.0.16",
+      "new": "v0.0.17",
+      "note": "CVE-2026-45287"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "distributions/otelcol-contrib/gen/go.mod",
+      "name": "go",
+      "old": "1.25.0",
+      "new": "1.26.0",
+      "note": "required by a bumped dependency"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "distributions/otelcol-contrib/Dockerfile",
+      "name": "alpine",
+      "old": "alpine:3.23@sha256:5b10f432ef3da1b8d4c7eb6c487f2f5a8f096bc91145e68878dd4a5019afde11",
+      "new": "alpine:3.23@sha256:ff7f0c727dd796aa36787bfcd9a64bf35a6ce72a73451b3359fde849b6703d63",
+      "note": "base image refresh"
+    }
+  ],
+  "failures": [
+    {
+      "ecosystem": "dockerfile",
+      "target": "distributions/otelcol-contrib/Dockerfile",
+      "name": "alpine",
+      "wanted": "3.24",
+      "error": "newer tag 3.24 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)",
+      "hint": true
+    }
+  ],
+  "unresolved": [
+    {
+      "ecosystem": "gomod",
+      "target": "distributions/otelcol-contrib/gen/go.mod",
+      "name": "go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc",
+      "installed": "v0.19.0",
+      "vuln_id": "CVE-2026-81871",
+      "severity": "MEDIUM",
+      "fixed": "0.21.0",
+      "why": "held: same lockstep as go.opentelemetry.io/otel/sdk/log"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "distributions/otelcol-contrib/gen/go.mod",
+      "name": "go.opentelemetry.io/otel/sdk/log",
+      "installed": "v0.19.0",
+      "vuln_id": "CVE-2026-81872",
+      "severity": "MEDIUM",
+      "fixed": "0.21.0",
+      "why": "held: moves in lockstep with the log exporters and bridges; bumped alone it breaks the build (fixed in newer collector releases)"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "distributions/otelcol-contrib/gen/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.57.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": null,
+      "why": "no fixed version"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "distributions/otelcol-contrib/gen/go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.60.0",
+      "vuln_id": "CVE-2026-78661",
+      "severity": "UNKNOWN",
+      "fixed": "0.62.0",
+      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "distributions/otelcol-contrib/gen/go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.60.0",
+      "vuln_id": "CVE-2026-97045",
+      "severity": "UNKNOWN",
+      "fixed": "0.62.0",
+      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
+    }
+  ],
+  "skips": []
+}
