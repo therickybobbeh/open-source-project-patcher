@@ -240,6 +240,14 @@ published by this run, and the refresh's image is untouched.
 scratch tag `<final>-refresh`; nothing of the release was overwritten.
 **Fix:** nothing. The release runs Copa itself, and the next rescan refreshes again if it still has to.
 
+### Copa refresh: "…-patched is at sha256:…, not at sha256:… as state/ records"
+**Cause:** the line was published again after the revision `state/` records (a release or refresh whose `state/` PR
+isn't merged, or was closed). Refreshing the recorded image would move the moving tag back to an older build, so
+nothing was refreshed.
+**Fix:** merge that line's `state/` PR (reopen it if it was closed; state PRs normally merge themselves once `test`
+passes). The next rescan then starts from the newest
+revision.
+
 ### `release-plan`: "no native runner for linux/…"
 **Cause:** `build.platforms` lists a platform without a native GitHub-hosted runner. Release builds run natively,
 one runner per platform: `linux/amd64` and `linux/arm64`.

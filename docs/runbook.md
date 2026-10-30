@@ -9,21 +9,33 @@ For the people who review patch PRs and operate the pipeline. Background is in
 1. **GitHub App** for opening PRs. PRs opened with the default `GITHUB_TOKEN` don't trigger checks.
    - Permissions: *Contents: read & write*, *Pull requests: read & write*.
    - Install it on this repository.
-   - Add the variable `PATCHER_APP_ID` and the secret `PATCHER_APP_PRIVATE_KEY`.
+   - Add the variable `PATCHER_APP_ID`. Its key, `PATCHER_APP_PRIVATE_KEY`, is a secret of the `release`
+     environment (step 2).
    - **Until then:** the workflows fall back to `GITHUB_TOKEN` (with a warning in the run) if you
      turn on *Settings → Actions → General → Workflow permissions → Allow GitHub Actions to create
      and approve pull requests*. The PRs open, but their checks don't run.
-2. **Code security settings:** enable *Dependency graph*, *Dependabot alerts* and *Dependabot
+2. **The `release` environment** (*Settings → Environments → New environment*, name `release`). Create it before
+   the workflows first run, or GitHub creates it unprotected. See
+   [The release environment](#the-release-environment).
+   - *Deployment branches and tags:* **Selected branches and tags**, add `main`.
+   - No required reviewers or wait timer: releases stay automatic.
+   - *Environment secrets:* add `PATCHER_APP_PRIVATE_KEY`. If it was a repository secret, delete that copy once a
+     release has run green.
+3. **Code security settings:** enable *Dependency graph*, *Dependabot alerts* and *Dependabot
    security updates*. Version updates are configured in `.github/dependabot.yml` (see
    [Dependency hygiene](#dependency-hygiene-of-this-repo)).
-3. **Branch protection on `main`:** require the `test` job of `patcher-image.yml` (unit tests,
+4. **Branch protection on `main`:** require the `test` job of `patcher-image.yml` (unit tests,
    `patcher validate`, schema and lock-file drift). It runs on every PR, so Dependabot, tool-pins,
    patch, state and docs PRs all report it. Bot PRs only run checks once the GitHub App (step 1) opens
    them.
-4. **GHCR:** images are published to `ghcr.io/<owner>/<image>` and start **private**. Make them
+   - Also turn on *Settings → General → Allow auto-merge* and *Automatically delete head branches*. A release's
+     `state/` PR then merges itself once `test` passes ([Releases](#releases)).
+   - Don't require approving reviews on `main`, or `state/` PRs wait for one. If `main` restricts who can push,
+     allow the GitHub App.
+5. **GHCR:** images are published to `ghcr.io/<owner>/<image>` and start **private**. Make them
    public, or give your clusters' pull secrets access.
-5. **Release lines:** edit each recipe's `source.lines` to the versions you actually run.
-6. **First run:** *Actions → patch → Run workflow*, `recipe=dex`. Check the job summary (the report
+6. **Release lines:** edit each recipe's `source.lines` to the versions you actually run.
+7. **First run:** *Actions → patch → Run workflow*, `recipe=dex`. Check the job summary (the report
    is posted there), then the PR it opens.
 
 ## Self-hosted runners
@@ -54,7 +66,7 @@ Any `runs-on` form works:
   naming the variable (`scripts/check-runner-pools.sh`).
 - To keep upstream code on GitHub-hosted runners in a self-hosted setup, set the `UPSTREAM` variable to
   `"ubuntu-24.04"` (arm64: `"ubuntu-24.04-arm"`).
-- With no arm64 runners, set `build.platforms: [linux/amd64]` in the recipes.
+- With no arm64 runners, set `PATCHER_PLATFORMS` to `linux/amd64` ([Fewer platforms](#fewer-platforms)).
 
 **Security.** Patch runs and release builds run upstream build and test code with the Docker socket,
 which is root on the runner.
@@ -97,6 +109,37 @@ don't follow redirects. Upstream Dockerfiles choose which registries get contact
 challenge can name any server. Without the host variable the credentials are sent nowhere, and a warning is
 logged. This covers a self-hosted registry or proxy (Harbor, Nexus, Artifactory) that issues its own tokens.
 Docker Hub's token service is on another host, so this variable doesn't cover Docker Hub.
+
+## Fewer platforms
+
+Each recipe is built and released for every platform in its `build.platforms`: by default `linux/amd64` and
+`linux/arm64`. Where one is enough, for example a setup that runs only arm64, set the repository or organization
+**variable** `PATCHER_PLATFORMS`:
+
+| `PATCHER_PLATFORMS` | Built and released |
+|---|---|
+| unset (default) | each recipe's `build.platforms` |
+| `linux/arm64`, or `arm64` | arm64 only |
+| `linux/amd64`, or `amd64` | amd64 only |
+
+What changes:
+- **Releases** build, push, Copa and publish only those platforms. That's one build job instead of two, and
+  `publish` runs Copa once instead of twice (the second platform runs emulated). The images and `state/` list only
+  those platforms.
+- **Patch runs** build and test on the first of them, on that platform's runner: `ubuntu-24.04-arm` for arm64, or
+  `PATCHER_RUNS_ON_UPSTREAM_ARM64` on your own runners.
+- **It only narrows:** a recipe never builds a platform its `build.platforms` doesn't list.
+  - A recipe left with none of them, such as an amd64-only recipe with `linux/arm64`, is neither patched nor
+    released. `release-plan` reports it as skipped.
+  - An image that exists only for other platforms is left out of its recipe's builds and releases.
+- **Images released earlier** keep their platforms until their line's next release, because a Copa refresh patches
+  exactly what was released.
+- **Only platforms with a release runner** (`linux/amd64`, `linux/arm64`) are accepted. Anything else fails the plan
+  jobs, so a typo can't quietly skip every recipe.
+
+Locally, `scripts/patcher-docker.sh` passes the variable into the container, e.g.
+`PATCHER_PLATFORMS=arm64 scripts/patcher-docker.sh release-plan --recipe dex --line v2`. `patcher run` builds for the
+machine it runs on unless `--platform` says otherwise.
 
 ## Reviewing a patch PR
 
@@ -208,6 +251,11 @@ failure of the same job adds a comment. The issue closes itself the next time th
 open `ci-failure` issues are exactly what is broken now. Watch the label, or subscribe to it, to get
 notified.
 
+One broken recipe doesn't stop the others. Examples: a recipe file that doesn't parse, upstream tags that can't be
+listed, a rescan that fails for one line. The nightly patch plan and the rescan report it, and the other recipes still
+run. Then a small job fails for it, which opens the alert: `patch / plan-errors` or `rescan / scan-errors`. Its log
+names the recipe and the error. That job runs every time, so the alert closes once every recipe plans and scans again.
+
 ## Skipping upstream tests
 
 Skip a test only if it needs infrastructure the pipeline doesn't have (cloud credentials, a live
@@ -262,10 +310,21 @@ Set `expires` so decisions get revisited.
    (`build.platforms`, default amd64 and arm64; an image's own `platforms` narrows it). This job runs upstream
    code, so it has no registry credentials: it saves the images as archives instead of pushing them.
 2. **push**: pushes the archives as per-arch tags of a new revision, after checking each one.
-3. **publish**: merges the platforms, runs Copa, pushes the final and moving tags, signs with cosign (keyless), and
+3. **publish**: merges the platforms, runs Copa, pushes the final tags, signs with cosign (keyless), and
    attaches a CycloneDX SBOM and the OpenVEX document.
 4. **attest**: SLSA provenance for each image.
-5. **state**: opens the `state/` PR. It comes last, so `state/` only records complete releases.
+5. **promote**: moves the moving tag (`<tag>-patched`) to the signed digest. If anything before failed, it stays on
+   the previous revision.
+6. **state**: opens the `state/` PR. It comes last, so `state/` only records complete releases. The PR merges itself
+   (squash) once `test` passes: it only records what the run did. The `open-pr` action checks that before turning on
+   auto-merge:
+   - the App opened it;
+   - it targets the default branch;
+   - it changes that one `state/<recipe>/<line>.yaml` file and nothing else;
+   - its head is still the commit it checked.
+
+   Anything else is refused and fails the job. If auto-merge can't be turned on (repository settings), the PR stays
+   open with a warning, for a human to merge.
 
 Why the jobs are split this way is in [architecture.md](architecture.md#release-flow). A push that lands several
 patch sets starts one run per line. A line that can't be released (an unknown recipe or line, a platform without a
@@ -273,7 +332,7 @@ native runner) fails its run, which raises a [failure alert](#failure-alerts); t
 
 ### A release failed after the builds
 
-When `push`, `publish`, the signing, `attest` or `state` failed, the images are built already. Finish the release
+When `push`, `publish`, the signing, `attest`, `promote` or `state` failed, the images are built already. Finish the release
 without building again:
 
 ```bash
@@ -285,10 +344,10 @@ highest revision after the one `state/` records whose per-arch images (`<final>-
 are all in the registry, and carries on from there:
 - **Its final tag doesn't exist yet:** it is merged and Copa-patched as usual.
 - **Its final tag exists** (the earlier `publish` pushed it, then failed): the image is kept as it is, with no second
-  merge or Copa, so its digest doesn't change. The moving tag points to it, it is scanned, and the OpenVEX document
-  is written from that scan (without Copa's own statements, which the earlier run had). A signature, SBOM, OpenVEX
+  merge or Copa, so its digest doesn't change. It is scanned, and the OpenVEX document is written from that scan
+  (without Copa's own statements, which the earlier run had). A signature, SBOM, OpenVEX
   or provenance attestation is only added if this workflow hasn't attached one yet.
-- `attest` and `state` run as usual, and the `state/` PR records the revision.
+- `attest`, `promote` and `state` run as usual: the moving tag moves, and the `state/` PR records the revision.
 
 Notes:
 - A revision that `state/` records is never published again. With nothing left to finish, the run fails with
@@ -315,24 +374,56 @@ Notes:
 
 ### Verifying an image
 
+Everything below is made by this repository's `release.yml`, run from `main`. Pin exactly that identity, here and in
+admission policies: a copy of the workflow on another branch can't sign (see
+[The release environment](#the-release-environment)).
+
 ```bash
 IMG=ghcr.io/<owner>/dex:v2.46.1-patched.1
+ID=https://github.com/<owner>/<repo>/.github/workflows/release.yml@refs/heads/main
+ISSUER=https://token.actions.githubusercontent.com
 
-# signature, made by this repository's release workflow
-cosign verify "$IMG" \
-  --certificate-identity-regexp '^https://github.com/<owner>/<repo>/\.github/workflows/release\.yml@' \
-  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+# signature
+cosign verify "$IMG" --certificate-identity "$ID" --certificate-oidc-issuer "$ISSUER"
 
 # SLSA build provenance
-gh attestation verify "oci://$IMG" --owner <owner>
+gh attestation verify "oci://$IMG" --repo <owner>/<repo> \
+  --signer-workflow <owner>/<repo>/.github/workflows/release.yml --source-ref refs/heads/main
+
+# SBOM (CycloneDX)
+cosign verify-attestation "$IMG" --type cyclonedx --certificate-identity "$ID" --certificate-oidc-issuer "$ISSUER" \
+  | jq -r '.payload' | base64 -d | jq '.predicate' > sbom.cdx.json
 
 # our VEX decisions, applied to a fresh scan
-cosign verify-attestation "$IMG" --type openvex \
-  --certificate-identity-regexp '^https://github.com/<owner>/<repo>/' \
-  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+cosign verify-attestation "$IMG" --type openvex --certificate-identity "$ID" --certificate-oidc-issuer "$ISSUER" \
   | jq -r '.payload' | base64 -d | jq '.predicate' > vex.json
 trivy image --vex vex.json "$IMG"
 ```
+
+Copa refreshes are signed and attested by the same workflow. An image a refresh published before refreshes moved into
+`release.yml` (2026-10-31) has only a `rescan.yml` signature, with no SBOM, OpenVEX or provenance, until its line is
+refreshed or released again.
+
+### The release environment
+
+The jobs that push images, sign, attest or use the GitHub App key run in the `release` environment:
+- `release.yml`'s push, publish, attest, promote and state jobs;
+- `patch.yml`'s `pr` job;
+- `tool-pins.yml`;
+- `patcher-image.yml`'s image and manifest jobs.
+
+The environment admits `main` only (*Deployment branches and tags*), and it holds the App key. Anyone with write
+access can push a branch with an edited `release.yml` and dispatch it. Those jobs then stop at the environment
+gate, before any credential is handed out. So an identity of `release.yml@refs/heads/main` means the workflow as
+reviewed on `main`, and the verification commands above pin exactly that.
+
+The jobs use `deployment: false`: no deployment records, while the branch policy and the environment's secrets still
+apply. A test (`test_jobs_that_publish_or_hold_the_app_key_run_in_the_release_environment`) fails for any job that gets
+one of those permissions, or the App key, without the environment. It also fails if a job that runs upstream code gets
+the environment.
+
+To check the gate after setting it up, dispatch `release.yml` from any other branch. Its first privileged job fails
+with a message that the branch isn't allowed to deploy to `release`.
 
 ### Consuming images
 
@@ -347,10 +438,20 @@ Immutable tags are never rewritten.
 
 ### Copa refresh PRs
 
-When `rescan` finds new fixable **OS** packages in a published image, it publishes and signs the
-next revision right away (Copa only, no source rebuild). It then opens a `state/` PR titled
-`[<recipe>] copa refresh of <line>`. Merge it so the state matches the registry. New **language**
-findings instead trigger a `patch.yml` run, which ends in a normal patch PR.
+When `rescan` finds new fixable **OS** packages in a published image, it dispatches a `refresh` run of `release.yml`
+for that line. That run builds nothing. Its `publish` job re-patches the released images with Copa to the next
+revision. The run then handles that revision exactly like a release:
+- it signs it and attaches its SBOM and OpenVEX;
+- it attests its provenance;
+- it moves the moving tag;
+- it opens a `state/` PR titled `[<recipe>] copa refresh of <line>`.
+
+That PR merges itself like a release's, so the state matches the registry; until it's merged, rescan skips the line.
+New **language** findings instead trigger a `patch.yml` run, which ends in a normal patch PR.
+
+To refresh a line by hand: *Actions → release → Run workflow*, with `refresh` ticked. A refresh stops before Copa,
+and publishes nothing, if a moving tag no longer points at the digest `state/` records. That means a newer release or
+refresh isn't recorded yet: merge its `state/` PR first.
 
 ## Adding a release line or a project
 
@@ -436,7 +537,7 @@ new one.
 |---|---|
 | `patcher validate` | Check every recipe, skip, VEX and state file |
 | `patcher schema --out schema` | Regenerate the JSON schemas after model changes (CI checks for drift) |
-| `patcher plan [--recipe X] [--all] [--changed-files F]` | Matrix of lines that need a run |
+| `patcher plan [--recipe X] [--all] [--changed-files F]` | Matrix of lines that need a run, each with the platform its patch run builds on; recipes that can't be planned are listed under `errors` |
 | `patcher run <recipe> [--line L] [--skip-tests] [--skip-build] [--no-copa] [--no-retry] [--no-cooldown]` | The PR flow, locally. Never pushes. Report in `out/<recipe>/<line>/generated/report.md` |
 | `patcher init [owner/repo] [--image REF] [--name N]` | Draft a recipe for a new project or image |
 | `patcher coverage [--json] [--fail-on-uncovered]` | Which inventory images are covered and patched |
@@ -445,6 +546,7 @@ new one.
 | `patcher release-plan --recipe R --line L` (or `--changed-files F`) | The release's line, platforms and runners (release.yml's plan job) |
 | `patcher release-build <recipe> --line L --platform P` | Release build for one platform: saves the images to `out/<recipe>/<line>/images/<arch>/`, pushes nothing |
 | `patcher release-push <recipe> --line L [--platforms P,…]` | Pushes those archives as `<final>-<arch>` of a new revision; never overwrites a tag |
-| `patcher publish <recipe> --line L [--revision N [--finish-existing]] [--platforms P,…]` | Merge, Copa, final and moving tags, `state/`. Without `--revision`: finishes the newest revision whose per-arch images all exist |
-| `patcher rescan` / `patcher refresh <recipe> --line L` | Nightly re-scan and the Copa-only refresh |
+| `patcher publish <recipe> --line L [--revision N [--finish-existing]] [--platforms P,…]` | Merge, Copa, final tags, `state/`. Without `--revision`: finishes the newest revision whose per-arch images all exist |
+| `patcher promote <recipe> --line L --release FILE` | Move the moving tags to the digests in a release record (after signing) |
+| `patcher rescan [--pending F]` / `patcher refresh <recipe> --line L` | Nightly re-scan (skipping the lines whose state files `F` lists: open state PRs) and the Copa-only refresh, which release.yml runs in place of `publish` |
 | `patcher pins [--write]` | Tool pin updates for `patcher/Dockerfile` |

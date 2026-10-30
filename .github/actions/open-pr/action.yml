@@ -30,6 +30,12 @@ inputs:
   draft:
     required: false
     default: "false"
+  auto-merge:
+    description: >-
+      "true": merge the PR (squash) once the checks branch protection requires pass. Only for a PR that records what
+      the workflow did: one state/ file, opened by the App into the default branch (checked before merging)
+    required: false
+    default: "false"
 runs:
   using: composite
   steps:
@@ -88,4 +94,40 @@ runs:
       run: |
         if [ "$(gh pr view "$PR" --json isDraft --jq .isDraft)" != "$DRAFT" ]; then
           if [ "$DRAFT" = true ]; then gh pr ready "$PR" --undo; else gh pr ready "$PR"; fi
+        fi
+    # A PR that only records what the run did (release.yml's state job) needs no human: it merges itself once the
+    # required checks pass. So it must be exactly that: opened by the App into the default branch, changing the one
+    # state/ file the caller added, still at the commit checked here (--match-head-commit). Anything else is refused.
+    # If auto-merge can't be turned on (repository settings), the PR stays open for a human, as before.
+    - if: inputs.auto-merge == 'true' && steps.cpr.outputs.pull-request-number != ''
+      shell: bash
+      env:
+        GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        GH_REPO: ${{ github.repository }}
+        PR: ${{ steps.cpr.outputs.pull-request-number }}
+        HEAD_SHA: ${{ steps.cpr.outputs.pull-request-head-sha }}
+        APP: ${{ steps.app-token.outputs.app-slug }}
+        ADD_PATHS: ${{ inputs.add-paths }}
+      run: |
+        if [ -z "$GH_TOKEN" ]; then
+          echo "::warning::auto-merge needs the GitHub App (vars.PATCHER_APP_ID): PR #$PR is left for a human"
+          exit 0
+        fi
+        if ! [[ "$ADD_PATHS" =~ ^state/[^/]+/[^/]+\.yaml$ ]]; then
+          echo "::error::auto-merge is only for one state/<recipe>/<line>.yaml file, not '$ADD_PATHS'"
+          exit 1
+        fi
+        default=$(gh repo view --json defaultBranchRef --jq .defaultBranchRef.name)
+        got=$(gh pr view "$PR" --json author,baseRefName,files,headRefOid \
+          --jq '{author: .author.login, base: .baseRefName, files: [.files[].path], head: .headRefOid}')
+        want=$(jq -nc --arg a "app/$APP" --arg b "$default" --arg f "$ADD_PATHS" --arg h "$HEAD_SHA" \
+          '{author: $a, base: $b, files: [$f], head: $h}')
+        if [ "$(jq -cS . <<<"$got")" != "$(jq -cS . <<<"$want")" ]; then
+          echo "::error::PR #$PR is not just this run's state file from the App into $default: $got (expected $want). Not merged"
+          exit 1
+        fi
+        if gh pr merge "$PR" --auto --squash --match-head-commit "$HEAD_SHA"; then
+          echo "PR #$PR: auto-merge is on (squash, once the required checks pass)"
+        else
+          echo "::warning::could not turn on auto-merge for PR #$PR; it is left for a human. Allow auto-merge (Settings → General) and require the test check on $default (docs/runbook.md, One-time setup)"
         fi
