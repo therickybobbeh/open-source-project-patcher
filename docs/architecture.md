@@ -178,7 +178,8 @@ started can wait for the credentials to show up. So the job that builds holds no
 **Platforms.** `build.platforms` (default `linux/amd64`, `linux/arm64`) are the platforms a line is released for, and
 an image's own `platforms` narrows it to a subset. `release-plan` turns them into the build matrix, one native runner
 per platform (`ubuntu-24.04`, `ubuntu-24.04-arm`; there is no native runner for others, so they are refused). Each
-image is built, pushed and merged for exactly its platforms. A line that can't be released (an unknown recipe or
+image is built, pushed and merged for exactly its platforms. The `PATCHER_PLATFORMS` variable narrows every recipe to
+fewer platforms, e.g. arm64 only ([runbook](runbook.md#fewer-platforms)). A line that can't be released (an unknown recipe or
 line, a platform without a runner) fails the run, after the other lines of the same push are dispatched.
 
 **Recovery.** `state/` is written last, so it only records complete releases: signed, with SBOM, OpenVEX and

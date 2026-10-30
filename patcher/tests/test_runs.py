@@ -90,6 +90,9 @@ def test_a_rebuild_that_fixes_image_findings_is_worth_a_release():
     assert pipeline._rebuild_delta([ImageOutcome("app", "ours", None, None, moved)]) == (0, 0)  # no upstream image
 
 
+AMD64 = {"platform": "linux/amd64", "arch": "amd64"}  # where a patch run builds unless PATCHER_PLATFORMS says otherwise
+
+
 def test_the_nightly_run_skips_a_tag_whose_patch_set_is_merged(tmp_path, monkeypatch):
     (tmp_path / "recipes").mkdir()
     (tmp_path / "recipes" / "_global.yaml").write_text("registry: ghcr.io/me\n")
@@ -103,9 +106,9 @@ def test_the_nightly_run_skips_a_tag_whose_patch_set_is_merged(tmp_path, monkeyp
     repo = Repo(tmp_path)
     monkeypatch.setattr(upstream, "list_tags", lambda url: {"v1.2.3": "c0ffee"})
     # released or not (a failed release, `publish: false`), the merged patch set is done: no second PR for it
-    assert pipeline.plan_matrix(repo) == [{"recipe": "other", "line": "v1.2"}]
+    assert pipeline.plan_matrix(repo) == [{"recipe": "other", "line": "v1.2", **AMD64}]
     monkeypatch.setattr(upstream, "list_tags", lambda url: {"v1.2.3": "c0ffee", "v1.2.4": "decade"})
-    assert pipeline.plan_matrix(repo) == [{"recipe": "app", "line": "v1.2"}, {"recipe": "other", "line": "v1.2"}]
+    assert pipeline.plan_matrix(repo) == [{"recipe": "app", "line": "v1.2", **AMD64}, {"recipe": "other", "line": "v1.2", **AMD64}]
 
 
 def test_an_edit_to_comments_or_prose_runs_nothing(tmp_path):
@@ -130,6 +133,6 @@ def test_an_edit_to_comments_or_prose_runs_nothing(tmp_path):
     repo = Repo(tmp_path)
     assert pipeline.plan_matrix(repo, changed_files=["recipes/app.yaml", "recipes/_global.yaml"], before=before) == []
     # without the commit before the push, every change counts
-    assert pipeline.plan_matrix(repo, changed_files=["recipes/app.yaml"]) == [{"recipe": "app", "line": "v1.2"}]
+    assert pipeline.plan_matrix(repo, changed_files=["recipes/app.yaml"]) == [{"recipe": "app", "line": "v1.2", **AMD64}]
     (tmp_path / "recipes" / "app.yaml").write_text(yaml.safe_dump({**recipe, "build": {"images": [{"name": "app", "target": "prod"}]}}))
-    assert pipeline.plan_matrix(repo, changed_files=["recipes/app.yaml"], before=before) == [{"recipe": "app", "line": "v1.2"}]
+    assert pipeline.plan_matrix(repo, changed_files=["recipes/app.yaml"], before=before) == [{"recipe": "app", "line": "v1.2", **AMD64}]

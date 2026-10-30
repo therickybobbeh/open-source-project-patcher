@@ -27,6 +27,9 @@ on:
 permissions:
   contents: read
 
+env:
+  PATCHER_PLATFORMS: ${{ vars.PATCHER_PLATFORMS }}   # e.g. linux/arm64: only these platforms (unset: each recipe's)
+
 # GitHub keeps only one *pending* run per group, so a shared group for pushes made the newest push cancel the
 # pending run of the previous one (two recipe merges in a minute dropped the first recipe's run). Pushes get a
 # group per commit; same-line work is still serialized by the patch job's per-line group below.
@@ -90,10 +93,12 @@ jobs:
           echo "count=$(jq '.include | length' <<<"$matrix")" >> "$GITHUB_OUTPUT"
           jq . <<<"$matrix"
 
+  # Builds and tests on the platform `patcher plan` picked for the line (the first it is released for, so amd64 unless
+  # PATCHER_PLATFORMS or the recipe say otherwise), on that platform's own runner: natively, without emulation.
   patch:
     needs: plan
     if: needs.plan.outputs.count != '0'
-    runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON_UPSTREAM || '"ubuntu-24.04"') }}
+    runs-on: ${{ fromJSON(matrix.arch == 'arm64' && (vars.PATCHER_RUNS_ON_UPSTREAM_ARM64 || '"ubuntu-24.04-arm"') || (vars.PATCHER_RUNS_ON_UPSTREAM || '"ubuntu-24.04"')) }}
     timeout-minutes: 330
     strategy:
       fail-fast: false
@@ -126,7 +131,9 @@ jobs:
           }
       - uses: ./.github/actions/run-patcher
         with:
-          args: run ${{ matrix.recipe }} --line ${{ matrix.line }} --out out --workdir ${{ runner.temp }}/work
+          args: >-
+            run ${{ matrix.recipe }} --line ${{ matrix.line }} --platform ${{ matrix.platform }}
+            --out out --workdir ${{ runner.temp }}/work
           cache-key: ${{ matrix.recipe }}
       # every run's report is visible here, including lines that open no PR (no-changes, image-only)
       - name: Report to the run summary
