@@ -2,10 +2,11 @@
 
 This page is generated from git history by [`build_wiki_history.py`](../scripts/build_wiki_history.py). The complete machine-readable snapshot is [`history.parquet`](history.parquet).
 
-Snapshot through: 2026-10-29T16:54:50-04:00
+Snapshot through: 2026-10-30T11:11:42-04:00
 
 | Date | Commit | Change | Patch artifacts |
 | --- | --- | --- | --- |
+| 2026-10-30 | [`f59a61786a`](../commit/f59a61786a12e52372c4bc26b88dc0e0cfebc947) | Merge pull request #65 from therickybobbeh/state/apollo-router/v2-refresh | state/apollo-router/v2.yaml |
 | 2026-10-29 | [`8b29853481`](../commit/8b2985348155b177a26afc0539b59dab781cb39c) | Merge remote-tracking branch 'origin/main' into feat/otel-collectors | state/dex/v2.yaml |
 | 2026-10-29 | [`0e2212416f`](../commit/0e2212416f0f914439775ff5f63fb261bcaf5fce) | state: released trivy v0 | state/trivy/v0.yaml |
 | 2026-10-29 | [`2ceb3f494a`](../commit/2ceb3f494ae6702da9666142da7d683dcb095f56) | Merge pull request #54 from therickybobbeh/state/maven/maven3 | state/maven/maven3.yaml |
