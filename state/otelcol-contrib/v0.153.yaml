@@ -1,0 +1,16 @@
+upstreamTag: v0.153.0
+commit: 6c0352ec0d8e3c9c01107449f2474ce70883443c
+revision: 1
+releasedAt: '2026-10-30T16:33:44Z'
+platforms:
+- linux/amd64
+- linux/arm64
+images:
+- name: opentelemetry-collector-contrib
+  ref: ghcr.io/therickybobbeh/opentelemetry-collector-contrib:0.153.0-patched.1
+  digest: sha256:6e482c5dfc05c2c8726e4ecf6595f12f09bb245e366759bddc8befbf12181fde
+  knownFixable:
+  - CVE-2026-78661|golang.org/x/net|otelcol-contrib
+  - CVE-2026-81871|go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc|otelcol-contrib
+  - CVE-2026-81872|go.opentelemetry.io/otel/sdk/log|otelcol-contrib
+  - CVE-2026-97045|golang.org/x/net|otelcol-contrib
