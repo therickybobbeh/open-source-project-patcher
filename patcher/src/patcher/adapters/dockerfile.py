@@ -1,6 +1,7 @@
 """Dockerfiles: move `FROM` base images to the newest tag of the same shape (same suffix,
 same major.minor for `patch` level) and pin the digest. Go builder images are additionally
-raised to the Go version the plan requires (stdlib CVEs / raised `go` directives)."""
+raised to the Go version the plan requires (stdlib CVEs / raised `go` directives), and images
+below a `minVersions` release line (an end-of-life Node, say) are raised into that line."""
 
 from __future__ import annotations
 
@@ -31,8 +32,22 @@ def _shape(tag: str):
     return m.group("prefix"), ver, m.group("suffix"), m.group("ver").count(".") + 1
 
 
-def best_tag(image: str, tag: str, level: Level, min_version: Version | None = None) -> str | None:
-    """Newest tag with the same prefix/suffix/precision; `level` bounds the move."""
+def _in_line(v: Version, line: str) -> int:
+    """-1, 0 or 1: `v` is below, in or above the release line `line` ("24", "3.24"), compared at the precision both
+    give (a floating `3` is in the 3.24 line: it is the newest 3.x)."""
+    want = tuple(int(p) for p in line.split("."))
+    k = min(len(v.nums), len(want))
+    return (v.nums[:k] > want[:k]) - (v.nums[:k] < want[:k])
+
+
+def below_line(tag: str, line: str | None) -> bool:
+    shape = _shape(tag)
+    return bool(line and shape and _in_line(shape[1], line) < 0)
+
+
+def best_tag(image: str, tag: str, level: Level, min_version: Version | None = None, line: str | None = None) -> str | None:
+    """Newest tag with the same prefix/suffix/precision; `level` bounds the move. A tag below `line` (from
+    `minVersions`) moves to the newest tag in that line instead, whatever the level."""
     shape = _shape(tag)
     if not shape:
         return None
@@ -40,6 +55,7 @@ def best_tag(image: str, tag: str, level: Level, min_version: Version | None = N
     floor = cur
     if min_version and min_version > cur:
         floor = min_version
+    raise_to = line if line and _in_line(floor, line) < 0 else None  # a Go requirement above the line wins
     best: tuple[Version, str] | None = None
     for t in registry.list_tags(image):
         s = _shape(t)
@@ -48,15 +64,26 @@ def best_tag(image: str, tag: str, level: Level, min_version: Version | None = N
         v = s[1]
         if v < cur:
             continue
-        if level == Level.patch and (v.major, v.minor) != (floor.major, floor.minor) and (v.major, v.minor) != (cur.major, cur.minor):
-            continue
-        if level == Level.minor and v.major != cur.major:
+        if raise_to:
+            allowed = _in_line(v, raise_to) == 0
+        elif level == Level.patch:
+            allowed = (v.major, v.minor) in ((floor.major, floor.minor), (cur.major, cur.minor))
+        else:
+            allowed = level != Level.minor or v.major == cur.major
+        if not allowed:
             continue
         if best is None or v > best[0]:
             best = (v, t)
     if best and min_version and best[0] < min_version:
         log(f"warning: newest {image} tag {best[1]} is below the required {min_version}")
+    if raise_to and not best:
+        log(f"warning: {image}: no tag shaped like {tag} in the {raise_to} line (minVersions); left at {tag}")
     return best[1] if best else None
+
+
+def min_line(eco: DockerfileEco, ref: registry.ImageRef) -> str | None:
+    """The `minVersions` release line for this image, if any (`node` matches library/node)."""
+    return next((line for name, line in eco.minVersions.items() if re.search(rf"(^|/){re.escape(name)}$", ref.repository)), None)
 
 
 def _beyond_policy(image: str, tag: str, level: Level) -> str | None:
@@ -70,6 +97,18 @@ def _beyond_policy(image: str, tag: str, level: Level) -> str | None:
     except registry.RegistryError:
         return None
     return wider if wider and wider != tag else None
+
+
+def _tag_in_line(image: str) -> bool:
+    """`${REGISTRY}/alpine:3.24`: a tag written out, though ARGs build the name."""
+    last = image.split("@")[0].rsplit("/", 1)[-1]
+    return ":" in last and "$" not in last.split(":", 1)[1]
+
+
+def _note(old: str, new: str, line: str | None) -> str:
+    if new == old:
+        return "base image refresh"
+    return f"{old} -> {new}" + (f" (minVersions: the {line} line)" if below_line(old, line) else "")
 
 
 def apply(ctx: Ctx, eco: DockerfileEco) -> Result:
@@ -104,29 +143,37 @@ def _apply_file(ctx: Ctx, eco: DockerfileEco, path: Path, ignore) -> Result:
         if sm:
             stages.add(sm.group("stage"))
         var = re.search(r"\$\{?([A-Za-z_][A-Za-z0-9_]*)\}?", image_str)
-        if var:
+        lookup = image_str
+        if var and _tag_in_line(image_str):  # `FROM ${REGISTRY}/alpine:3.17.0`: the ARGs name it, the tag is moved here
+            if any(n not in args for n in VAR_RE.findall(image_str)):
+                continue
+            lookup = VAR_RE.sub(lambda v: args[v.group(1)][1], image_str)
+        elif var:
             res.extend(_bump_arg(ctx, eco, rel, lines, args, image_str, var, ignore))
             continue
-        ref = registry.parse_ref(image_str)
+        ref = registry.parse_ref(lookup)
         if not ref.tag or any(rx.search(ref.original_name) for rx in ignore):
             continue
         min_v = parse_semver(go_req) if go_req and GO_IMAGES.search(ref.repository) else None
+        line_floor = min_line(eco, ref)
         try:
-            new_tag = best_tag(image_str, ref.tag, eco.level, min_v) or ref.tag
-            digest = registry.digest(image_str, new_tag) if (eco.pinDigest or ref.digest) else None
+            new_tag = best_tag(lookup, ref.tag, eco.level, min_v, line_floor) or ref.tag
+            digest = registry.digest(lookup, new_tag) if (eco.pinDigest or ref.digest) else None
         except registry.RegistryError as e:
             res.failures.append(Failure("dockerfile", rel, ref.original_name, ref.tag, str(e)))
             continue
-        beyond = _beyond_policy(image_str, new_tag, eco.level)
+        beyond = _beyond_policy(lookup, new_tag, eco.level)
         if beyond:
             res.failures.append(Failure("dockerfile", rel, ref.original_name, beyond,
                                         f"newer tag {beyond} exists beyond the `{eco.level.value}` level for base images "
                                         f"(set `level: minor` on this dockerfile ecosystem, or bump it in patches/)", hint=True))
         new_ref = ref.with_tag(new_tag, digest)
+        if var:  # keep the ARG-built name as written
+            new_ref = image_str.split("@")[0].rsplit(":", 1)[0] + new_ref[len(ref.original_name):]
         if new_ref != image_str:
             lines[i] = f"{m.group('lead')}{m.group('flags')}{new_ref}{m.group('rest')}" + ("\n" if line.endswith("\n") else "")
-            note = "base image refresh" if new_tag == ref.tag else f"{ref.tag} -> {new_tag}"
-            res.changes.append(Change("dockerfile", rel, ref.original_name, image_str.split("/")[-1], new_ref.split("/")[-1], note))
+            res.changes.append(Change("dockerfile", rel, ref.original_name, image_str.split("/")[-1], new_ref.split("/")[-1],
+                                      _note(ref.tag, new_tag, line_floor)))
     path.write_text("".join(lines))
     return res
 
@@ -155,8 +202,9 @@ def _bump_arg(ctx: Ctx, eco: DockerfileEco, rel: str, lines: list[str], args, im
         return res
     go_req = ctx.requires.get("go")
     min_v = parse_semver(go_req) if go_req and GO_IMAGES.search(ref.repository) else None
+    line_floor = min_line(eco, ref)
     try:
-        new_tag = best_tag(resolved, ref.tag, eco.level, min_v)
+        new_tag = best_tag(resolved, ref.tag, eco.level, min_v, line_floor)
     except registry.RegistryError as e:
         res.failures.append(Failure("dockerfile", rel, ref.original_name, ref.tag, str(e)))
         return res
@@ -182,7 +230,7 @@ def _bump_arg(ctx: Ctx, eco: DockerfileEco, rel: str, lines: list[str], args, im
             continue
         lines[idx] = re.sub(rf"({re.escape(n)}=)\S+", lambda m, v=value: m.group(1) + v, lines[idx], count=1)
         args[n] = (idx, value)
-        res.changes.append(Change("dockerfile", rel, f"ARG {n}", default, value, f"{ref.original_name}:{ref.tag} -> {new_tag}"))
+        res.changes.append(Change("dockerfile", rel, f"ARG {n}", default, value, f"{ref.original_name}:{_note(ref.tag, new_tag, line_floor)}"))
     return res
 
 
@@ -191,8 +239,9 @@ def _bump_whole_ref_arg(ctx: Ctx, eco: DockerfileEco, rel: str, lines: list[str]
     res = Result()
     go_req = ctx.requires.get("go")
     min_v = parse_semver(go_req) if go_req and GO_IMAGES.search(ref.repository) else None
+    line_floor = min_line(eco, ref)
     try:
-        new_tag = best_tag(default, ref.tag, eco.level, min_v) or ref.tag
+        new_tag = best_tag(default, ref.tag, eco.level, min_v, line_floor) or ref.tag
         digest = registry.digest(default, new_tag) if (eco.pinDigest or ref.digest) else None
     except registry.RegistryError as e:
         res.failures.append(Failure("dockerfile", rel, ref.original_name, ref.tag or "", str(e)))
@@ -202,6 +251,6 @@ def _bump_whole_ref_arg(ctx: Ctx, eco: DockerfileEco, rel: str, lines: list[str]
         return res
     lines[idx] = re.sub(rf"({re.escape(name)}=)\S+", lambda m: m.group(1) + new_ref, lines[idx], count=1)
     args[name] = (idx, new_ref)
-    note = "base image refresh" if new_tag == ref.tag else f"{ref.tag} -> {new_tag}"
-    res.changes.append(Change("dockerfile", rel, f"ARG {name}", default.split("/")[-1], new_ref.split("/")[-1], note))
+    res.changes.append(Change("dockerfile", rel, f"ARG {name}", default.split("/")[-1], new_ref.split("/")[-1],
+                              _note(ref.tag, new_tag, line_floor)))
     return res

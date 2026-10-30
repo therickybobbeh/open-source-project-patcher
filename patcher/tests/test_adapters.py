@@ -20,11 +20,12 @@ def ctx(src: Path, **kw) -> Ctx:
 GOLANG_TAGS = ("1.26.8-alpine3.23", "1.26.9-alpine3.23", "1.27.3-alpine3.24", "1.27.5-alpine3.24", "1.27.5-alpine3.23",
                "1.28rc1-alpine3.24", "1.27-alpine3.24", "1.27.4", "latest")
 ALPINE_TAGS = ("3.23.4", "3.24.2", "3.24.3", "3.25.0", "edge")
+NODE_TAGS = ("20-alpine", "22-alpine", "24-alpine", "26-alpine", "23.0.0", "24.14.1", "24.14.2", "24.22.2", "26.13.0", "lts")
 
 
 @pytest.fixture
 def fake_registry(monkeypatch):
-    tags = {"golang": GOLANG_TAGS, "alpine": ALPINE_TAGS}
+    tags = {"golang": GOLANG_TAGS, "alpine": ALPINE_TAGS, "node": NODE_TAGS}
     monkeypatch.setattr(registry, "list_tags", lambda image: tags[registry.parse_ref(image).repository.split("/")[-1]])
     monkeypatch.setattr(registry, "digest", lambda image, tag: "sha256:" + "a" * 64)
 
@@ -71,6 +72,58 @@ def test_dockerfile_whole_ref_arg(tmp_path, fake_registry):
     (tmp_path / "Dockerfile").write_text("ARG BASE_IMAGE=docker.io/library/alpine:3.24.2@sha256:" + "c" * 64 + "\nFROM $BASE_IMAGE AS base\n")
     dockerfile.apply(ctx(tmp_path), DockerfileEco(type="dockerfile"))
     assert (tmp_path / "Dockerfile").read_text().startswith("ARG BASE_IMAGE=docker.io/library/alpine:3.24.3@sha256:" + "a" * 64 + "\n")
+
+
+def test_min_versions_raise_a_base_below_the_line_into_it(tmp_path, fake_registry):
+    (tmp_path / "Dockerfile").write_text(
+        "FROM node:20-alpine AS ui\n"
+        "FROM --platform=$BUILDPLATFORM docker.io/library/node:23.0.0@sha256:" + "b" * 64 + " AS ui-pinned\n"
+        "FROM node:24.14.1 AS ui-current\n"
+        "FROM alpine:3.23.4\n"
+    )
+    res = dockerfile.apply(ctx(tmp_path), DockerfileEco(type="dockerfile", minVersions={"node": "24"}))
+    text = (tmp_path / "Dockerfile").read_text()
+    digest = "@sha256:" + "a" * 64
+    assert f"FROM node:24-alpine{digest} AS ui\n" in text  # the newest of the 24 line, not 26
+    assert f"docker.io/library/node:24.22.2{digest} AS ui-pinned\n" in text  # across minors too: it is a release line
+    assert f"FROM node:24.14.2{digest} AS ui-current\n" in text  # already in the line: `level` as usual
+    assert f"FROM alpine:3.23.4{digest}\n" in text  # no line set for alpine
+    notes = {c.old: c.note for c in res.changes}
+    assert notes["node:20-alpine"] == "20-alpine -> 24-alpine (minVersions: the 24 line)"
+    assert notes["node:24.14.1"] == "24.14.1 -> 24.14.2"
+
+
+def test_min_versions_through_args_and_arg_named_images(tmp_path, fake_registry):
+    (tmp_path / "Dockerfile").write_text(
+        "ARG DOCKER_REPO=docker.io\nARG GO_VERSION=1.25.13\n"
+        "FROM golang:${GO_VERSION}-alpine3.23 AS build\n"
+        "FROM ${DOCKER_REPO}/alpine:3.17.0 AS stage\n"
+        "FROM ${DOCKER_REPO}/alpine:3.24 AS certs\n"
+    )
+    eco = DockerfileEco(type="dockerfile", minVersions={"golang": "1.26", "alpine": "3.24"})
+    dockerfile.apply(ctx(tmp_path), eco)
+    text = (tmp_path / "Dockerfile").read_text()
+    digest = "@sha256:" + "a" * 64
+    assert "ARG GO_VERSION=1.26.9\n" in text  # below the 1.26 line: its newest, though `patch` keeps 1.25.x
+    # the ARG names the registry, the tag is in the FROM line: moved (and pinned) there, the ARG kept
+    assert f"FROM ${{DOCKER_REPO}}/alpine:3.24.3{digest} AS stage\n" in text
+    assert f"FROM ${{DOCKER_REPO}}/alpine:3.24{digest} AS certs\n" in text
+    assert text.startswith("ARG DOCKER_REPO=docker.io\n")
+
+    # a Go requirement above the line wins
+    (tmp_path / "Dockerfile").write_text("ARG GO_VERSION=1.25.13\nFROM golang:${GO_VERSION}-alpine3.23 AS build\n")
+    dockerfile.apply(ctx(tmp_path, requires={"go": "1.27.5"}), eco)
+    assert (tmp_path / "Dockerfile").read_text().startswith("ARG GO_VERSION=1.27.5\n")
+
+
+def test_release_lines():
+    assert dockerfile.below_line("20-alpine", "24") and dockerfile.below_line("3.17.0", "3.24")
+    assert not dockerfile.below_line("26-alpine", "24") and not dockerfile.below_line("24.14.1", "24")
+    assert not dockerfile.below_line("3", "3.24")  # floating: the newest 3.x
+    assert not dockerfile.below_line("lts", "24") and not dockerfile.below_line("20-alpine", None)
+    for bad in ("24.1.2", "lts", "v24", ""):
+        with pytest.raises(ValueError):
+            DockerfileEco(type="dockerfile", minVersions={"node": bad})
 
 
 def test_files_var_edit_with_derived(tmp_path, monkeypatch):

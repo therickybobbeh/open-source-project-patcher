@@ -323,6 +323,14 @@
           "$ref": "#/$defs/Level",
           "default": "patch",
           "description": "How far a base image tag may move"
+        },
+        "minVersions": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Release lines base images must not fall below, by image name (`node`, `alpine`, `library/node`), e.g. {node: \"24\"} for a build stage on an end-of-life Node. A tag below its line moves to the newest tag of the same shape in it (24: 24.x.y, 3.24: 3.24.x), whatever `level` says; tags at or above it follow `level`",
+          "title": "Minversions",
+          "type": "object"
         }
       },
       "required": [

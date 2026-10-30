@@ -254,14 +254,21 @@ The tool is detected per dir:
   level: patch           # how far a base tag may move
   pinDigest: true        # write image:tag@sha256:...
   ignore: ['^maven$']    # image names to leave alone
+  minVersions: {node: "24"}   # release lines a base image must not fall below
 ```
 
 - **Tag selection:** each `FROM` moves to the newest tag of the same shape: same prefix, same suffix
   (`-alpine3.24`), same number of version parts, within `level`. Floating tags (`latest`,
   `bookworm-slim`) keep their tag but get a fresh digest pin.
 - **ARG-based images:** `ARG GO_VERSION=…` + `FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION}`
-  and `FROM $BASE_IMAGE` are handled by updating the ARG defaults.
+  and `FROM $BASE_IMAGE` are handled by updating the ARG defaults. When the ARGs only build the name
+  and the tag is written out (`FROM ${DOCKER_REPO}/alpine:3.24`), the tag is moved in the `FROM` line.
 - **Go builders:** Go builder images are raised to the Go version the plan requires.
+- **End-of-life bases (`minVersions`):** a release line per image name (`node`, `alpine`, `golang`;
+  one or two numbers). A tag below it moves to the newest tag of the same shape in that line, past
+  `level`: with `{node: "24"}`, `node:20-alpine` becomes `node:24-alpine` and `node:23.0.0` the newest
+  `24.x.y`. Tags at or above the line follow `level` as usual. Use it when upstream builds on an
+  end-of-life runtime, and say why in a comment; the report marks these moves `(minVersions: …)`.
 - **Hints:** a newer *minor* of the same major is reported, e.g. gomplate v5.2 → v5.3. It is not
   applied unless you raise `level`.
 
