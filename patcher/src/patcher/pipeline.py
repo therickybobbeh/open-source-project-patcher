@@ -737,7 +737,9 @@ def _run_image_only(repo: Repo, recipe: Recipe, line: Line, out: Path, opts: Run
 #   build    release_build   per platform: rebuild the reviewed patch set, save      upstream code, no credentials,
 #                            each image as an archive (archive.py)                   pushes nothing
 #   push     release_push    pick the revision, push the archives as <final>-<arch>  credentials, no upstream code
-#   publish  publish         merge the platforms, Copa, final + moving tags, state   credentials, no upstream code
+#   publish  publish         merge the platforms, Copa, final tags, state            credentials, no upstream code
+#   (the workflow signs and attests here)
+#   promote  promote         move each moving tag to the signed digest               credentials, no upstream code
 
 # the platforms release builds support, with the GitHub-hosted runner each one is built on natively; the
 # PATCHER_RUNS_ON_UPSTREAM(_ARM64) variables pick self-hosted runners instead (release.yml's build job)
@@ -1043,7 +1045,8 @@ def release_push(repo: Repo, recipe: Recipe, key: str, out: Path, images: Path |
 
 def publish(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, out: Path, tag: str | None = None,
             revision: int | None = None, finish_existing: bool = False) -> list[dict]:
-    """Merge a revision's per-arch images, Copa the result, push the immutable and moving tags, update state.
+    """Merge a revision's per-arch images, Copa the result, push the immutable tags, update state. The moving tags
+    move later (`promote`), once the workflow has signed and attested what this pushed.
 
     `revision`: the one `release_push` pushed in this run. Without it (the run built nothing: `rebuild: false`), the
     highest revision whose per-arch images all exist (`built_revision`). Never a revision state/ records.
@@ -1095,7 +1098,6 @@ def publish(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, o
             if not (cr and cr.patched_ref):
                 run(["docker", "buildx", "imagetools", "create", "-t", img.ref, build_ref])
             copa_note = cr.note() if cr else "disabled"
-        run(["docker", "buildx", "imagetools", "create", "-t", img.moving, img.ref])
         digest = image_digest(img.ref)
         after = scan_image(f"{img.repository}@{digest}", out / f"scan-release-{spec.key}.json", severities=g.scan.severities,
                            platform=img.platforms[0], src="remote")
@@ -1155,7 +1157,6 @@ def _publish_image_only(repo: Repo, recipe: Recipe, key: str, platforms: list[st
                             src="remote")
         if not (cr and cr.patched_ref):
             run(["docker", "buildx", "imagetools", "create", "-t", f"{repo_ref}:{final}", f"{repo_ref}:{final}-build"])
-        run(["docker", "buildx", "imagetools", "create", "-t", f"{repo_ref}:{tag}-patched", f"{repo_ref}:{final}"])
         digest = image_digest(f"{repo_ref}:{final}")
         after = scan_image(f"{repo_ref}@{digest}", out / f"scan-release-{spec.key}.json", severities=g.scan.severities,
                            platform=plats[0], src="remote")
@@ -1171,6 +1172,22 @@ def _publish_image_only(repo: Repo, recipe: Recipe, key: str, platforms: list[st
     repo.save_state(recipe.name, st)
     (out / "release.json").write_text(json.dumps(released, indent=2) + "\n")
     return released
+
+
+def promote(repo: Repo, recipe: Recipe, released: list[dict]) -> list[str]:
+    """Move each image's moving tag (`<upstream tag>-patched`) to the digest a publish or Copa refresh pushed. It runs
+    after the image is signed and attested: whoever follows the moving tag only ever gets a complete release, and if
+    signing failed the tag stays on the previous one. By digest, so it is exactly what was signed. Refuses images
+    that aren't this recipe's."""
+    ours = {f"{repo.global_config().registry}/{spec.name}" for spec in recipe.build.images} if recipe.build else set()
+    moved = []
+    for r in released:
+        if r["repository"] not in ours:
+            raise ValueError(f"{r['repository']} is not an image of {recipe.name}: nothing is promoted")
+        moving = f"{r['repository']}:{upstream_tag_of(repo, r['tag'])}-patched"
+        run(["docker", "buildx", "imagetools", "create", "-t", moving, f"{r['repository']}@{r['digest']}"])
+        moved.append(moving)
+    return moved
 
 
 # --- rescan / refresh / plan ---------------------------------------------------------------
@@ -1269,7 +1286,6 @@ def refresh(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, o
             raise RuntimeError(f"revision {rev} was taken while Copa ran ({', '.join(taken)}), by a release of this line? "
                                "Nothing was overwritten; the next rescan refreshes again")
         run(["docker", "buildx", "imagetools", "create", "-t", f"{repo_ref}:{final}", cr.patched_ref])
-        run(["docker", "buildx", "imagetools", "create", "-t", f"{repo_ref}:{up_tag}-patched", f"{repo_ref}:{final}"])
         digest = image_digest(f"{repo_ref}:{final}")
         after = scan_image(f"{repo_ref}@{digest}", out / f"scan-refresh-{spec.key}.json", severities=g.scan.severities,
                            platform=plats[0], src="remote")
