@@ -131,6 +131,15 @@ def test_runner_pool_check(env, ok, says):
     assert (r.returncode == 0) == ok and says in r.stdout, r.stdout
 
 
+@pytest.mark.parametrize("path", WORKFLOWS, ids=lambda p: p.name)
+def test_every_job_sets_a_timeout(path):
+    """GitHub's default is 6 hours: a hung Sigstore call or registry would hold a runner (and the line's concurrency
+    group) that long."""
+    for name, job, _ in jobs(path):
+        limit = job.get("timeout-minutes")
+        assert isinstance(limit, int) and 0 < limit <= 360, f"{path.name}/{name}: set timeout-minutes (at most 360)"
+
+
 def test_release_builds_default_to_the_native_runners():
     from patcher.pipeline import RUNNERS
 
