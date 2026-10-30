@@ -111,6 +111,37 @@ def test_the_nightly_run_skips_a_tag_whose_patch_set_is_merged(tmp_path, monkeyp
     assert pipeline.plan_matrix(repo) == [{"recipe": "app", "line": "v1.2", **AMD64}, {"recipe": "other", "line": "v1.2", **AMD64}]
 
 
+def test_one_recipe_that_cant_be_planned_doesnt_stop_the_others(tmp_path, monkeypatch):
+    from patcher.proc import CommandError
+
+    (tmp_path / "recipes").mkdir()
+    (tmp_path / "recipes" / "_global.yaml").write_text("registry: ghcr.io/me\n")
+    for name in ("app", "gone", "other"):
+        (tmp_path / "recipes" / f"{name}.yaml").write_text(yaml.safe_dump(
+            {"name": name, "source": {"repo": f"o/{name}", "lines": [{"tagPattern": r"^v1\.2\.\d+$"}]},
+             "build": {"images": [{"name": name}]}}))
+    (tmp_path / "recipes" / "broken.yaml").write_text("name: broken\nbogus: 1\n")  # not a valid recipe
+    repo = Repo(tmp_path)
+
+    def list_tags(url):
+        if "/gone" in url:
+            raise CommandError(f"git ls-remote --tags {url}", 128, "fatal: repository not found")
+        return {"v1.2.3": "c0ffee"}
+
+    monkeypatch.setattr(upstream, "list_tags", list_tags)
+    errors = []
+    assert pipeline.plan_matrix(repo, errors=errors) == [{"recipe": "app", "line": "v1.2", **AMD64},
+                                                         {"recipe": "other", "line": "v1.2", **AMD64}]
+    assert [e["recipe"] for e in errors] == ["broken", "gone"]
+    assert errors[1]["error"].endswith("fatal: repository not found")  # the command and why it failed
+    # a push: the recipe it changed is planned, though another recipe file is broken
+    errors.clear()
+    assert pipeline.plan_matrix(repo, changed_files=["recipes/app.yaml"], errors=errors) == [{"recipe": "app", "line": "v1.2", **AMD64}]
+    assert [e["recipe"] for e in errors] == ["broken"]
+    with pytest.raises(Exception, match="broken|bogus"):  # without `errors`, the first error is raised
+        pipeline.plan_matrix(repo)
+
+
 def test_an_edit_to_comments_or_prose_runs_nothing(tmp_path):
     import subprocess
 

@@ -383,11 +383,33 @@ def test_rescan_waits_for_a_line_s_state_pr(tmp_path, monkeypatch):
     # the paths open PRs change (rescan.yml lists them): state files name their line
     pending = pipeline.pending_lines(["state/app/v1.yaml", "state/other/v2.yaml", "generated/app/v1.2.3/bump-plan.json", ""])
     assert pending == {("app", "v1"), ("other", "v2")}
-    assert pipeline.rescan(repo, tmp_path / "rescan", pending) == {"refresh": [], "rerun": [],
+    assert pipeline.rescan(repo, tmp_path / "rescan", pending) == {"refresh": [], "rerun": [], "errors": [],
                                                                    "pending": [{"recipe": "app", "line": "v1"}]}
     assert scanned == []
     pipeline.rescan(repo, tmp_path / "rescan")
     assert scanned == [f"{REG}@{DIGEST}"]
+
+
+def test_one_line_that_cant_be_rescanned_doesnt_stop_the_others(tmp_path, monkeypatch):
+    from patcher.models import ReleasedImage
+
+    repo = make_repo(tmp_path, app_recipe(), recipe("other", build={"images": [{"name": "other"}]}))
+    (tmp_path / "recipes" / "broken.yaml").write_text("name: broken\nbogus: 1\n")
+    for name, ref in (("app", f"{REG}:v1.2.3-patched.2"), ("other", "ghcr.io/me/other:v1.2.3-patched.1")):
+        repo.save_state(name, State(lines={"v1": LineState(
+            upstreamTag="v1.2.3", commit="c0ffee", revision=2, releasedAt=dt.datetime(2026, 10, 1, tzinfo=dt.timezone.utc),
+            images=[ReleasedImage(name=name, ref=ref, digest=DIGEST)])}))
+    scanned = []
+
+    def scan(ref, path, **k):
+        if ref.startswith(f"{REG}@"):
+            raise CommandError(f"trivy image {ref}", 1, "FATAL error: TOOMANYREQUESTS")
+        return scanned.append(ref) or ScanReport(ref)
+
+    monkeypatch.setattr(pipeline, "scan_image", scan)
+    result = pipeline.rescan(repo, tmp_path / "rescan")
+    assert [(e["recipe"], e["line"]) for e in result["errors"]] == [("app", "v1"), ("broken", "")]
+    assert "TOOMANYREQUESTS" in result["errors"][0]["error"] and scanned == [f"ghcr.io/me/other@{DIGEST}"]
 
 
 def test_publish_only_keeps_an_existing_final_tag_when_finishing(tmp_path, monkeypatch):

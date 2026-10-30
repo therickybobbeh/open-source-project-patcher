@@ -47,6 +47,7 @@ jobs:
     outputs:
       matrix: ${{ steps.plan.outputs.matrix }}
       count: ${{ steps.plan.outputs.count }}
+      errors: ${{ steps.plan.outputs.errors }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -75,7 +76,12 @@ jobs:
           if [ "$EVENT" = workflow_dispatch ] && [ -n "$RECIPE" ]; then args+=(--recipe "$RECIPE");
           elif [ "$ALL" = true ]; then args+=(--all);
           elif [ "$EVENT" = push ]; then git diff --name-only "$BEFORE" HEAD > "$RUNNER_TEMP/changed"; args+=(--changed-files "$RUNNER_TEMP/changed" --before "$BEFORE"); fi
-          matrix=$(uv run --project patcher --frozen patcher plan "${args[@]}")
+          plan=$(uv run --project patcher --frozen patcher plan "${args[@]}")
+          # a recipe that can't be planned is an error row; the others still run, and `plan-errors` fails for it
+          errors=$(jq -c '.errors' <<<"$plan")
+          jq -r '.[] | "::error::cannot plan \(.recipe): \(.error)"' <<<"$errors"
+          echo "errors=$errors" >> "$GITHUB_OUTPUT"
+          matrix=$(jq -c '{include: .include}' <<<"$plan")
           if [ -n "$LINE" ]; then matrix=$(jq -c --arg l "$LINE" '{include: [.include[] | select(.line == $l)]}' <<<"$matrix"); fi
           if [ "$EVENT" = schedule ]; then
             # lines another patch run is working on right now: the nightly run doesn't start duplicates
@@ -92,6 +98,21 @@ jobs:
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
           echo "count=$(jq '.include | length' <<<"$matrix")" >> "$GITHUB_OUTPUT"
           jq . <<<"$matrix"
+
+  # A recipe that couldn't be planned (unreadable, or its upstream tags couldn't be listed) doesn't hold up the others.
+  # This job fails for it, which raises a CI alert, and passes (closing the alert) once every recipe plans again.
+  plan-errors:
+    needs: plan
+    runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Every recipe was planned
+        env:
+          ERRORS: ${{ needs.plan.outputs.errors }}
+        run: |
+          jq -r '.[] | "::error::cannot plan \(.recipe): \(.error)"' <<<"${ERRORS:-[]}"
+          [ "$(jq length <<<"${ERRORS:-[]}")" = 0 ]
 
   # Builds and tests on the platform `patcher plan` picked for the line (the first it is released for, so amd64 unless
   # PATCHER_PLATFORMS or the recipe say otherwise), on that platform's own runner: natively, without emulation.

@@ -82,14 +82,17 @@ def plan(
     all_lines: bool = typer.Option(False, "--all", help="Every line of every recipe"),
     repo: Optional[Path] = RepoOpt,
 ) -> None:
-    """Print the GitHub Actions matrix ({"include": [{recipe, line}]}) of lines that need a run."""
+    """Print the lines that need a run, as a GitHub Actions matrix: {"include": [{recipe, line, platform, arch}],
+    "errors": [{recipe, line, error}]}. A recipe that can't be planned is an error row; the others are still planned."""
     r = _repo(repo)
     changed = None
     if changed_files:
         text = sys.stdin.read() if str(changed_files) == "-" else changed_files.read_text()
         changed = [l.strip() for l in text.splitlines() if l.strip()]
-    matrix = pipeline.plan_matrix(r, recipes=recipe or None, changed_files=changed, include_all=all_lines, before=before)
-    typer.echo(json.dumps({"include": matrix}))
+    errors: list[dict] = []
+    matrix = pipeline.plan_matrix(r, recipes=recipe or None, changed_files=changed, include_all=all_lines, before=before,
+                                  errors=errors)
+    typer.echo(json.dumps({"include": matrix, "errors": errors}))
 
 
 @app.command("run")
@@ -210,7 +213,8 @@ def rescan(
                                                       "(state/<recipe>/<line>.yaml, one per line): those lines are skipped"),
     repo: Optional[Path] = RepoOpt,
 ) -> None:
-    """Scan every published image; print {"refresh": [...], "rerun": [...], "pending": [...]}."""
+    """Scan every published image; print {"refresh": [...], "rerun": [...], "pending": [...], "errors": [...]}. A line that
+    can't be scanned is an error row; the others are still scanned."""
     paths = pending.read_text().splitlines() if pending else []
     _emit(pipeline.rescan(_repo(repo), out.resolve(), pipeline.pending_lines(paths)))
 

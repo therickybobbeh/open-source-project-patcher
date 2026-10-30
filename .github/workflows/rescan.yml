@@ -23,6 +23,7 @@ jobs:
     outputs:
       refresh: ${{ steps.r.outputs.refresh }}
       rerun: ${{ steps.r.outputs.rerun }}
+      errors: ${{ steps.r.outputs.errors }}
     permissions:
       contents: read
       packages: read
@@ -56,10 +57,28 @@ jobs:
       - id: r
         run: |
           result=$(cat out/rescan/result.json)
-          echo "refresh=$(jq -c '{include: .refresh}' <<<"$result")" >> "$GITHUB_OUTPUT"
-          echo "rerun=$(jq -c '.rerun' <<<"$result")" >> "$GITHUB_OUTPUT"
+          {
+            echo "refresh=$(jq -c '{include: .refresh}' <<<"$result")"
+            echo "rerun=$(jq -c '.rerun' <<<"$result")"
+            echo "errors=$(jq -c '.errors' <<<"$result")"
+          } >> "$GITHUB_OUTPUT"
           jq . <<<"$result"
           jq -r '.pending[] | "::notice::not rescanned: \(.recipe) \(.line) (its state PR is not merged yet)"' <<<"$result"
+
+  # A line that couldn't be scanned (an unreadable recipe or state file, a scan that failed) doesn't hold up the
+  # others. This job fails for it, which raises a CI alert, and passes (closing the alert) once every line scans again.
+  scan-errors:
+    needs: scan
+    runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Every line was scanned
+        env:
+          ERRORS: ${{ needs.scan.outputs.errors }}
+        run: |
+          jq -r '.[] | "::error::cannot rescan \(.recipe) \(.line): \(.error)"' <<<"${ERRORS:-[]}"
+          [ "$(jq length <<<"${ERRORS:-[]}")" = 0 ]
 
   # upstream release lines no recipe tracks (v3.6 shipped, recipes follow v3.5): one issue each
   new-lines:

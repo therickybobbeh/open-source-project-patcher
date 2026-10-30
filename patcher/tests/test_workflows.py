@@ -102,6 +102,18 @@ def test_release_jobs():
     assert not any("download-artifact" in s.get("uses", "") for s in steps(release["state"][0]))
 
 
+def test_a_recipe_that_cant_be_planned_or_scanned_raises_its_own_alert():
+    """`patcher plan` and `rescan` report a recipe they can't handle as an error row and carry on with the others. A
+    small job then fails (a CI alert); it runs every time, so it passes again, closing the alert, once all is well."""
+    for wf, name, needs in (("patch.yml", "plan-errors", "plan"), ("rescan.yml", "scan-errors", "scan")):
+        check = {n: j for n, j, _ in jobs(ROOT / ".github" / "workflows" / wf)}[name]
+        assert check["needs"] == needs and "if" not in check and check["permissions"] == {}, name
+        assert "jq length" in steps(check)[0]["run"], name
+    plan = {n: j for n, j, _ in jobs(ROOT / ".github" / "workflows" / "patch.yml")}["plan"]
+    plan_step = next(s for s in steps(plan) if s.get("id") == "plan")
+    assert "{include: .include}" in plan_step["run"]  # error rows never reach the patch matrix
+
+
 def test_rescan_publishes_nothing_itself():
     """Copa refreshes run in release.yml, signed, attested, promoted and recorded like a release under its per-line locks.
     rescan only dispatches them: no registry write, no signing, no GitHub App key."""

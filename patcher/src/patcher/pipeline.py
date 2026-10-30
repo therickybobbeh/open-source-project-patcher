@@ -14,6 +14,7 @@ import json
 import os
 import re
 import shutil
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
@@ -807,6 +808,24 @@ def release_targets(repo: Repo, changed_files: list[str]) -> tuple[list[tuple[st
     return list(dict.fromkeys(targets)), errors
 
 
+@contextmanager
+def _isolated(errors: list[dict] | None, recipe: str, line: str = ""):
+    """One recipe's (or line's) error goes to `errors` as a row, and the caller carries on with the next one; the
+    workflow then fails a job for those rows, which raises a CI alert. With `errors` None, the error is raised."""
+    if errors is None:
+        yield
+        return
+    try:
+        yield
+    except Exception as e:  # noqa: BLE001 - reported per recipe; the healthy ones still run
+        msg = (str(e).splitlines() or [repr(e)])[0]
+        if isinstance(e, CommandError):  # which command, and why
+            msg += f": {first_error(e.tail)}"
+        row = {"recipe": recipe, "line": line, "error": msg[:300]}
+        if row not in errors:
+            errors.append(row)
+
+
 def _release_row(repo: Repo, name: str, key: str) -> dict:
     recipe = repo.load_recipe(name)
     if recipe.mode == "component":
@@ -834,12 +853,9 @@ def release_plan(repo: Repo, targets: list[tuple[str, str]]) -> dict:
     _check_wanted_platforms()
     include, skipped, errors = [], [], []
     for name, key in dict.fromkeys(targets):
-        try:
+        with _isolated(errors, name, key):  # release.yml fails the run after releasing the others
             row = _release_row(repo, name, key)
-        except Exception as e:  # noqa: BLE001 - reported per target; release.yml fails the run after the others
-            errors.append({"recipe": name, "line": key, "error": (str(e).splitlines() or [repr(e)])[0][:300]})
-            continue
-        (skipped if "reason" in row else include).append(row)
+            (skipped if "reason" in row else include).append(row)
     return {"include": include, "skipped": skipped, "errors": errors}
 
 
@@ -1232,32 +1248,35 @@ def rescan(repo: Repo, out: Path, pending: set[tuple[str, str]] = frozenset()) -
 
     `pending` lines have a state PR that isn't merged yet: state/ is behind what they published, so they wait for it
     (listed under `pending`) instead of being scanned, and refreshed again, from the older revision."""
+    from .vex import match as vex_match
+
     g = repo.global_config()
-    result = {"refresh": [], "rerun": [], "pending": []}
+    result = {"refresh": [], "rerun": [], "pending": [], "errors": []}
     out.mkdir(parents=True, exist_ok=True)
     for path in repo.recipe_paths():
-        recipe = repo.load_recipe(path.stem)
-        vexf = repo.vex(recipe.name)
-        from .vex import match as vex_match
-
-        for key, ls in repo.state(recipe.name).lines.items():
-            if (recipe.name, key) in pending:
-                result["pending"].append({"recipe": recipe.name, "line": key})
-                continue
-            kinds = set()
-            platform = (ls.platforms or (recipe.build.platforms if recipe.build else None) or ["linux/amd64"])[0]
-            for img in ls.images:
-                rep = scan_image(f"{img.ref.rsplit(':', 1)[0]}@{img.digest}", out / f"rescan-{recipe.name}-{key}-{img.name}.json",
-                                 severities=g.scan.severities, platform=platform, src="remote")
-                known = set(img.knownFixable)
-                for f in rep.fixable():
-                    if "|".join(f.key) not in known and not vex_match(vexf, f):
-                        kinds.add("os" if f.ecosystem == "os" else "lang")
-            entry = {"recipe": recipe.name, "line": key}
-            if "lang" in kinds:
-                result["rerun"].append(entry)
-            elif "os" in kinds:
-                result["refresh"].append(entry)
+        with _isolated(result["errors"], path.stem):  # an unreadable recipe or state file: the others are still scanned
+            recipe = repo.load_recipe(path.stem)
+            vexf = repo.vex(recipe.name)
+            for key, ls in repo.state(recipe.name).lines.items():
+                if (recipe.name, key) in pending:
+                    result["pending"].append({"recipe": recipe.name, "line": key})
+                    continue
+                with _isolated(result["errors"], recipe.name, key):  # a scan that fails skips this line only
+                    kinds = set()
+                    platform = (ls.platforms or (recipe.build.platforms if recipe.build else None) or ["linux/amd64"])[0]
+                    for img in ls.images:
+                        rep = scan_image(f"{img.ref.rsplit(':', 1)[0]}@{img.digest}",
+                                         out / f"rescan-{recipe.name}-{key}-{img.name}.json",
+                                         severities=g.scan.severities, platform=platform, src="remote")
+                        known = set(img.knownFixable)
+                        for f in rep.fixable():
+                            if "|".join(f.key) not in known and not vex_match(vexf, f):
+                                kinds.add("os" if f.ecosystem == "os" else "lang")
+                    entry = {"recipe": recipe.name, "line": key}
+                    if "lang" in kinds:
+                        result["rerun"].append(entry)
+                    elif "os" in kinds:
+                        result["refresh"].append(entry)
     (out / "result.json").write_text(json.dumps(result, indent=2) + "\n")
     return result
 
@@ -1367,8 +1386,11 @@ def _built_here(recipe: Recipe) -> bool:
 
 
 def plan_matrix(repo: Repo, *, recipes: list[str] | None = None, changed_files: list[str] | None = None,
-                include_all: bool = False, before: str | None = None) -> list[dict]:
-    """The lines that need a patch run, each with the platform it builds on (`_patch_platform`)."""
+                include_all: bool = False, before: str | None = None, errors: list[dict] | None = None) -> list[dict]:
+    """The lines that need a patch run, each with the platform it builds on (`_patch_platform`).
+
+    `errors`: a recipe that can't be planned (an unreadable recipe, upstream tags that can't be listed) becomes a row
+    there and the others are still planned (patch.yml runs them, then fails `plan-errors`). Without it, it is raised."""
     _check_wanted_platforms()
     names = [p.stem for p in repo.recipe_paths()]
     selected: dict[str, set[str] | None] = {}  # recipe -> line keys (None = all)
@@ -1381,7 +1403,7 @@ def plan_matrix(repo: Repo, *, recipes: list[str] | None = None, changed_files: 
                 continue  # comments, `description` or `notes` only: the next run picks the text up
             parts = f.split("/")
             if f == "recipes/_global.yaml":  # org-wide policy: every line. (patcher/ code changes run nothing here:
-                return plan_matrix(repo, include_all=True)  # patcher-image.yml tests them; dispatch `all` on purpose)
+                return plan_matrix(repo, include_all=True, errors=errors)  # patcher-image.yml tests them; dispatch `all`)
             if parts[0] in ("recipes", "skips", "vex") and len(parts) == 2 and f.endswith(".yaml"):
                 selected[Path(parts[1]).stem] = None
             elif parts[0] == "patches" and len(parts) > 2:
@@ -1389,47 +1411,50 @@ def plan_matrix(repo: Repo, *, recipes: list[str] | None = None, changed_files: 
         # a changed component re-runs every recipe that bundles it; components never run on their own
         parents: dict[str, list[str]] = {}
         for n in names:
-            for c in repo.load_recipe(n).components:
-                parents.setdefault(c.recipe, []).append(n)
+            with _isolated(errors, n):
+                for c in repo.load_recipe(n).components:
+                    parents.setdefault(c.recipe, []).append(n)
         for comp in [n for n in list(selected) if n in parents]:
             for parent in parents[comp]:
                 selected.setdefault(parent, None)
     else:
         for name in names:
-            recipe = repo.load_recipe(name)
-            if not recipe.source or recipe.mode == "component" or not _built_here(recipe):
-                continue
-            state = repo.state(name)
-            if recipe.mode == "image-only":  # new upstream image tag -> run
+            with _isolated(errors, name):  # e.g. its upstream tags can't be listed
+                recipe = repo.load_recipe(name)
+                if not recipe.source or recipe.mode == "component" or not _built_here(recipe):
+                    continue
+                state = repo.state(name)
+                if recipe.mode == "image-only":  # new upstream image tag -> run
+                    for line in recipe.source.lines:
+                        key = line_key(line)
+                        cur = state.lines.get(key)
+                        tag = _image_only_targets(recipe, line)[0][1]
+                        if include_all or ((cur is None or cur.upstreamTag != tag) and not _pr_pending(repo, name, key, tag)
+                                           and not _merged(repo, name, key, tag)):
+                            selected.setdefault(name, set()).add(key)
+                    continue
+                tags = upstream.list_tags(recipe.source.url) if any(not l.branch for l in recipe.source.lines) else {}
                 for line in recipe.source.lines:
                     key = line_key(line)
+                    tag, commit = upstream.resolve_line(recipe.source, line, tags)
                     cur = state.lines.get(key)
-                    tag = _image_only_targets(recipe, line)[0][1]
-                    if include_all or ((cur is None or cur.upstreamTag != tag) and not _pr_pending(repo, name, key, tag)
-                                       and not _merged(repo, name, key, tag)):
+                    new = cur is None or cur.upstreamTag != tag or (line.branch and cur.commit != commit)
+                    if include_all or (new and not _pr_pending(repo, name, key, tag) and not _merged(repo, name, key, tag, commit)):
                         selected.setdefault(name, set()).add(key)
-                continue
-            tags = upstream.list_tags(recipe.source.url) if any(not l.branch for l in recipe.source.lines) else {}
-            for line in recipe.source.lines:
-                key = line_key(line)
-                tag, commit = upstream.resolve_line(recipe.source, line, tags)
-                cur = state.lines.get(key)
-                new = cur is None or cur.upstreamTag != tag or (line.branch and cur.commit != commit)
-                if include_all or (new and not _pr_pending(repo, name, key, tag) and not _merged(repo, name, key, tag, commit)):
-                    selected.setdefault(name, set()).add(key)
     matrix = []
     for name, keys in sorted(selected.items()):
         if name not in names:
             continue
-        recipe = repo.load_recipe(name)
-        if recipe.mode == "component" or not _built_here(recipe):
-            continue
-        platform = _patch_platform(recipe)
-        lines = recipe.source.lines if recipe.source else []
-        for line in lines:
-            k = line_key(line)
-            if keys is None or k in keys:
-                matrix.append({"recipe": name, "line": k, "platform": platform, "arch": arch_of(platform)})
+        with _isolated(errors, name):
+            recipe = repo.load_recipe(name)
+            if recipe.mode == "component" or not _built_here(recipe):
+                continue
+            platform = _patch_platform(recipe)
+            lines = recipe.source.lines if recipe.source else []
+            for line in lines:
+                k = line_key(line)
+                if keys is None or k in keys:
+                    matrix.append({"recipe": name, "line": k, "platform": platform, "arch": arch_of(platform)})
     return matrix
 
 

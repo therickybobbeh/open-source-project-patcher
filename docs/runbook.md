@@ -239,6 +239,11 @@ failure of the same job adds a comment. The issue closes itself the next time th
 open `ci-failure` issues are exactly what is broken now. Watch the label, or subscribe to it, to get
 notified.
 
+One broken recipe doesn't stop the others. Examples: a recipe file that doesn't parse, upstream tags that can't be
+listed, a rescan that fails for one line. The nightly patch plan and the rescan report it, and the other recipes still
+run. Then a small job fails for it, which opens the alert: `patch / plan-errors` or `rescan / scan-errors`. Its log
+names the recipe and the error. That job runs every time, so the alert closes once every recipe plans and scans again.
+
 ## Skipping upstream tests
 
 Skip a test only if it needs infrastructure the pipeline doesn't have (cloud credentials, a live
@@ -483,7 +488,7 @@ new one.
 |---|---|
 | `patcher validate` | Check every recipe, skip, VEX and state file |
 | `patcher schema --out schema` | Regenerate the JSON schemas after model changes (CI checks for drift) |
-| `patcher plan [--recipe X] [--all] [--changed-files F]` | Matrix of lines that need a run, each with the platform its patch run builds on |
+| `patcher plan [--recipe X] [--all] [--changed-files F]` | Matrix of lines that need a run, each with the platform its patch run builds on; recipes that can't be planned are listed under `errors` |
 | `patcher run <recipe> [--line L] [--skip-tests] [--skip-build] [--no-copa] [--no-retry] [--no-cooldown]` | The PR flow, locally. Never pushes. Report in `out/<recipe>/<line>/generated/report.md` |
 | `patcher init [owner/repo] [--image REF] [--name N]` | Draft a recipe for a new project or image |
 | `patcher coverage [--json] [--fail-on-uncovered]` | Which inventory images are covered and patched |
