@@ -2,7 +2,9 @@
 no credentials; jobs that can write (push images, sign, open PRs) read no cache, because any job on the branch can
 write those, including the ones that run upstream code."""
 
+import os
 import re
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -13,6 +15,7 @@ WORKFLOWS = sorted((ROOT / ".github" / "workflows").glob("*.yml"))
 ACTIONS = sorted((ROOT / ".github" / "actions").glob("*/action.yml"))
 UPSTREAM_CODE = ("run ", "release-build ")  # patcher commands that build or test upstream code
 RUN_PATCHER = "./.github/actions/run-patcher"
+TRUSTED_POOL = re.compile(r"vars\.PATCHER_RUNS_ON(?:_ARM64)?(?![A-Z0-9_])")  # not the _UPSTREAM ones
 
 
 def jobs(path: Path) -> list[tuple[str, dict, dict]]:
@@ -97,12 +100,35 @@ def test_release_jobs():
 @pytest.mark.parametrize("path", WORKFLOWS, ids=lambda p: p.name)
 def test_runners_come_from_the_runs_on_variables(path):
     """Self-hosted setups set PATCHER_RUNS_ON* (a runner group, labels or a scale set); unset means GitHub-hosted. Jobs
-    that run code we don't vet (upstream builds and tests, PR code) use the upstream pool, which can be kept apart."""
+    that run code we don't vet (upstream builds and tests, PR code) use only the upstream pool: never the trusted one,
+    which holds registry, signing and GitHub App credentials, not even as a fallback (check-runner-pools.sh)."""
     for name, job, _ in jobs(path):
         runs_on = str(job.get("runs-on", ""))
         assert "vars.PATCHER_RUNS_ON" in runs_on, f"{path.name}/{name}: take runs-on from vars.PATCHER_RUNS_ON*"
         if any(a.startswith(UPSTREAM_CODE) for a in patcher_args(job)):
             assert "PATCHER_RUNS_ON_UPSTREAM" in runs_on, f"{path.name}/{name} runs upstream code: PATCHER_RUNS_ON_UPSTREAM"
+        if "PATCHER_RUNS_ON_UPSTREAM" in runs_on:
+            assert not TRUSTED_POOL.search(runs_on), f"{path.name}/{name}: an upstream job must not fall back to the trusted pool"
+
+
+def test_runner_pool_check_runs_before_upstream_work():
+    for wf, job in [("patch.yml", "plan"), ("release.yml", "plan"), ("patcher-image.yml", "test")]:
+        j = {n: jb for n, jb, _ in jobs(ROOT / ".github" / "workflows" / wf)}[job]
+        assert any(s.get("run", "").strip() == "scripts/check-runner-pools.sh" for s in steps(j)), f"{wf}/{job}"
+
+
+@pytest.mark.parametrize("env, ok, says", [
+    ({}, True, ""),  # all GitHub-hosted
+    ({"PATCHER_RUNS_ON": '{"group": "patcher"}'}, False, "PATCHER_RUNS_ON_UPSTREAM is not"),
+    ({"PATCHER_RUNS_ON": '{"group": "patcher"}', "PATCHER_RUNS_ON_UPSTREAM": '{"group": "sandbox"}'}, True, ""),
+    ({"PATCHER_RUNS_ON": '{"group": "patcher"}', "PATCHER_RUNS_ON_UPSTREAM": '"ubuntu-24.04"'}, True, ""),
+    ({"PATCHER_RUNS_ON": '{"group": "patcher"}', "PATCHER_RUNS_ON_UPSTREAM": '{"group": "patcher"}'}, True, "::warning::"),
+    ({"PATCHER_RUNS_ON_ARM64": '["arm64"]'}, False, "PATCHER_RUNS_ON_UPSTREAM_ARM64 is not"),
+], ids=["unset", "trusted-only", "separate", "hosted-upstream", "same-pool", "arm64-only"])
+def test_runner_pool_check(env, ok, says):
+    r = subprocess.run([str(ROOT / "scripts" / "check-runner-pools.sh")], env={"PATH": os.environ["PATH"], **env},
+                       capture_output=True, text=True)
+    assert (r.returncode == 0) == ok and says in r.stdout, r.stdout
 
 
 def test_release_builds_default_to_the_native_runners():
