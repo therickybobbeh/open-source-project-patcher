@@ -2,11 +2,12 @@
 
 This page is generated from git history by [`build_wiki_history.py`](../scripts/build_wiki_history.py). The complete machine-readable snapshot is [`history.parquet`](history.parquet).
 
-Snapshot through: 2026-10-30T12:18:01-04:00
+Snapshot through: 2026-10-30T12:18:27-04:00
 
 | Date | Commit | Change | Patch artifacts |
 | --- | --- | --- | --- |
 | 2026-10-30 | [`fca03793a5`](../commit/fca03793a5109172d21badfa3341a7debf991708) | Merge pull request #61 from therickybobbeh/patch/splunk-otel-collector/v0 | generated/splunk-otel-collector/v0.163.1/bump-plan.json<br>generated/splunk-otel-collector/v0.163.1/deps.patch<br>generated/splunk-otel-collector/v0.163.1/report.md<br>generated/splunk-otel-collector/v0.163.1/vex-suggestions.yaml |
+| 2026-10-30 | [`3028e11cc9`](../commit/3028e11cc9bcfa4440d9eb623b42cec7666932cb) | copacetic v0.15.0: dependency updates | generated/copacetic/v0.15.0/bump-plan.json<br>generated/copacetic/v0.15.0/deps.patch<br>generated/copacetic/v0.15.0/report.md |
 | 2026-10-30 | [`4957efc411`](../commit/4957efc411874cb16cde335504fbd396051396c6) | otelcol-contrib v0.164.0: dependency updates | generated/otelcol-contrib/v0.164.0/bump-plan.json<br>generated/otelcol-contrib/v0.164.0/deps.patch<br>generated/otelcol-contrib/v0.164.0/report.md |
 | 2026-10-30 | [`453f2d7bf7`](../commit/453f2d7bf70f09147c6acc840f37875bf16f627f) | otelcol-contrib v0.153.0: dependency updates | generated/otelcol-contrib/v0.153.0/bump-plan.json<br>generated/otelcol-contrib/v0.153.0/deps.patch<br>generated/otelcol-contrib/v0.153.0/report.md |
 | 2026-10-30 | [`0dd1fd73c5`](../commit/0dd1fd73c5e8e48304b894283629acf329e12491) | state: copa refresh copacetic v0 | state/copacetic/v0.yaml |
