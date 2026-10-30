@@ -20,7 +20,7 @@ from pathlib import Path
 from . import adapters, archive, components, jars, reach, releases, toolchain, upstream
 from .adapters.base import Ctx, Result
 from .build import BuiltImage, arch_of, build_image, image_digest, native_platform, smoke_test, template_ctx
-from .config import Repo, line_key, render
+from .config import Repo, line_key, render, wanted_platforms
 from .ecosystems import CVE_ECOSYSTEMS
 from . import copa
 from .models import RELEASABLE_STATUSES, ImageSpec, Level, Line, LineState, Recipe, ReleasedImage
@@ -280,6 +280,8 @@ def run_line(repo: Repo, recipe: Recipe, line: Line, opts: RunOptions) -> Summar
         shutil.rmtree(out)
     out.mkdir(parents=True)
     g = repo.global_config()
+    if recipe.build and not recipe.build.platforms:
+        raise ValueError(f"{recipe.name}: built for none of PATCHER_PLATFORMS ({', '.join(wanted_platforms() or [])})")
 
     if recipe.mode == "image-only":
         return _run_image_only(repo, recipe, line, out, opts)
@@ -748,6 +750,12 @@ def _run_image_only(repo: Repo, recipe: Recipe, line: Line, out: Path, opts: Run
 RUNNERS = {"linux/amd64": "ubuntu-24.04", "linux/arm64": "ubuntu-24.04-arm"}
 
 
+def _check_wanted_platforms() -> None:
+    """PATCHER_PLATFORMS may only name platforms release builds run on: a typo would quietly skip every recipe."""
+    if unknown := [p for p in wanted_platforms() or [] if p not in RUNNERS]:
+        raise ValueError(f"PATCHER_PLATFORMS: no release runner for {', '.join(unknown)}; use {', '.join(RUNNERS)}")
+
+
 def find_generated(repo: Repo, recipe: Recipe, key: str, tag: str | None = None) -> tuple[Path, dict]:
     base = repo.root / "generated" / recipe.name
     best: tuple | None = None
@@ -810,6 +818,8 @@ def _release_row(repo: Repo, name: str, key: str) -> dict:
         raise ValueError(f"{name}: no `build` section, nothing to release")
     build = recipe.mode != "image-only"  # image-only: `publish` overlays the vendor image itself, in one cross build
     plats = release_platforms(recipe)
+    if not plats:
+        return {"recipe": name, "line": key, "reason": f"built for none of PATCHER_PLATFORMS ({', '.join(wanted_platforms() or [])})"}
     if build and (missing := [p for p in plats if p not in RUNNERS]):
         raise ValueError(f"{name}: no native runner for {', '.join(missing)}; release builds run on {', '.join(RUNNERS)}")
     return {"recipe": name, "line": key, "build": build, "platforms": plats,
@@ -821,6 +831,7 @@ def release_plan(repo: Repo, targets: list[tuple[str, str]]) -> dict:
     with their native runners; `skipped` rows for what is never released, with the reason; `errors` rows for what can't
     be released as it is (an unknown recipe or line, a platform without a runner). One target's error doesn't stop the
     others: release.yml releases those and then fails, which raises a CI alert."""
+    _check_wanted_platforms()
     include, skipped, errors = [], [], []
     for name, key in dict.fromkeys(targets):
         try:
@@ -1234,7 +1245,7 @@ def rescan(repo: Repo, out: Path, pending: set[tuple[str, str]] = frozenset()) -
                 result["pending"].append({"recipe": recipe.name, "line": key})
                 continue
             kinds = set()
-            platform = (ls.platforms or (recipe.build.platforms if recipe.build else ["linux/amd64"]))[0]
+            platform = (ls.platforms or (recipe.build.platforms if recipe.build else None) or ["linux/amd64"])[0]
             for img in ls.images:
                 rep = scan_image(f"{img.ref.rsplit(':', 1)[0]}@{img.digest}", out / f"rescan-{recipe.name}-{key}-{img.name}.json",
                                  severities=g.scan.severities, platform=platform, src="remote")
@@ -1307,7 +1318,7 @@ def refresh(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, o
         repo_ref, cur_tag = img.ref.rsplit(":", 1)
         up_tag = upstream_tag_of(repo, cur_tag)
         final = final_tag(repo, up_tag, rev)
-        plats = image_platforms(recipe, spec, platforms)  # the recorded platforms this image has
+        plats = [p for p in platforms if not spec.platforms or p in spec.platforms]  # the recorded platforms this image has
         if not plats:
             images.append(img)
             continue
@@ -1340,8 +1351,25 @@ def refresh(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, o
     return released
 
 
+def _patch_platform(recipe: Recipe) -> str:
+    """The platform a patch run builds and tests on: the first one the line is released for (linux/amd64 unless
+    PATCHER_PLATFORMS or the recipe say otherwise). patch.yml runs it on that platform's runner, so it builds natively."""
+    plats = release_platforms(recipe) if recipe.build else []
+    return plats[0] if plats else "linux/amd64"
+
+
+def _built_here(recipe: Recipe) -> bool:
+    """False for a recipe PATCHER_PLATFORMS leaves no platform: it is neither patched nor released here."""
+    if recipe.build and not recipe.build.platforms:
+        log(f"{recipe.name}: built for none of PATCHER_PLATFORMS ({', '.join(wanted_platforms() or [])}), skipped")
+        return False
+    return True
+
+
 def plan_matrix(repo: Repo, *, recipes: list[str] | None = None, changed_files: list[str] | None = None,
                 include_all: bool = False, before: str | None = None) -> list[dict]:
+    """The lines that need a patch run, each with the platform it builds on (`_patch_platform`)."""
+    _check_wanted_platforms()
     names = [p.stem for p in repo.recipe_paths()]
     selected: dict[str, set[str] | None] = {}  # recipe -> line keys (None = all)
     if recipes:
@@ -1369,7 +1397,7 @@ def plan_matrix(repo: Repo, *, recipes: list[str] | None = None, changed_files: 
     else:
         for name in names:
             recipe = repo.load_recipe(name)
-            if not recipe.source or recipe.mode == "component":
+            if not recipe.source or recipe.mode == "component" or not _built_here(recipe):
                 continue
             state = repo.state(name)
             if recipe.mode == "image-only":  # new upstream image tag -> run
@@ -1394,13 +1422,14 @@ def plan_matrix(repo: Repo, *, recipes: list[str] | None = None, changed_files: 
         if name not in names:
             continue
         recipe = repo.load_recipe(name)
-        if recipe.mode == "component":
+        if recipe.mode == "component" or not _built_here(recipe):
             continue
+        platform = _patch_platform(recipe)
         lines = recipe.source.lines if recipe.source else []
         for line in lines:
             k = line_key(line)
             if keys is None or k in keys:
-                matrix.append({"recipe": name, "line": k})
+                matrix.append({"recipe": name, "line": k, "platform": platform, "arch": arch_of(platform)})
     return matrix
 
 

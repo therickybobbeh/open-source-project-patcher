@@ -156,6 +156,17 @@ def test_every_job_sets_a_timeout(path):
         assert isinstance(limit, int) and 0 < limit <= 360, f"{path.name}/{name}: set timeout-minutes (at most 360)"
 
 
+def test_patcher_platforms_reaches_every_run():
+    """PATCHER_PLATFORMS (a repository variable) narrows what is built and released: the workflows that plan, build or
+    release pass it to the patcher, the container wrapper passes it on, and patch runs build on the plan's platform."""
+    for name in ("patch.yml", "release.yml", "rescan.yml"):
+        doc = yaml.safe_load((ROOT / ".github" / "workflows" / name).read_text())
+        assert doc["env"]["PATCHER_PLATFORMS"] == "${{ vars.PATCHER_PLATFORMS }}", name
+    assert "-e PATCHER_PLATFORMS" in (ROOT / "scripts" / "patcher-docker.sh").read_text()
+    patch = {name: job for name, job, _ in jobs(ROOT / ".github" / "workflows" / "patch.yml")}["patch"]
+    assert "--platform ${{ matrix.platform }}" in patcher_args(patch)[0] and "matrix.arch == 'arm64'" in patch["runs-on"]
+
+
 def test_release_builds_default_to_the_native_runners():
     from patcher.pipeline import RUNNERS
 

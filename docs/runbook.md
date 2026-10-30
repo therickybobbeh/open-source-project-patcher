@@ -54,7 +54,7 @@ Any `runs-on` form works:
   naming the variable (`scripts/check-runner-pools.sh`).
 - To keep upstream code on GitHub-hosted runners in a self-hosted setup, set the `UPSTREAM` variable to
   `"ubuntu-24.04"` (arm64: `"ubuntu-24.04-arm"`).
-- With no arm64 runners, set `build.platforms: [linux/amd64]` in the recipes.
+- With no arm64 runners, set `PATCHER_PLATFORMS` to `linux/amd64` ([Fewer platforms](#fewer-platforms)).
 
 **Security.** Patch runs and release builds run upstream build and test code with the Docker socket,
 which is root on the runner.
@@ -97,6 +97,37 @@ don't follow redirects. Upstream Dockerfiles choose which registries get contact
 challenge can name any server. Without the host variable the credentials are sent nowhere, and a warning is
 logged. This covers a self-hosted registry or proxy (Harbor, Nexus, Artifactory) that issues its own tokens.
 Docker Hub's token service is on another host, so this variable doesn't cover Docker Hub.
+
+## Fewer platforms
+
+Each recipe is built and released for every platform in its `build.platforms`: by default `linux/amd64` and
+`linux/arm64`. Where one is enough, for example a setup that runs only arm64, set the repository or organization
+**variable** `PATCHER_PLATFORMS`:
+
+| `PATCHER_PLATFORMS` | Built and released |
+|---|---|
+| unset (default) | each recipe's `build.platforms` |
+| `linux/arm64`, or `arm64` | arm64 only |
+| `linux/amd64`, or `amd64` | amd64 only |
+
+What changes:
+- **Releases** build, push, Copa and publish only those platforms. That's one build job instead of two, and
+  `publish` runs Copa once instead of twice (the second platform runs emulated). The images and `state/` list only
+  those platforms.
+- **Patch runs** build and test on the first of them, on that platform's runner: `ubuntu-24.04-arm` for arm64, or
+  `PATCHER_RUNS_ON_UPSTREAM_ARM64` on your own runners.
+- **It only narrows:** a recipe never builds a platform its `build.platforms` doesn't list.
+  - A recipe left with none of them, such as an amd64-only recipe with `linux/arm64`, is neither patched nor
+    released. `release-plan` reports it as skipped.
+  - An image that exists only for other platforms is left out of its recipe's builds and releases.
+- **Images released earlier** keep their platforms until their line's next release, because a Copa refresh patches
+  exactly what was released.
+- **Only platforms with a release runner** (`linux/amd64`, `linux/arm64`) are accepted. Anything else fails the plan
+  jobs, so a typo can't quietly skip every recipe.
+
+Locally, `scripts/patcher-docker.sh` passes the variable into the container, e.g.
+`PATCHER_PLATFORMS=arm64 scripts/patcher-docker.sh release-plan --recipe dex --line v2`. `patcher run` builds for the
+machine it runs on unless `--platform` says otherwise.
 
 ## Reviewing a patch PR
 
@@ -452,7 +483,7 @@ new one.
 |---|---|
 | `patcher validate` | Check every recipe, skip, VEX and state file |
 | `patcher schema --out schema` | Regenerate the JSON schemas after model changes (CI checks for drift) |
-| `patcher plan [--recipe X] [--all] [--changed-files F]` | Matrix of lines that need a run |
+| `patcher plan [--recipe X] [--all] [--changed-files F]` | Matrix of lines that need a run, each with the platform its patch run builds on |
 | `patcher run <recipe> [--line L] [--skip-tests] [--skip-build] [--no-copa] [--no-retry] [--no-cooldown]` | The PR flow, locally. Never pushes. Report in `out/<recipe>/<line>/generated/report.md` |
 | `patcher init [owner/repo] [--image REF] [--name N]` | Draft a recipe for a new project or image |
 | `patcher coverage [--json] [--fail-on-uncovered]` | Which inventory images are covered and patched |
