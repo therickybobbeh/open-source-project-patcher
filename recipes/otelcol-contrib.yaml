@@ -20,6 +20,10 @@ env:
 # Upstream generates into _build/, which .gitignore excludes: the bumps would then never reach deps.patch or the
 # image, so the module is generated into gen/ instead, and the run stops if gen/ is ignored.
 prepare:
+  # From v0.158 the manifest replaces go.opentelemetry.io/obi (eBPF instrumentation) with ../../../internal/obi-src:
+  # upstream's script downloads OBI's source release with the pre-generated BPF objects (checksum-verified) into it.
+  # .gitignore excludes it, so it is not in deps.patch: build.setup fetches it again for the release build
+  - "[ ! -f scripts/prepare-obi.sh ] || bash scripts/prepare-obi.sh otelcol-contrib"
   - >-
     cd distributions/otelcol-contrib &&
     ocb_version=$(sed -n 's/^OTELCOL_BUILDER_VERSION ?= *//p' ../../Makefile) &&
@@ -42,11 +46,14 @@ holds:
     - name: go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc
       reason: same lockstep as go.opentelemetry.io/otel/sdk/log
 scan:
-  skipDirs: [internal/tools, tests]  # release tooling and MSI tests, not in the image
+  # release tooling and MSI tests, not in the image; OBI's own go.mod lists its minimums, while gen/go.mod holds
+  # the versions the binary is built with
+  skipDirs: [internal/tools, internal/obi-src, tests]
   skipFiles: [go.mod, go.sum]  # the repo's own release-tooling module (GoReleaser Pro), not in the image
   reachability: false  # govulncheck over ~1,000 modules takes longer than its VEX hints are worth here
 build:
   timeoutMinutes: 90
+  setup: ["[ ! -f scripts/prepare-obi.sh ] || bash scripts/prepare-obi.sh otelcol-contrib"]  # see prepare
   images:
     - name: opentelemetry-collector-contrib
       upstream: otel/opentelemetry-collector-contrib
