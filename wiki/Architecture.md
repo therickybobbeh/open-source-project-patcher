@@ -16,8 +16,9 @@ The detailed architecture reference is [`docs/architecture.md`](../docs/architec
    and, last, opens the `state/` PR.
 5. `rescan.yml` finds new findings in published images and either refreshes OS
    packages or starts a new source patch.
-6. `wiki-history.yml` records the repository's patch and release trail in
-   `wiki/history.parquet`.
+6. `wiki-history.yml` publishes the repository's patch and release trail
+   (`History.md`, `history.parquet`) as the single commit of the `wiki-history`
+   branch.
 
 Recipes are policy and configuration; generated reports and state are the
 auditable outputs. See the [layout](../README.md#layout) in the main README.

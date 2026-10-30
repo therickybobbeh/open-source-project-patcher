@@ -25,32 +25,33 @@ concurrency:
 jobs:
   update:
     runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.repository.default_branch }}  # the latest main, not the push that queued this run
           fetch-depth: 0
+          persist-credentials: false
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           enable-cache: false  # no shared cache: patch jobs, which run upstream code, can write it
-      - name: Build wiki history
-        run: uv run --no-project --with pyarrow==26.0.0 python scripts/build_wiki_history.py  # pinned: this job can push to main
-      - name: Commit generated history
+      - name: Build the patch history
         env:
-          BRANCH: ${{ github.event.repository.default_branch }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+        # pinned: this job holds contents: write
+        run: >-
+          uv run --no-project --with pyarrow==26.0.0 python scripts/build_wiki_history.py
+          --out "$RUNNER_TEMP/wiki-history" --repo-url "$REPO_URL"
+      - name: Publish it as the single commit of the wiki-history branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # main gets no bot commits (branch protection stays intact) and old snapshots don't pile up: the branch holds
+        # one commit, replaced on every run
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add wiki/history.parquet wiki/History.md
-          if git diff --cached --quiet; then
-            echo "Wiki history is already current."
-            exit 0
-          fi
-          git commit -m "docs: update wiki history"
-          # a merge can land while this runs: replay the commit on the newest main (the merge's own push runs this
-          # workflow again, so the history catches up)
-          for attempt in 1 2 3; do
-            git pull -q --rebase origin "$BRANCH" && git push -q origin "HEAD:$BRANCH" && exit 0
-            sleep $((attempt * 5))
-          done
-          exit 1
+          cd "$RUNNER_TEMP/wiki-history"
+          git init -q -b wiki-history
+          git add History.md history.parquet
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "Patch history through ${GITHUB_SHA::10}"
+          auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          git -c "http.${GITHUB_SERVER_URL}/.extraheader=$auth" push -q --force "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git" HEAD:refs/heads/wiki-history

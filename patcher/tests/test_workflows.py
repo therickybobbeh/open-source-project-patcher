@@ -105,6 +105,17 @@ def test_runners_come_from_the_runs_on_variables(path):
             assert "PATCHER_RUNS_ON_UPSTREAM" in runs_on, f"{path.name}/{name} runs upstream code: PATCHER_RUNS_ON_UPSTREAM"
 
 
+def test_no_workflow_pushes_to_the_default_branch():
+    """Bot changes to main go through PRs (branch protection with a required check stays intact). The one direct push,
+    the patch history, goes to its own branch."""
+    for path in WORKFLOWS:
+        for name, job, _ in jobs(path):
+            for s in steps(job):
+                for line in s.get("run", "").splitlines():
+                    if re.search(r"\bgit\b.*\bpush\b", line):
+                        assert "HEAD:refs/heads/wiki-history" in line, f"{path.name}/{name} pushes: {line.strip()}"
+
+
 def test_release_builds_default_to_the_native_runners():
     from patcher.pipeline import RUNNERS
 
