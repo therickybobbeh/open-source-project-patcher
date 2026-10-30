@@ -57,6 +57,18 @@ def test_hold_and_override():
     assert crypto.to == "v0.40.0" and crypto.reasons == ["override: org baseline"]
 
 
+def test_a_hold_can_apply_to_some_upstream_tags_only():
+    import pytest
+
+    r = recipe(holds={"gomod": [Hold(name="google.golang.org/grpc", tagPattern=r"^v3\.", reason="helm 3 only")]})
+    held = {u.name for u in build_plan(report(), r.for_tag("v3.19.4")).unresolved if u.why.startswith("held")}
+    assert held == {"google.golang.org/grpc"}
+    assert "google.golang.org/grpc" in {b.name for b in build_plan(report(), r.for_tag("v4.2.1")).bumps}
+    assert r.for_tag("v4.2.1").holds == {"gomod": []} and r.for_tag("v3.19.4") is r  # unchanged when every hold applies
+    with pytest.raises(ValueError):
+        Hold(name="x", tagPattern="^v3\\.(", reason="bad regex")
+
+
 def test_unfixed_findings_are_reported_not_planned():
     plan = build_plan(report(), recipe())
     assert any(u.vuln_id == "CVE-2099-0001" and u.why == "no fixed version" for u in plan.unresolved)

@@ -11,6 +11,7 @@ toolchain:
   go: "1.26"
   node: "24"
   pnpm: "10.28.1"   # ui/package.json packageManager; the image build runs `pnpm install --frozen-lockfile`
+  yarn: "1.22.22"   # v3.4's UI is yarn classic (ui/yarn.lock)
 ecosystems:
   - type: gomod
     dirs: [".", "gitops-engine"]
@@ -19,13 +20,17 @@ ecosystems:
       - pattern: '^k8s\.io/'
   - type: pnpm
     dirs: [ui]
+  # v3.4's UI predates the move to pnpm: without this its ui/yarn.lock (bundled into the image) was never patched.
+  # Each adapter only touches directories holding its own lockfile, so each line gets the one it has
+  - type: yarn
+    dirs: [ui]
   - type: dockerfile
     files: [Dockerfile]
     # v3.4 builds its UI on node:23.0.0, end-of-life since 2025-06 (v3.5 is on 24). 24 is LTS until 2028-04 and
     # still ships yarn classic, which v3.4's UI stage runs; node 26 images have no yarn
     minVersions: {node: "24"}
 scan:
-  skipDirs: [hack/tools, hack/get-previous-release, test/e2e, docs]
+  skipDirs: [hack/tools, hack/get-previous-release, test/e2e, docs, ui-test]  # ui-test: the UI's end-to-end suite
 regen: []
 # k8s minor bumps may need `make codegen-local` (protoc, vendoring); patch bumps don't. To enable:
 #   - when: replaceGroupMoved
@@ -53,7 +58,10 @@ build:
 # at the same version with patched dependencies and swapped into the image (see components in docs/recipes.md).
 components:
   - recipe: helm
-    path: /usr/local/bin/helm            # version from Go build info
+    path: /usr/local/bin/helm
+    # v3.4 bundles helm 3 (helm3_version=3.19.4), whose binary carries no Go build-info version, so it was never
+    # rebuilt; v3.5 bundles helm 4 (helm4_version)
+    versionFrom: { file: hack/tool-versions.sh, pattern: '^helm[34]_version=v?(?P<version>\S+)$' }
   - recipe: kustomize
     path: /usr/local/bin/kustomize
     tag: "kustomize/v{{version}}"

@@ -307,6 +307,7 @@ overrides:   # "if a lower version is found, force at least this", even without 
 holds:       # never bump (or never past `max`)
   gomod:
     - { name: k8s.io/kube-openapi, reason: upstream pin (SMD v6) }
+    - { name: oras.land/oras-go/v2, tagPattern: '^v3\.', reason: helm 3 only }   # only for these upstream tags
   npm:
     - { name: react, max: 18.3.1, reason: UI not ready for 19 }
 ```
@@ -316,6 +317,9 @@ holds:       # never bump (or never past `max`)
 - **Precedence:** entries in `_global.yaml` apply to every recipe, and a recipe entry with the same
   `name` replaces the global one.
 - **Overrides ignore the policy cap:** an override is a human decision.
+- **`tagPattern` on a hold** limits it to the upstream tags it matches. A component recipe serves
+  every version its parents bundle, so a bump that breaks one major (helm 3) can be held there
+  without holding back the next (helm 4).
 
 ## Scan
 
@@ -443,10 +447,11 @@ components:
 name: helm
 mode: component
 source: { repo: helm/helm, lines: [{ tagPattern: '^v4\.\d+\.\d+$' }] }
+toolchain: { go: "1.26" }                    # the floor for tests and the build
 ecosystems: [{ type: gomod }]
 tests: { framework: go, command: "go test {{skip_args}} ./..." }
 artifact:
-  builder: "golang:{{go}}"                   # {{go}} = the Go version the component needs
+  builder: "golang:{{go}}"                   # {{go}}: the highest of toolchain.go, go.mod and the bumps' needs
   build: CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o /out/helm ./cmd/helm
   output: /out/helm
 ```
@@ -458,6 +463,10 @@ artifact:
   images share one build.
 - **Overlay:** the parent image is rebuilt `FROM` itself with each usable component's binary copied
   over the original. Binaries are cross-compiled per platform in a buildx stage, with no emulation.
+- **Go version:** set `toolchain.go` on Go components. A tool's `go.mod` can name an end-of-life Go
+  (git-lfs 3.7.1 and kustomize 5.8.1 name 1.24), and a binary built with it ships that Go's
+  unpatched standard library. The builder uses the highest of `toolchain.go`, the `go.mod` and what
+  the bumps need.
   Smoke tests, Copa and the after-scan run on the result.
 - **Usable** means the component's run ended `success`, `no-changes` or `tests-preexisting`.
   Otherwise the original binary stays, and the report says why.

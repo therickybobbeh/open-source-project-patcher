@@ -7,6 +7,8 @@ source:
   exclude: ['^(api|kyaml|cmd/config|plugin)/']
   lines:   # only used for standalone runs; parents pick the exact version they bundle
     - tagPattern: '^kustomize/v5\.\d+\.\d+$'
+toolchain:
+  go: "1.26"  # tests and the rebuilt binary: at least this Go, whatever the tool's go.mod names (git-lfs and kustomize name the end-of-life 1.24)
 ecosystems:
   - type: gomod
     dirs: [kustomize]   # the CLI module; api/kyaml are separate modules at their own tags
