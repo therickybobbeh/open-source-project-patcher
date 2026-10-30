@@ -81,7 +81,7 @@
         "vuln_id": "CVE-2026-78661",
         "severity": "UNKNOWN",
         "fixed": "0.62.0",
-        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
       },
       {
         "ecosystem": "gomod",
@@ -91,7 +91,7 @@
         "vuln_id": "CVE-2026-97045",
         "severity": "UNKNOWN",
         "fixed": "0.62.0",
-        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
       },
       {
         "ecosystem": "yarn",
@@ -136,8 +136,8 @@
       "target": "Dockerfile",
       "name": "node",
       "old": "node:20-alpine",
-      "new": "node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293",
-      "note": "base image refresh"
+      "new": "node:24-alpine@sha256:8a32c8cf649a49915a66e81e7a609223c708d0adabf288ee3f4077d765542f85",
+      "note": "20-alpine -> 24-alpine (minVersions: the 24 line)"
     },
     {
       "ecosystem": "dockerfile",
@@ -265,7 +265,7 @@
       "vuln_id": "CVE-2026-78661",
       "severity": "UNKNOWN",
       "fixed": "0.62.0",
-      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
     },
     {
       "ecosystem": "gomod",
@@ -275,7 +275,7 @@
       "vuln_id": "CVE-2026-97045",
       "severity": "UNKNOWN",
       "fixed": "0.62.0",
-      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
     },
     {
       "ecosystem": "yarn",
