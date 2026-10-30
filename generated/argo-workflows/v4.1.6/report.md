@@ -18,7 +18,7 @@ Upstream: https://github.com/argoproj/argo-workflows @ `43021573c5a3` (line `v4.
 | gomod | `go.mod` | `github.com/go-jose/go-jose/v4` | `v4.1.4` | `v4.1.6` | CVE-2026-116585, CVE-2026-116586, CVE-2026-116587 |
 | yarn | `ui/yarn.lock` | `qs` | `6.16.0` | `6.16.1` | CVE-2026-110816 |
 | dockerfile | `Dockerfile` | `golang` | `golang:1.26.10-alpine3.23` | `golang:1.26.10-alpine3.23@sha256:34414731924cf2263160f0021f5cf6e1807382d85248f7cb419d4187b96d5e43` | base image refresh |
-| dockerfile | `Dockerfile` | `node` | `node:20-alpine` | `node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293` | base image refresh |
+| dockerfile | `Dockerfile` | `node` | `node:20-alpine` | `node:24-alpine@sha256:8a32c8cf649a49915a66e81e7a609223c708d0adabf288ee3f4077d765542f85` | 20-alpine -> 24-alpine (minVersions: the 24 line) |
 | dockerfile | `Dockerfile` | `gcr.io/distroless/static-debian13` | `static-debian13:latest@sha256:034df5c1737e8241f6ed6423a12e720ee0f6d6f088609ee172f98f6f2166ef5d` | `static-debian13:latest@sha256:15f8637509792e05b97d83451b0b6ccfa4abd548f997e406ac1e72c87fe1fa78` | base image refresh |
 | dockerfile | `Dockerfile` | `gcr.io/distroless/static-debian13` | `static-debian13:latest@sha256:034df5c1737e8241f6ed6423a12e720ee0f6d6f088609ee172f98f6f2166ef5d` | `static-debian13:latest@sha256:15f8637509792e05b97d83451b0b6ccfa4abd548f997e406ac1e72c87fe1fa78` | base image refresh |
 | dockerfile | `Dockerfile` | `gcr.io/distroless/static-debian13` | `static-debian13:latest@sha256:034df5c1737e8241f6ed6423a12e720ee0f6d6f088609ee172f98f6f2166ef5d` | `static-debian13:latest@sha256:15f8637509792e05b97d83451b0b6ccfa4abd548f997e406ac1e72c87fe1fa78` | base image refresh |
@@ -34,8 +34,8 @@ Upstream: https://github.com/argoproj/argo-workflows @ `43021573c5a3` (line `v4.
 | HIGH | CVE-2024-45296 | `path-to-regexp` | `1.8.0` | `1.9.0, 0.1.10, 8.0.0, 3.3.0, 6.3.0` | source (`trivy fs`): `ui/yarn.lock` | still at 1.8.0 after 3 round(s) |
 | MEDIUM | CVE-2026-41907 | `uuid` | `9.0.1` | `11.1.1, 12.0.1, 13.0.1` | source (`trivy fs`): `ui/yarn.lock` | needs-human: fix requires a bump beyond the `minor` policy |
 | LOW | CVE-2026-24001 | `diff` | `5.1.0` | `8.0.3, 5.2.2, 4.0.4, 3.5.1` | source (`trivy fs`): `ui/yarn.lock` | still at 5.1.0 after 3 round(s) |
-| UNKNOWN | CVE-2026-78661 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | source (`trivy fs`): `go.mod` | cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03) |
-| UNKNOWN | CVE-2026-97045 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | source (`trivy fs`): `go.mod` | cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03) |
+| UNKNOWN | CVE-2026-78661 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | source (`trivy fs`): `go.mod` | cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03) |
+| UNKNOWN | CVE-2026-97045 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | source (`trivy fs`): `go.mod` | cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03) |
 | UNKNOWN | CVE-2026-78661 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | image `workflow-controller` | in bundled artifact `usr/bin/workflow-controller` (not built from this source) |
 | UNKNOWN | CVE-2026-97045 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | image `workflow-controller` | in bundled artifact `usr/bin/workflow-controller` (not built from this source) |
 | UNKNOWN | CVE-2026-78661 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | image `argocli` | in bundled artifact `usr/bin/argo` (not built from this source) |
@@ -55,7 +55,7 @@ Upstream: https://github.com/argoproj/argo-workflows @ `43021573c5a3` (line `v4.
 
 ### Upstream tests
 
-✅ passed in 12.4 min — `make ui/dist/app/index.html STATIC_FILES=false && go mod vendor && go build -mod=vendor ./... && env KUBECONFIG=/dev/null go run gotest.tools/gotestsum@v1.12.3 --junitfile junit.xml --format testname --rerun-fails=2 --rerun-fails-run-root-test --packages ./... -- -p 20 -timeout 30m -skip='^TestArtif`
+✅ passed in 12.8 min — `make ui/dist/app/index.html STATIC_FILES=false && go mod vendor && go build -mod=vendor ./... && env KUBECONFIG=/dev/null go run gotest.tools/gotestsum@v1.12.3 --junitfile junit.xml --format testname --rerun-fails=2 --rerun-fails-run-root-test --packages ./... -- -p 20 -timeout 30m -skip='^TestArtif`
 
 Skipped tests (from `skips/argo-workflows.yaml`):
 

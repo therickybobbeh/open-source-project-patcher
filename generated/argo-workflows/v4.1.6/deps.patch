@@ -1,5 +1,5 @@
 diff --git a/Dockerfile b/Dockerfile
-index 3cefd9e..6992520 100644
+index 3cefd9e..ba67599 100644
 --- a/Dockerfile
 +++ b/Dockerfile
 @@ -3,7 +3,7 @@ ARG GIT_COMMIT=unknown
@@ -16,7 +16,7 @@ index 3cefd9e..6992520 100644
  ####################################################################################################
  
 -FROM node:20-alpine AS argo-ui
-+FROM node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293 AS argo-ui
++FROM node:24-alpine@sha256:8a32c8cf649a49915a66e81e7a609223c708d0adabf288ee3f4077d765542f85 AS argo-ui
  
  RUN apk update && apk add --no-cache git
  
