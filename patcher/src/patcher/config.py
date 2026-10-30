@@ -11,7 +11,7 @@ from typing import Any, TypeVar
 import yaml
 from pydantic import BaseModel
 
-from .models import Build, GlobalConfig, Hold, Line, LineState, Override, Recipe, SkipFile, State, VexFile
+from .models import Build, Gate, GlobalConfig, Hold, Line, LineState, Override, Recipe, SkipFile, State, VexFile
 
 M = TypeVar("M", bound=BaseModel)
 
@@ -74,6 +74,11 @@ def _only(build: Build, wanted: list[str]) -> Build:
     return build.model_copy(update={"platforms": plats, "images": images})
 
 
+def _deep_merge(base: dict, over: dict) -> dict:
+    return {**base, **{k: _deep_merge(base[k], v) if isinstance(v, dict) and isinstance(base.get(k), dict) else v
+                       for k, v in over.items()}}
+
+
 def _merge_rules(global_rules: dict[str, list], recipe_rules: dict[str, list]) -> dict[str, list]:
     merged: dict[str, list] = {}
     for eco in set(global_rules) | set(recipe_rules):
@@ -125,6 +130,8 @@ class Repo:
             recipe.policy = g.policy
         else:  # fields the recipe sets win; the rest (e.g. the age rule) come from _global.yaml
             recipe.policy = g.policy.model_copy(update=recipe.policy.model_dump(exclude_unset=True))
+        # the gate's fields the recipe sets win, down to `failOn.fixable` and `failOn.unfixed`
+        recipe.gate = Gate.model_validate(_deep_merge(g.gate.model_dump(), recipe.gate.model_dump(exclude_unset=True)))
         if recipe.build and (wanted := wanted_platforms()):
             recipe.build = _only(recipe.build, wanted)
         return recipe

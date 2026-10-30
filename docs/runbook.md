@@ -133,7 +133,8 @@ machine it runs on unless `--platform` says otherwise.
 
 Each PR is titled `[<recipe>] <tag>: dependency updates (<status>)`. The body is the generated
 report; the same files are in `generated/<recipe>/<tag>/`. The PR is a **draft** when tests, the
-build or a smoke test failed.
+build or a smoke test failed. It is also a draft when the [release gate](gate.md) is enforced and would stop
+the release. The report's **Release gate** section shows the verdict either way.
 
 | Status | Meaning |
 |---|---|
@@ -298,8 +299,9 @@ Set `expires` so decisions get revisited.
    (`build.platforms`, default amd64 and arm64; an image's own `platforms` narrows it). This job runs upstream
    code, so it has no registry credentials: it saves the images as archives instead of pushing them.
 2. **push**: pushes the archives as per-arch tags of a new revision, after checking each one.
-3. **publish**: merges the platforms, runs Copa, pushes the final tags, signs with cosign (keyless), and
-   attaches a CycloneDX SBOM and the OpenVEX document.
+3. **publish**: merges the platforms, runs Copa, and pushes the final tags. Then it checks each image's final
+   scan against the [release gate](gate.md). With `gate.enforce`, a denied image stops the release here, unsigned
+   and unrecorded. Last, it signs with cosign (keyless), and attaches a CycloneDX SBOM and the OpenVEX document.
 4. **attest**: SLSA provenance for each image.
 5. **promote**: moves the moving tag (`<tag>-patched`) to the signed digest. If anything before failed, it stays on
    the previous revision.

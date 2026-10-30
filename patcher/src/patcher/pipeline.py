@@ -18,7 +18,7 @@ from contextlib import contextmanager
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-from . import adapters, archive, components, jars, reach, releases, toolchain, upstream
+from . import adapters, archive, components, gate, jars, reach, releases, toolchain, upstream
 from .adapters.base import Ctx, Result
 from .build import BuiltImage, arch_of, build_image, image_digest, native_platform, smoke_test, template_ctx
 from .config import Repo, line_key, render, wanted_platforms
@@ -605,6 +605,8 @@ def _test_word(t: TestOutcome | None) -> str:
 
 
 def _write_outputs(repo: Repo, s: Summary, att: Attempt | None, out: Path) -> None:
+    if s.status in RELEASABLE:  # what the release would be held to, so a reviewer sees it before merging
+        s.gate = gate.check(repo.root, "patch", s.recipe, s.line, [(i.name, i.ref, i.after) for i in s.images if i.after], s.vex)
     gen = out / "generated"
     gen.mkdir(exist_ok=True)
     md = render_markdown(s)
@@ -647,7 +649,9 @@ def _write_outputs(repo: Repo, s: Summary, att: Attempt | None, out: Path) -> No
         "generatedAt": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
         "images": [{"name": i.name, "ref": i.ref, "upstream": i.upstream_ref,
                     "after": i.after.to_json() if i.after else None} for i in s.images],
-        "draft": s.status not in RELEASABLE,
+        "gate": {k: v.to_json() for k, v in s.gate.items()},
+        # tests that failed, or (with gate.enforce) a gate the release would stop at: not ready to merge
+        "draft": s.status not in RELEASABLE or (s.recipe.gate.enforce and not all(v.passed for v in s.gate.values())),
     }
     (out / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     findings = [f for i in s.images if i.after for f in i.after.findings]
@@ -1114,6 +1118,7 @@ def publish(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, o
                            "new revision")
     released: list[dict] = []
     images: list[ReleasedImage] = []
+    scanned: list[tuple] = []  # (image key, ref, final scan) for the gate
     for img in todo:
         spec, cr = img.spec, None
         if img.ref in existing:
@@ -1137,6 +1142,8 @@ def publish(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, o
         images.append(ReleasedImage(name=spec.key, ref=img.ref, digest=digest, knownFixable=_fixable_keys(after)))
         released.append({"image": spec.key, "repository": img.repository, "tag": img.final, "digest": digest, "vex": str(vex_path),
                          "copa": copa_note, "jars": [f"/{s.path}: {s.name} {s.new}" for s in swaps.get(spec.key, [])]})
+        scanned.append((spec.key, f"{img.repository}@{digest}", after))
+    _gate(repo, recipe, key, scanned, released)
     st = repo.state(recipe.name)
     st.lines[key] = LineState(upstreamTag=doc["tag"], commit=doc["commit"], revision=rev,
                               releasedAt=dt.datetime.now(dt.timezone.utc).replace(microsecond=0),
@@ -1154,7 +1161,7 @@ def _publish_image_only(repo: Repo, recipe: Recipe, key: str, platforms: list[st
     registry may have newer ones by now, and those were never reviewed."""
     g = repo.global_config()
     st = repo.state(recipe.name)
-    released, images = [], []
+    released, images, scanned = [], [], []
     gen, doc = find_generated(repo, recipe, key, tag)
     _releasable(gen, doc)
     recorded = doc.get("imageTags") or {}
@@ -1201,11 +1208,24 @@ def _publish_image_only(repo: Repo, recipe: Recipe, key: str, platforms: list[st
         released.append({"image": spec.key, "repository": repo_ref, "tag": final, "digest": digest, "vex": str(vex_path),
                          "copa": cr.note() if cr else "disabled",
                          "jars": [f"/{s.path}: {s.name} {s.new}" for s in mine_jars]})
+        scanned.append((spec.key, f"{repo_ref}@{digest}", after))
+    _gate(repo, recipe, key, scanned, released)
     st.lines[key] = LineState(upstreamTag=targets[0][1], commit="n/a", revision=rev, platforms=platforms,
                               releasedAt=dt.datetime.now(dt.timezone.utc).replace(microsecond=0), images=images)
     repo.save_state(recipe.name, st)
     (out / "release.json").write_text(json.dumps(released, indent=2) + "\n")
     return released
+
+
+def _gate(repo: Repo, recipe: Recipe, key: str, scanned: list[tuple], released: list[dict]) -> None:
+    """The release gate on each image about to be signed. Its verdict goes into the release record, which the state PR
+    shows. With gate.enforce, a denied image stops the release here, before state/ and release.json are written: nothing
+    is signed, promoted or recorded."""
+    verdicts = gate.check(repo.root, "release", recipe, key, scanned, repo.vex(recipe.name))
+    for r in released:
+        if r["image"] in verdicts:
+            r["gate"] = verdicts[r["image"]].to_json()
+    gate.enforce(recipe, key, verdicts)
 
 
 def promote(repo: Repo, recipe: Recipe, released: list[dict]) -> list[str]:
@@ -1327,7 +1347,7 @@ def refresh(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, o
     _check_moving_tags(repo, ls)
     platforms = ls.platforms or platforms or recipe.build.platforms  # patch exactly what was released
     rev = _refresh_revision(repo, ls, platforms)
-    released, images = [], []
+    released, images, scanned = [], [], []
     specs = {s.key: s for s in recipe.build.images}
     for img in ls.images:
         spec = specs.get(img.name)
@@ -1362,6 +1382,8 @@ def refresh(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, o
         images.append(ReleasedImage(name=spec.key, ref=f"{repo_ref}:{final}", digest=digest, knownFixable=_fixable_keys(after)))
         released.append({"image": spec.key, "repository": repo_ref, "tag": final, "digest": digest, "vex": str(vex_path),
                          "copa": cr.note()})
+        scanned.append((spec.key, f"{repo_ref}@{digest}", after))
+    _gate(repo, recipe, key, scanned, released)
     if released:
         st.lines[key] = ls.model_copy(update={"revision": rev, "images": images,
                                                "releasedAt": dt.datetime.now(dt.timezone.utc).replace(microsecond=0)})

@@ -39,6 +39,23 @@ jobs:
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           enable-cache: false  # no shared cache: patch jobs, which run upstream code, can write it
+      # The release gate's policy (policy/): formatted, its Rego tests pass, and conftest is on PATH for the Python tests
+      # that evaluate it. Version and checksums come from patcher/Dockerfile: CI runs what the image runs.
+      - name: Release gate policy
+        run: |
+          arg() { sed -n "s/^ARG $1=//p" patcher/Dockerfile; }
+          v=$(arg CONFTEST_VERSION)
+          case "$(uname -m)" in
+            x86_64) asset="conftest_${v}_Linux_x86_64.tar.gz" sum=$(arg CONFTEST_SHA256_AMD64) ;;
+            *) asset="conftest_${v}_Linux_arm64.tar.gz" sum=$(arg CONFTEST_SHA256_ARM64) ;;
+          esac
+          curl -fsSL --retry 3 -o "$RUNNER_TEMP/conftest.tgz" \
+            "https://github.com/open-policy-agent/conftest/releases/download/v$v/$asset"
+          echo "$sum  $RUNNER_TEMP/conftest.tgz" | sha256sum -c -
+          mkdir -p "$RUNNER_TEMP/bin" && tar -xzf "$RUNNER_TEMP/conftest.tgz" -C "$RUNNER_TEMP/bin" conftest
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/bin/conftest" fmt --check policy
+          "$RUNNER_TEMP/bin/conftest" verify --policy policy
       - run: uv run --project patcher --frozen pytest -q patcher/tests
       - run: uv run --project patcher --frozen patcher validate
       - name: Schemas are up to date
