@@ -1,0 +1,14 @@
+upstreamTag: v0.163.1
+commit: 4b86b8ce0dace0625c2458bde98bb446c93e3caa
+revision: 1
+releasedAt: '2026-10-30T16:28:40Z'
+platforms:
+- linux/amd64
+- linux/arm64
+images:
+- name: splunk-otel-collector
+  ref: ghcr.io/therickybobbeh/splunk-otel-collector:0.163.1-patched.1
+  digest: sha256:b500ab0c1a349719a8e8ff9e7ae5ad2299c00008215d047211082a302eed5fae
+  knownFixable:
+  - CVE-2026-78661|golang.org/x/net|otelcol
+  - CVE-2026-97045|golang.org/x/net|otelcol
