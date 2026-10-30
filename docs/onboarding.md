@@ -103,8 +103,9 @@ Repeat until the run ends `success`, or `tests-preexisting` with every failure u
      credentials: the build runs upstream code, so its images leave the job as archives;
    - pushes them to GHCR from a job that runs no upstream code, then merges the platforms and runs Copa;
    - signs the image and attaches the SBOM, OpenVEX and SLSA provenance;
-   - opens a `[<name>] record release of <line>` PR. Merge it: `state/` is what the nightly run and
-     `patcher coverage` read.
+   - opens a `[<name>] record release of <line>` PR, which merges itself once `test` passes: `state/` is
+     what the nightly run and `patcher coverage` read. If auto-merge isn't allowed in the repository settings,
+     merge it yourself.
 
    If the run fails after the builds, finish it with `rebuild: false`
    ([runbook](runbook.md#a-release-failed-after-the-builds)).

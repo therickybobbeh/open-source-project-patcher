@@ -28,6 +28,10 @@ For the people who review patch PRs and operate the pipeline. Background is in
    `patcher validate`, schema and lock-file drift). It runs on every PR, so Dependabot, tool-pins,
    patch, state and docs PRs all report it. Bot PRs only run checks once the GitHub App (step 1) opens
    them.
+   - Also turn on *Settings → General → Allow auto-merge* and *Automatically delete head branches*. A release's
+     `state/` PR then merges itself once `test` passes ([Releases](#releases)).
+   - Don't require approving reviews on `main`, or `state/` PRs wait for one. If `main` restricts who can push,
+     allow the GitHub App.
 5. **GHCR:** images are published to `ghcr.io/<owner>/<image>` and start **private**. Make them
    public, or give your clusters' pull secrets access.
 6. **Release lines:** edit each recipe's `source.lines` to the versions you actually run.
@@ -311,7 +315,16 @@ Set `expires` so decisions get revisited.
 4. **attest**: SLSA provenance for each image.
 5. **promote**: moves the moving tag (`<tag>-patched`) to the signed digest. If anything before failed, it stays on
    the previous revision.
-6. **state**: opens the `state/` PR. It comes last, so `state/` only records complete releases.
+6. **state**: opens the `state/` PR. It comes last, so `state/` only records complete releases. The PR merges itself
+   (squash) once `test` passes: it only records what the run did. The `open-pr` action checks that before turning on
+   auto-merge:
+   - the App opened it;
+   - it targets the default branch;
+   - it changes that one `state/<recipe>/<line>.yaml` file and nothing else;
+   - its head is still the commit it checked.
+
+   Anything else is refused and fails the job. If auto-merge can't be turned on (repository settings), the PR stays
+   open with a warning, for a human to merge.
 
 Why the jobs are split this way is in [architecture.md](architecture.md#release-flow). A push that lands several
 patch sets starts one run per line. A line that can't be released (an unknown recipe or line, a platform without a
@@ -433,8 +446,8 @@ revision. The run then handles that revision exactly like a release:
 - it moves the moving tag;
 - it opens a `state/` PR titled `[<recipe>] copa refresh of <line>`.
 
-Merge that PR so the state matches the registry; until it's merged, rescan skips the line. New **language** findings
-instead trigger a `patch.yml` run, which ends in a normal patch PR.
+That PR merges itself like a release's, so the state matches the registry; until it's merged, rescan skips the line.
+New **language** findings instead trigger a `patch.yml` run, which ends in a normal patch PR.
 
 To refresh a line by hand: *Actions → release → Run workflow*, with `refresh` ticked. A refresh stops before Copa,
 and publishes nothing, if a moving tag no longer points at the digest `state/` records. That means a newer release or

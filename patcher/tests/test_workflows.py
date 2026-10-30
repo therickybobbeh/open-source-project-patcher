@@ -92,6 +92,17 @@ def test_jobs_that_publish_or_hold_the_app_key_run_in_the_release_environment(pa
             assert env is None, f"{path.name}/{name} runs upstream code: no environment"
 
 
+def test_only_the_state_pr_merges_itself():
+    """A PR that merges with no human is the record of a run (release.yml's state job), checked to be exactly that
+    before auto-merge is turned on. Patch PRs, tool pins and everything else stay for review."""
+    merging = [f"{path.name}/{name}" for path in WORKFLOWS for name, job, _ in jobs(path) for s in steps(job)
+               if s.get("uses") == "./.github/actions/open-pr" and str((s.get("with") or {}).get("auto-merge", "false")) != "false"]
+    assert merging == ["release.yml/state"]
+    merge = yaml.safe_load((ROOT / ".github" / "actions" / "open-pr" / "action.yml").read_text())["runs"]["steps"][-1]["run"]
+    for check in ("app/$APP", "defaultBranchRef", "files: [$f]", "--match-head-commit", r"^state/[^/]+/[^/]+\.yaml$"):
+        assert check in merge, check
+
+
 def test_release_jobs():
     release = {name: (job, perms) for name, job, perms in jobs(ROOT / ".github" / "workflows" / "release.yml")}
     by_command = {}

@@ -438,3 +438,4 @@ jobs:
             of ${{ needs.plan.outputs.line }}
           body-path: ${{ runner.temp }}/release.json
           labels: automated, release
+          auto-merge: "true"   # it records what this run did; open-pr checks it is exactly that before merging

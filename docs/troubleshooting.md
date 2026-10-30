@@ -244,7 +244,8 @@ scratch tag `<final>-refresh`; nothing of the release was overwritten.
 **Cause:** the line was published again after the revision `state/` records (a release or refresh whose `state/` PR
 isn't merged, or was closed). Refreshing the recorded image would move the moving tag back to an older build, so
 nothing was refreshed.
-**Fix:** merge that line's `state/` PR (reopen it if it was closed). The next rescan then starts from the newest
+**Fix:** merge that line's `state/` PR (reopen it if it was closed; state PRs normally merge themselves once `test`
+passes). The next rescan then starts from the newest
 revision.
 
 ### `release-plan`: "no native runner for linux/…"
