@@ -11,7 +11,7 @@ from typing import Any, TypeVar
 import yaml
 from pydantic import BaseModel
 
-from .models import GlobalConfig, Hold, Line, LineState, Override, Recipe, SkipFile, State, VexFile
+from .models import Build, GlobalConfig, Hold, Line, LineState, Override, Recipe, SkipFile, State, VexFile
 
 M = TypeVar("M", bound=BaseModel)
 
@@ -52,6 +52,28 @@ def line_key(line: Line) -> str:
     return pat or "default"
 
 
+def wanted_platforms() -> list[str] | None:
+    """PATCHER_PLATFORMS: build and release only these of each recipe's platforms, e.g. `linux/arm64` (or `arm64`)
+    where one is enough. Comma-separated; unset or empty means every platform a recipe lists."""
+    wanted = []
+    for p in re.split(r"[\s,]+", os.environ.get("PATCHER_PLATFORMS", "").strip().lower()):
+        if not p:
+            continue
+        p = p if "/" in p else f"linux/{p}"
+        if not re.fullmatch(r"[a-z0-9]+/[a-z0-9]+(/v[0-9]+)?", p):
+            raise ValueError(f"PATCHER_PLATFORMS: {p!r} is not a platform; use e.g. linux/arm64")
+        wanted.append(p)
+    return wanted or None
+
+
+def _only(build: Build, wanted: list[str]) -> Build:
+    """`build` narrowed to `wanted`, without the images that exist for none of those platforms. A recipe can be left
+    with no platform at all: it isn't built or released here (`patcher plan` and `release-plan` skip it)."""
+    plats = [p for p in build.platforms if p in wanted]
+    images = [i for i in build.images if plats and (not i.platforms or set(i.platforms) & set(plats))]
+    return build.model_copy(update={"platforms": plats, "images": images})
+
+
 def _merge_rules(global_rules: dict[str, list], recipe_rules: dict[str, list]) -> dict[str, list]:
     merged: dict[str, list] = {}
     for eco in set(global_rules) | set(recipe_rules):
@@ -90,7 +112,8 @@ class Repo:
         return candidate
 
     def load_recipe(self, name_or_path: str) -> Recipe:
-        """Load a recipe with `_global.yaml` overrides/holds/policy merged in (recipe values win)."""
+        """Load a recipe with `_global.yaml` overrides/holds/policy merged in (recipe values win), and its platforms
+        narrowed to PATCHER_PLATFORMS if that is set."""
         path = self.recipe_path(name_or_path)
         recipe = load_model(path, Recipe)
         if recipe.name != path.stem:  # skips/, vex/, state/ and patches/ are keyed by the name
@@ -102,6 +125,8 @@ class Repo:
             recipe.policy = g.policy
         else:  # fields the recipe sets win; the rest (e.g. the age rule) come from _global.yaml
             recipe.policy = g.policy.model_copy(update=recipe.policy.model_dump(exclude_unset=True))
+        if recipe.build and (wanted := wanted_platforms()):
+            recipe.build = _only(recipe.build, wanted)
         return recipe
 
     def skips(self, name: str) -> SkipFile:

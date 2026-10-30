@@ -113,7 +113,7 @@ def test_component_changes_route_to_parents(tmp_path):
     for name, doc in docs.items():
         (tmp_path / "recipes" / f"{name}.yaml").write_text(yaml.safe_dump({"name": name, **doc}))
     repo = Repo(tmp_path)
-    parent = [{"recipe": "parent", "line": "v1.2"}]
+    parent = [{"recipe": "parent", "line": "v1.2", "platform": "linux/amd64", "arch": "amd64"}]
     assert plan_matrix(repo, changed_files=["recipes/helm.yaml"]) == parent
     assert plan_matrix(repo, changed_files=["skips/helm.yaml", "patches/helm/files/x.go"]) == parent
     assert plan_matrix(repo, recipes=["helm"]) == []  # never on its own

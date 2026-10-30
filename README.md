@@ -149,14 +149,14 @@ build:
 | Workflow | Trigger | What it does |
 |---|---|---|
 | `patch.yml` | nightly, dispatch, push to `recipes/` `skips/` `patches/` `vex/` (not `patcher/`: dispatch with `all` to re-run every line) | `plan` → per line `patch` (no secrets, no push) → `pr` opens/updates `patch/<recipe>/<line>`, as a draft when tests fail |
-| `release.yml` | push to `generated/**` (merged PR); dispatch per line (`rebuild: false` finishes a release that failed after its builds) | one run per line: per-platform builds on native runners, without credentials (images leave as archives) → push per-arch tags → merge → Copa → cosign sign + SBOM + OpenVEX attestations → SLSA provenance → `state/` PR |
-| `rescan.yml` | daily | re-scans published images; new OS-only findings → Copa refresh, new language findings → `patch.yml`; opens issues for upstream release lines no recipe tracks and for end-of-life runtimes |
+| `release.yml` | push to `generated/**` (merged PR); dispatch per line (`rebuild: false` finishes a release that failed after its builds; `refresh` re-patches the released images with Copa instead, as the nightly rescan does) | one run per line: per-platform builds on native runners, without credentials (images leave as archives) → push per-arch tags → merge → Copa → cosign sign + SBOM + OpenVEX attestations → SLSA provenance → move the `-patched` tag → `state/` PR |
+| `rescan.yml` | daily | re-scans published images; new OS-only findings → a Copa refresh (a `release.yml` run, signed and attested like a release), new language findings → `patch.yml`; opens issues for upstream release lines no recipe tracks and for end-of-life runtimes |
 | `wiki-history.yml` | patch/release/rescan completion, relevant pushes, dispatch | refreshes the versioned wiki history snapshot and commits `wiki/history.parquet` |
 | `patcher-image.yml` | PRs, pushes to `patcher/`, weekly | unit tests, `validate`, schema/lock drift; publishes the signed multi-arch patcher image |
 | `tool-pins.yml` | Mondays 07:00 ET | updates the version+sha256 tool pins in `patcher/Dockerfile` (releases ≥ 14 days old) |
 | Dependabot | daily 07:00 ET | GitHub Actions, the patcher's Python packages and image bases (14-day cooldown) |
 
-Setup (GitHub App, code security settings, GHCR visibility) is in the [runbook](docs/runbook.md#one-time-setup). Jobs run on GitHub-hosted runners unless the `PATCHER_RUNS_ON*` variables select your own ([self-hosted runners](docs/runbook.md#self-hosted-runners)).
+Setup (GitHub App, the `release` environment that admits `main` only, code security settings, GHCR visibility) is in the [runbook](docs/runbook.md#one-time-setup). Jobs run on GitHub-hosted runners unless the `PATCHER_RUNS_ON*` variables select your own ([self-hosted runners](docs/runbook.md#self-hosted-runners)). Images are built for amd64 and arm64; the `PATCHER_PLATFORMS` variable limits that, e.g. to arm64 only ([fewer platforms](docs/runbook.md#fewer-platforms)).
 
 ## Known limits
 

@@ -16,6 +16,9 @@ jobs:
   pins:
     runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
     timeout-minutes: 45
+    environment:  # admits main only (docs/runbook.md, "The release environment")
+      name: release
+      deployment: false  # no deployment records; the branch policy and its secrets apply all the same
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

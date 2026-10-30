@@ -58,6 +58,9 @@ jobs:
           - { platform: linux/arm64 }
     runs-on: ${{ fromJSON(matrix.arch.platform == 'linux/arm64' && (vars.PATCHER_RUNS_ON_ARM64 || '"ubuntu-24.04-arm"') || (vars.PATCHER_RUNS_ON || '"ubuntu-24.04"')) }}
     timeout-minutes: 60
+    environment:  # admits main only (docs/runbook.md, "The release environment")
+      name: release
+      deployment: false  # no deployment records; the branch policy and its secrets apply all the same
     permissions:
       contents: read
       packages: write
@@ -84,6 +87,9 @@ jobs:
     needs: image
     runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
     timeout-minutes: 15
+    environment:  # admits main only (docs/runbook.md, "The release environment")
+      name: release
+      deployment: false  # no deployment records; the branch policy and its secrets apply all the same
     permissions:
       contents: read
       packages: write
