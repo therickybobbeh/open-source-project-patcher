@@ -158,7 +158,9 @@ def overlay_dockerfile(base_ref: str, comps: list[Component], files: list[tuple[
     for i, c in enumerate(comps):
         art = c.recipe.artifact
         go_dirs = [d for e in c.recipe.ecosystems if e.type == "gomod" for d in e.dirs]
-        candidates = [v for v in (c.go, detect.go_version(c.src, go_dirs)) if v]
+        # the recipe's toolchain is the floor: a tool's go.mod can name an end-of-life Go (git-lfs 3.7.1 and
+        # kustomize 5.8.1: 1.24), and the binary would ship that Go's unpatched standard library
+        candidates = [v for v in (c.go, c.recipe.toolchain.go, detect.go_version(c.src, go_dirs)) if v]
         go = max(candidates, key=lambda v: tuple(int(x) for x in v.split("."))) if candidates else "1"
         builder = render(art.builder, {"go": go})
         build = render(art.build, {"version": c.version, "tag": c.tag})

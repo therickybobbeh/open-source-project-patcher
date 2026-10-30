@@ -7,6 +7,7 @@ These models are the source of truth for the JSON schemas in `schema/`
 from __future__ import annotations
 
 import datetime as dt
+import re
 from enum import Enum
 from typing import Annotated, Literal, Union
 
@@ -260,6 +261,17 @@ class Hold(_Model):
     name: str
     max: str | None = None
     reason: str
+    tagPattern: str | None = Field(None, description="Only for upstream tags matching this regex, e.g. '^v3\\.' to hold a "
+                                                     "dependency for one major of a component and not the next")
+
+    @model_validator(mode="after")
+    def _pattern(self) -> "Hold":
+        if self.tagPattern:
+            try:
+                re.compile(self.tagPattern)
+            except re.error as e:  # fail `patcher validate`, not a run
+                raise ValueError(f"tagPattern {self.tagPattern!r}: {e}") from e
+        return self
 
 
 # --- regen / tests / build --------------------------------------------------
@@ -441,6 +453,11 @@ class Recipe(_Model):
             if key not in ECOSYSTEM_KEYS:
                 raise ValueError(f"unknown ecosystem key {key!r} in overrides/holds (expected one of {ECOSYSTEM_KEYS})")
         return self
+
+    def for_tag(self, tag: str) -> "Recipe":
+        """This recipe as it applies to one upstream tag: holds whose `tagPattern` doesn't match it are left out."""
+        holds = {eco: [h for h in hs if not h.tagPattern or re.search(h.tagPattern, tag)] for eco, hs in self.holds.items()}
+        return self if holds == self.holds else self.model_copy(update={"holds": holds})
 
 
 class GlobalConfig(_Model):

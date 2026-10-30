@@ -286,6 +286,7 @@ def run_line(repo: Repo, recipe: Recipe, line: Line, opts: RunOptions) -> Summar
 
     tag, commit = upstream.resolve_line(recipe.source, line)
     log(f"{recipe.name} line {key}: {tag} @ {commit[:12]}")
+    recipe = recipe.for_tag(tag)
     tctx = template_ctx(tag, commit)
 
     images_before: dict[str, tuple[str, ScanReport | None]] = {}

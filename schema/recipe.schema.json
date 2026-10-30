@@ -517,6 +517,19 @@
         "reason": {
           "title": "Reason",
           "type": "string"
+        },
+        "tagPattern": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Only for upstream tags matching this regex, e.g. '^v3\\.' to hold a dependency for one major of a component and not the next",
+          "title": "Tagpattern"
         }
       },
       "required": [
