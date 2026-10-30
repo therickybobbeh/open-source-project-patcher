@@ -131,6 +131,17 @@ def test_runner_pool_check(env, ok, says):
     assert (r.returncode == 0) == ok and says in r.stdout, r.stdout
 
 
+def test_no_workflow_pushes_to_the_default_branch():
+    """Bot changes to main go through PRs (branch protection with a required check stays intact). The one direct push,
+    the patch history, goes to its own branch."""
+    for path in WORKFLOWS:
+        for name, job, _ in jobs(path):
+            for s in steps(job):
+                for line in s.get("run", "").splitlines():
+                    if re.search(r"\bgit\b.*\bpush\b", line):
+                        assert "HEAD:refs/heads/wiki-history" in line, f"{path.name}/{name} pushes: {line.strip()}"
+
+
 @pytest.mark.parametrize("path", WORKFLOWS, ids=lambda p: p.name)
 def test_every_job_sets_a_timeout(path):
     """GitHub's default is 6 hours: a hung Sigstore call or registry would hold a runner (and the line's concurrency
