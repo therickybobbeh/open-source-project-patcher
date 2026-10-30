@@ -1,26 +1,26 @@
 upstreamTag: v4.1.6
 commit: 43021573c5a35cbafae009043c132dfcef43a112
-revision: 3
-releasedAt: '2026-10-29T18:06:42Z'
+revision: 4
+releasedAt: '2026-10-30T16:36:31Z'
 platforms:
 - linux/amd64
 - linux/arm64
 images:
 - name: workflow-controller
-  ref: ghcr.io/therickybobbeh/workflow-controller:v4.1.6-patched.3
-  digest: sha256:2b7c744c7f1bb063c1c8534ce13c23ba8517fcf6b0caa066604ce3e6fd38717e
+  ref: ghcr.io/therickybobbeh/workflow-controller:v4.1.6-patched.4
+  digest: sha256:3f7f1e53848f33d3c5dc7a61a7af05ab19c34458637b9a777e4f03680b48394e
   knownFixable:
   - CVE-2026-78661|golang.org/x/net|usr/bin/workflow-controller
   - CVE-2026-97045|golang.org/x/net|usr/bin/workflow-controller
 - name: argocli
-  ref: ghcr.io/therickybobbeh/argocli:v4.1.6-patched.3
-  digest: sha256:d55b5234c1a9417084c4fbb66817a148c28fbdb584aae7ee59a87d7136e1c996
+  ref: ghcr.io/therickybobbeh/argocli:v4.1.6-patched.4
+  digest: sha256:ca237af487b29a2c4265587fc5c597fb4ec189cdaeac38d9c1570ea55b1e817f
   knownFixable:
   - CVE-2026-78661|golang.org/x/net|usr/bin/argo
   - CVE-2026-97045|golang.org/x/net|usr/bin/argo
 - name: argoexec
-  ref: ghcr.io/therickybobbeh/argoexec:v4.1.6-patched.3
-  digest: sha256:3093495e2f901d91cb62862a2bf38902050dc316aad5f005f3835821e95b085c
+  ref: ghcr.io/therickybobbeh/argoexec:v4.1.6-patched.4
+  digest: sha256:d999bb9decdf0e8ebaa63ecebdf6dbfb998285a744c31c89f818768d94131604
   knownFixable:
   - CVE-2026-78661|golang.org/x/net|usr/bin/argoexec
   - CVE-2026-97045|golang.org/x/net|usr/bin/argoexec
