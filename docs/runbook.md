@@ -79,6 +79,17 @@ delete the host's files and restart its Docker:
 
 The checkout is handed back to the runner's user without `sudo`.
 
+**A private registry for base-image lookups.** The patcher reads tags and digests of base images anonymously.
+For one registry that needs credentials, set:
+- `PATCHER_REGISTRY_BASIC_AUTH` to `user:token`;
+- `PATCHER_REGISTRY_AUTH_HOST` to that registry's host, port included, e.g. `nexus.example.com:8443`.
+
+The credentials go only to that registry, and only when its token service is https on the same host. They
+don't follow redirects. Upstream Dockerfiles choose which registries get contacted, and any registry's auth
+challenge can name any server. Without the host variable the credentials are sent nowhere, and a warning is
+logged. This covers a self-hosted registry or proxy (Harbor, Nexus, Artifactory) that issues its own tokens.
+Docker Hub's token service is on another host, so this variable doesn't cover Docker Hub.
+
 ## Reviewing a patch PR
 
 Each PR is titled `[<recipe>] <tag>: dependency updates (<status>)`. The body is the generated
