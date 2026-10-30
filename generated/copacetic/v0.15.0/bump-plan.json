@@ -198,7 +198,7 @@
         "vuln_id": "CVE-2026-78661",
         "severity": "UNKNOWN",
         "fixed": "0.62.0",
-        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
       },
       {
         "ecosystem": "gomod",
@@ -208,7 +208,7 @@
         "vuln_id": "CVE-2026-97045",
         "severity": "UNKNOWN",
         "fixed": "0.62.0",
-        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
       }
     ],
     "toolchain": {}
@@ -308,7 +308,7 @@
       "name": "ARG GO_VERSION",
       "old": "1.25.13",
       "new": "1.26.10",
-      "note": "golang:1.25.13-alpine3.23 -> 1.26.10-alpine3.23"
+      "note": "golang:1.25.13-alpine3.23 -> 1.26.10-alpine3.23 (minVersions: the 1.26 line)"
     },
     {
       "ecosystem": "dockerfile",
@@ -321,17 +321,9 @@
     {
       "ecosystem": "dockerfile",
       "target": "Dockerfile.copa",
-      "name": "ARG GO_VERSION",
-      "old": "1.25.13",
-      "new": "1.26.10",
-      "note": "golang:1.25.13-bookworm -> 1.26.10-bookworm"
-    },
-    {
-      "ecosystem": "dockerfile",
-      "target": "Dockerfile.copa",
       "name": "debian",
-      "old": "debian:12-slim",
-      "new": "debian:12-slim@sha256:99c0b25c46d0214d5a2091092e7908907dcaecd6a962cde0ac700acee222b6f3",
+      "old": "debian:13-slim",
+      "new": "debian:13-slim@sha256:f6b08b09a05725f9431502d3b5714f5c4576e82c1a84fa1debe0c24a7e0c3ec4",
       "note": "base image refresh"
     }
   ],
@@ -395,7 +387,7 @@
       "vuln_id": "CVE-2026-78661",
       "severity": "UNKNOWN",
       "fixed": "0.62.0",
-      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
     },
     {
       "ecosystem": "gomod",
@@ -405,7 +397,7 @@
       "vuln_id": "CVE-2026-97045",
       "severity": "UNKNOWN",
       "fixed": "0.62.0",
-      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
     }
   ],
   "skips": []

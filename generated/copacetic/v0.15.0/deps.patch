@@ -1,13 +1,13 @@
 diff --git a/Dockerfile.copa b/Dockerfile.copa
 new file mode 100644
-index 0000000..8e8501e
+index 0000000..6247faa
 --- /dev/null
 +++ b/Dockerfile.copa
 @@ -0,0 +1,19 @@
 +# Copa CLI image built from source (added by support-images; upstream publishes no CLI image).
 +# Copa drives BuildKit and needs `docker`/`buildx` only when using the docker:// or buildx:// addr.
 +ARG GO_VERSION=1.26.10
-+FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-bookworm AS build
++FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-trixie AS build
 +WORKDIR /src
 +COPY go.mod go.sum ./
 +RUN go mod download
@@ -17,7 +17,7 @@ index 0000000..8e8501e
 +      -ldflags "-s -w -X main.version=${CLI_VERSION} -X github.com/project-copacetic/copacetic/pkg/version.GitVersion=v${CLI_VERSION}" \
 +      -o /out/copa .
 +
-+FROM debian:12-slim@sha256:99c0b25c46d0214d5a2091092e7908907dcaecd6a962cde0ac700acee222b6f3
++FROM debian:13-slim@sha256:f6b08b09a05725f9431502d3b5714f5c4576e82c1a84fa1debe0c24a7e0c3ec4
 +RUN apt-get update \
 + && apt-get install -y --no-install-recommends ca-certificates \
 + && rm -rf /var/lib/apt/lists/*
