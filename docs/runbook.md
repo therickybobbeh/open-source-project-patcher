@@ -336,6 +336,10 @@ cosign verify-attestation "$IMG" --type openvex \
 trivy image --vex vex.json "$IMG"
 ```
 
+Copa refreshes are signed and attested by the same workflow. An image a refresh published before refreshes moved into
+`release.yml` (2026-10-31) has only a `rescan.yml` signature, with no SBOM, OpenVEX or provenance, until its line is
+refreshed or released again.
+
 ### Consuming images
 
 | Tag | Use |
@@ -349,11 +353,20 @@ Immutable tags are never rewritten.
 
 ### Copa refresh PRs
 
-When `rescan` finds new fixable **OS** packages in a published image, it publishes and signs the
-next revision right away (Copa only, no source rebuild), then moves the moving tag to it. It then opens a `state/`
-PR titled
-`[<recipe>] copa refresh of <line>`. Merge it so the state matches the registry. New **language**
-findings instead trigger a `patch.yml` run, which ends in a normal patch PR.
+When `rescan` finds new fixable **OS** packages in a published image, it dispatches a `refresh` run of `release.yml`
+for that line. That run builds nothing. Its `publish` job re-patches the released images with Copa to the next
+revision. The run then handles that revision exactly like a release:
+- it signs it and attaches its SBOM and OpenVEX;
+- it attests its provenance;
+- it moves the moving tag;
+- it opens a `state/` PR titled `[<recipe>] copa refresh of <line>`.
+
+Merge that PR so the state matches the registry; until it's merged, rescan skips the line. New **language** findings
+instead trigger a `patch.yml` run, which ends in a normal patch PR.
+
+To refresh a line by hand: *Actions → release → Run workflow*, with `refresh` ticked. A refresh stops before Copa,
+and publishes nothing, if a moving tag no longer points at the digest `state/` records. That means a newer release or
+refresh isn't recorded yet: merge its `state/` PR first.
 
 ## Adding a release line or a project
 
@@ -450,5 +463,5 @@ new one.
 | `patcher release-push <recipe> --line L [--platforms P,…]` | Pushes those archives as `<final>-<arch>` of a new revision; never overwrites a tag |
 | `patcher publish <recipe> --line L [--revision N [--finish-existing]] [--platforms P,…]` | Merge, Copa, final tags, `state/`. Without `--revision`: finishes the newest revision whose per-arch images all exist |
 | `patcher promote <recipe> --line L --release FILE` | Move the moving tags to the digests in a release record (after signing) |
-| `patcher rescan` / `patcher refresh <recipe> --line L` | Nightly re-scan and the Copa-only refresh |
+| `patcher rescan [--pending F]` / `patcher refresh <recipe> --line L` | Nightly re-scan (skipping the lines whose state files `F` lists: open state PRs) and the Copa-only refresh, which release.yml runs in place of `publish` |
 | `patcher pins [--write]` | Tool pin updates for `patcher/Dockerfile` |

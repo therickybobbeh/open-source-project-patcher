@@ -204,9 +204,15 @@ def publish(
 
 
 @app.command()
-def rescan(out: Path = typer.Option(Path("out/rescan")), repo: Optional[Path] = RepoOpt) -> None:
-    """Scan every published image; print {"refresh": [...], "rerun": [...]} matrices."""
-    _emit(pipeline.rescan(_repo(repo), out.resolve()))
+def rescan(
+    out: Path = typer.Option(Path("out/rescan")),
+    pending: Optional[Path] = typer.Option(None, help="File listing the state files open PRs change "
+                                                      "(state/<recipe>/<line>.yaml, one per line): those lines are skipped"),
+    repo: Optional[Path] = RepoOpt,
+) -> None:
+    """Scan every published image; print {"refresh": [...], "rerun": [...], "pending": [...]}."""
+    paths = pending.read_text().splitlines() if pending else []
+    _emit(pipeline.rescan(_repo(repo), out.resolve(), pipeline.pending_lines(paths)))
 
 
 @app.command()

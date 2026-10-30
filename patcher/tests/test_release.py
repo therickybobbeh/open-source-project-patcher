@@ -338,6 +338,58 @@ def test_copa_refresh_takes_a_free_revision_and_each_image_s_platforms(tmp_path,
     assert calls == ["v1.2.3-patched.5-refresh"] and repo.state("app").lines["v1"].revision == 4
 
 
+def test_a_refresh_carries_its_openvex_and_never_moves_the_tag_back(tmp_path, monkeypatch):
+    """release.yml signs a refresh and attaches its OpenVEX as it does a release's. A refresh starts from what state/
+    records: a moving tag that points elsewhere means a newer revision isn't recorded yet."""
+    from patcher.copa import CopaResult
+    from patcher.models import ReleasedImage
+
+    repo = make_repo(tmp_path)
+    st = repo.state("app")
+    st.lines["v1"] = st.lines["v1"].model_copy(update={"platforms": ["linux/amd64", "linux/arm64"], "images": [
+        ReleasedImage(name="app", ref=f"{REG}:v1.2.3-patched.2", digest=DIGEST)]})
+    repo.save_state("app", st)
+    registry(monkeypatch)
+    copa_vex = tmp_path / "copa.vex.json"  # Copa's own statements for the OS packages it patched
+    copa_vex.write_text(json.dumps({"statements": [{"vulnerability": {"name": "CVE-2026-1"}, "status": "fixed"}]}))
+    patched = []
+    monkeypatch.setattr(pipeline.copa, "for_image", lambda spec, image, out_tag, out, **k: patched.append(out_tag)
+                        or CopaResult(f"{REG}:{out_tag}", 1, vex=copa_vex))
+    monkeypatch.setattr(pipeline, "run", lambda cmd, **k: None)
+    monkeypatch.setattr(pipeline, "scan_image", lambda ref, path, **k: ScanReport(ref))
+    newer = "sha256:" + "e" * 64  # a release whose state PR isn't merged moved the tag on
+    monkeypatch.setattr(pipeline, "image_digest", lambda ref: newer if ref == f"{REG}:v1.2.3-patched" else DIGEST)
+    with pytest.raises(RuntimeError, match="isn't recorded yet"):
+        pipeline.refresh(repo, repo.load_recipe("app"), "v1", None, tmp_path / "out")
+    assert patched == [] and repo.state("app").lines["v1"].revision == 2
+
+    monkeypatch.setattr(pipeline, "image_digest", lambda ref: DIGEST)  # the tag is where state/ says
+    released = pipeline.refresh(repo, repo.load_recipe("app"), "v1", None, tmp_path / "out")
+    assert [(r["tag"], r["copa"]) for r in released] == [("v1.2.3-patched.3", "patched 1 OS finding(s)")]
+    assert json.loads(Path(released[0]["vex"]).read_text())["statements"] == [{"vulnerability": {"name": "CVE-2026-1"},
+                                                                              "status": "fixed"}]
+
+
+def test_rescan_waits_for_a_line_s_state_pr(tmp_path, monkeypatch):
+    from patcher.models import ReleasedImage
+
+    repo = make_repo(tmp_path)
+    st = repo.state("app")
+    st.lines["v1"] = st.lines["v1"].model_copy(update={"images": [ReleasedImage(name="app", ref=f"{REG}:v1.2.3-patched.2",
+                                                                                 digest=DIGEST)]})
+    repo.save_state("app", st)
+    scanned = []
+    monkeypatch.setattr(pipeline, "scan_image", lambda ref, path, **k: scanned.append(ref) or ScanReport(ref))
+    # the paths open PRs change (rescan.yml lists them): state files name their line
+    pending = pipeline.pending_lines(["state/app/v1.yaml", "state/other/v2.yaml", "generated/app/v1.2.3/bump-plan.json", ""])
+    assert pending == {("app", "v1"), ("other", "v2")}
+    assert pipeline.rescan(repo, tmp_path / "rescan", pending) == {"refresh": [], "rerun": [],
+                                                                   "pending": [{"recipe": "app", "line": "v1"}]}
+    assert scanned == []
+    pipeline.rescan(repo, tmp_path / "rescan")
+    assert scanned == [f"{REG}@{DIGEST}"]
+
+
 def test_publish_only_keeps_an_existing_final_tag_when_finishing(tmp_path, monkeypatch):
     repo = make_repo(tmp_path)
     final = f"{REG}:v1.2.3-patched.5"

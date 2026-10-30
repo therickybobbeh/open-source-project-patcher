@@ -1204,12 +1204,25 @@ def _fixable_keys(report: ScanReport) -> list[str]:
     return sorted({"|".join(f.key) for f in report.fixable()})
 
 
-def rescan(repo: Repo, out: Path) -> dict:
+def pending_lines(paths: list[str]) -> set[tuple[str, str]]:
+    """(recipe, line) of each state file (`state/<recipe>/<line>.yaml`) in `paths`: those open PRs change."""
+    pending = set()
+    for p in paths:
+        parts = p.strip().split("/")
+        if len(parts) == 3 and parts[0] == "state" and parts[2].endswith(".yaml"):
+            pending.add((parts[1], parts[2].removesuffix(".yaml")))
+    return pending
+
+
+def rescan(repo: Repo, out: Path, pending: set[tuple[str, str]] = frozenset()) -> dict:
     """Scan every published image; act only on fixable findings that are new since the release
     (known leftovers, e.g. in bundled binaries, are already explained in the release PR).
-    New OS-only findings -> Copa refresh; new language findings -> source re-run."""
+    New OS-only findings -> Copa refresh; new language findings -> source re-run.
+
+    `pending` lines have a state PR that isn't merged yet: state/ is behind what they published, so they wait for it
+    (listed under `pending`) instead of being scanned, and refreshed again, from the older revision."""
     g = repo.global_config()
-    result = {"refresh": [], "rerun": []}
+    result = {"refresh": [], "rerun": [], "pending": []}
     out.mkdir(parents=True, exist_ok=True)
     for path in repo.recipe_paths():
         recipe = repo.load_recipe(path.stem)
@@ -1217,6 +1230,9 @@ def rescan(repo: Repo, out: Path) -> dict:
         from .vex import match as vex_match
 
         for key, ls in repo.state(recipe.name).lines.items():
+            if (recipe.name, key) in pending:
+                result["pending"].append({"recipe": recipe.name, "line": key})
+                continue
             kinds = set()
             platform = (ls.platforms or (recipe.build.platforms if recipe.build else ["linux/amd64"]))[0]
             for img in ls.images:
@@ -1253,8 +1269,21 @@ def _refresh_revision(repo: Repo, ls: LineState, platforms: list[str]) -> int:
     return rev
 
 
+def _check_moving_tags(repo: Repo, ls: LineState) -> None:
+    """A refresh starts from the images state/ records. An image whose moving tag points elsewhere was published again
+    since (a release or refresh whose state PR isn't merged): refreshing the recorded one would move the tag back."""
+    for img in ls.images:
+        repository, tag = img.ref.rsplit(":", 1)
+        moving = f"{repository}:{upstream_tag_of(repo, tag)}-patched"
+        if (at := image_digest(moving)) != img.digest:
+            raise RuntimeError(f"{moving} is at {at}, not at {img.digest} as state/ records: a newer release or refresh "
+                               "isn't recorded yet (merge its state PR). Nothing was refreshed")
+
+
 def refresh(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, out: Path) -> list[dict]:
-    """Copa-only re-patch of the currently published images to the next revision."""
+    """Copa-only re-patch of the currently published images to the next revision. release.yml runs it in place of
+    `publish` (a `refresh` dispatch, which the nightly rescan sends), so the result is signed, attested and promoted as
+    a release is: each image gets its OpenVEX document here, as `publish` writes it."""
     if not recipe.publish:
         log(f"{recipe.name}: publish: false, nothing to refresh")
         return []
@@ -1265,6 +1294,7 @@ def refresh(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, o
         raise LookupError(f"{recipe.name} line {key} has never been released")
     out = out / recipe.name / key
     out.mkdir(parents=True, exist_ok=True)
+    _check_moving_tags(repo, ls)
     platforms = ls.platforms or platforms or recipe.build.platforms  # patch exactly what was released
     rev = _refresh_revision(repo, ls, platforms)
     released, images = [], []
@@ -1296,8 +1326,12 @@ def refresh(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, o
         digest = image_digest(f"{repo_ref}:{final}")
         after = scan_image(f"{repo_ref}@{digest}", out / f"scan-refresh-{spec.key}.json", severities=g.scan.severities,
                            platform=plats[0], src="remote")
+        vex_path = out / f"vex-{spec.key}.openvex.json"
+        vex_path.write_text(json.dumps(openvex(repo.vex(recipe.name), oci_purl(repo_ref, digest), after.findings,
+                                               extra_docs=[cr.vex] if cr.vex else []), indent=2) + "\n")
         images.append(ReleasedImage(name=spec.key, ref=f"{repo_ref}:{final}", digest=digest, knownFixable=_fixable_keys(after)))
-        released.append({"image": spec.key, "repository": repo_ref, "tag": final, "digest": digest, "copa": "patched"})
+        released.append({"image": spec.key, "repository": repo_ref, "tag": final, "digest": digest, "vex": str(vex_path),
+                         "copa": cr.note()})
     if released:
         st.lines[key] = ls.model_copy(update={"revision": rev, "images": images,
                                                "releasedAt": dt.datetime.now(dt.timezone.utc).replace(microsecond=0)})
