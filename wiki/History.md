@@ -2,11 +2,12 @@
 
 This page is generated from git history by [`build_wiki_history.py`](../scripts/build_wiki_history.py). The complete machine-readable snapshot is [`history.parquet`](history.parquet).
 
-Snapshot through: 2026-10-30T12:20:55-04:00
+Snapshot through: 2026-10-30T12:21:18-04:00
 
 | Date | Commit | Change | Patch artifacts |
 | --- | --- | --- | --- |
-| 2026-10-30 | [`fca03793a5`](../commit/fca03793a5109172d21badfa3341a7debf991708) | Merge pull request #61 from therickybobbeh/patch/splunk-otel-collector/v0 | generated/argo-cd/v3.5.6/bump-plan.json<br>generated/argo-cd/v3.5.6/components/git-lfs/bump-plan.json<br>generated/argo-cd/v3.5.6/components/git-lfs/report.md<br>generated/argo-cd/v3.5.6/components/helm/bump-plan.json<br>generated/argo-cd/v3.5.6/components/helm/report.md<br>generated/argo-cd/v3.5.6/components/kustomize/report.md<br>generated/argo-cd/v3.5.6/deps.patch<br>generated/argo-cd/v3.5.6/report.md |
+| 2026-10-30 | [`fca03793a5`](../commit/fca03793a5109172d21badfa3341a7debf991708) | Merge pull request #61 from therickybobbeh/patch/splunk-otel-collector/v0 | generated/argo-cd/v3.4.12/bump-plan.json<br>generated/argo-cd/v3.4.12/components/git-lfs/bump-plan.json<br>generated/argo-cd/v3.4.12/components/git-lfs/report.md<br>generated/argo-cd/v3.4.12/deps.patch<br>generated/argo-cd/v3.4.12/report.md |
+| 2026-10-30 | [`735141e7a2`](../commit/735141e7a2f53919f91934c02fa9387f79f91785) | argo-cd v3.5.6: dependency updates | generated/argo-cd/v3.5.6/bump-plan.json<br>generated/argo-cd/v3.5.6/components/git-lfs/bump-plan.json<br>generated/argo-cd/v3.5.6/components/git-lfs/report.md<br>generated/argo-cd/v3.5.6/components/helm/bump-plan.json<br>generated/argo-cd/v3.5.6/components/helm/report.md<br>generated/argo-cd/v3.5.6/components/kustomize/report.md<br>generated/argo-cd/v3.5.6/deps.patch<br>generated/argo-cd/v3.5.6/report.md |
 | 2026-10-30 | [`772ca83f41`](../commit/772ca83f41074c8158c7d96c95b676a2f4c438e3) | splunk-otel-collector v0.163.1: dependency updates | generated/splunk-otel-collector/v0.163.1/bump-plan.json<br>generated/splunk-otel-collector/v0.163.1/deps.patch<br>generated/splunk-otel-collector/v0.163.1/report.md<br>generated/splunk-otel-collector/v0.163.1/vex-suggestions.yaml |
 | 2026-10-30 | [`a75a6b3672`](../commit/a75a6b3672229d392ca6361b56ad9ff714be759d) | argo-workflows v4.1.6: dependency updates | generated/argo-workflows/v4.1.6/bump-plan.json<br>generated/argo-workflows/v4.1.6/deps.patch<br>generated/argo-workflows/v4.1.6/report.md |
 | 2026-10-30 | [`3028e11cc9`](../commit/3028e11cc9bcfa4440d9eb623b42cec7666932cb) | copacetic v0.15.0: dependency updates | generated/copacetic/v0.15.0/bump-plan.json<br>generated/copacetic/v0.15.0/deps.patch<br>generated/copacetic/v0.15.0/report.md |
