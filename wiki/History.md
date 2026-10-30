@@ -2,10 +2,11 @@
 
 This page is generated from git history by [`build_wiki_history.py`](../scripts/build_wiki_history.py). The complete machine-readable snapshot is [`history.parquet`](history.parquet).
 
-Snapshot through: 2026-10-30T11:14:09-04:00
+Snapshot through: 2026-10-30T12:15:33-04:00
 
 | Date | Commit | Change | Patch artifacts |
 | --- | --- | --- | --- |
+| 2026-10-30 | [`fca03793a5`](../commit/fca03793a5109172d21badfa3341a7debf991708) | Merge pull request #61 from therickybobbeh/patch/splunk-otel-collector/v0 | generated/splunk-otel-collector/v0.163.1/bump-plan.json<br>generated/splunk-otel-collector/v0.163.1/deps.patch<br>generated/splunk-otel-collector/v0.163.1/report.md<br>generated/splunk-otel-collector/v0.163.1/vex-suggestions.yaml |
 | 2026-10-30 | [`0dd1fd73c5`](../commit/0dd1fd73c5e8e48304b894283629acf329e12491) | state: copa refresh copacetic v0 | state/copacetic/v0.yaml |
 | 2026-10-30 | [`7a82e45362`](../commit/7a82e45362742325e209821a66e59f76655d32cc) | state: copa refresh apollo-router v2 | state/apollo-router/v2.yaml |
 | 2026-10-29 | [`8b29853481`](../commit/8b2985348155b177a26afc0539b59dab781cb39c) | Merge remote-tracking branch 'origin/main' into feat/otel-collectors | state/dex/v2.yaml |
