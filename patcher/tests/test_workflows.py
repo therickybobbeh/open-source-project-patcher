@@ -78,6 +78,20 @@ def test_jobs_that_can_write_read_no_cache(path):
             assert "type=gha" not in s.get("run", ""), f"{path.name}/{name}: no BuildKit cache from GitHub Actions"
 
 
+@pytest.mark.parametrize("path", WORKFLOWS, ids=lambda p: p.name)
+def test_jobs_that_publish_or_hold_the_app_key_run_in_the_release_environment(path):
+    """The `release` environment admits main only. A workflow edited on another branch and dispatched from there can't
+    push, sign, attest or use the GitHub App key, so whatever verifies as release.yml@refs/heads/main came from main.
+    Jobs that run upstream code never get the environment: its secrets would be theirs."""
+    for name, job, perms in jobs(path):
+        privileged = {k for k, v in perms.items() if v == "write"} & {"packages", "id-token", "attestations"}
+        env = job.get("environment")
+        if privileged or "secrets.PATCHER_" in yaml.safe_dump(job):
+            assert env == {"name": "release", "deployment": False}, f"{path.name}/{name}: environment release"
+        if any(a.startswith(UPSTREAM_CODE) for a in patcher_args(job)):
+            assert env is None, f"{path.name}/{name} runs upstream code: no environment"
+
+
 def test_release_jobs():
     release = {name: (job, perms) for name, job, perms in jobs(ROOT / ".github" / "workflows" / "release.yml")}
     by_command = {}

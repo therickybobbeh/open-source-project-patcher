@@ -9,21 +9,29 @@ For the people who review patch PRs and operate the pipeline. Background is in
 1. **GitHub App** for opening PRs. PRs opened with the default `GITHUB_TOKEN` don't trigger checks.
    - Permissions: *Contents: read & write*, *Pull requests: read & write*.
    - Install it on this repository.
-   - Add the variable `PATCHER_APP_ID` and the secret `PATCHER_APP_PRIVATE_KEY`.
+   - Add the variable `PATCHER_APP_ID`. Its key, `PATCHER_APP_PRIVATE_KEY`, is a secret of the `release`
+     environment (step 2).
    - **Until then:** the workflows fall back to `GITHUB_TOKEN` (with a warning in the run) if you
      turn on *Settings → Actions → General → Workflow permissions → Allow GitHub Actions to create
      and approve pull requests*. The PRs open, but their checks don't run.
-2. **Code security settings:** enable *Dependency graph*, *Dependabot alerts* and *Dependabot
+2. **The `release` environment** (*Settings → Environments → New environment*, name `release`). Create it before
+   the workflows first run, or GitHub creates it unprotected. See
+   [The release environment](#the-release-environment).
+   - *Deployment branches and tags:* **Selected branches and tags**, add `main`.
+   - No required reviewers or wait timer: releases stay automatic.
+   - *Environment secrets:* add `PATCHER_APP_PRIVATE_KEY`. If it was a repository secret, delete that copy once a
+     release has run green.
+3. **Code security settings:** enable *Dependency graph*, *Dependabot alerts* and *Dependabot
    security updates*. Version updates are configured in `.github/dependabot.yml` (see
    [Dependency hygiene](#dependency-hygiene-of-this-repo)).
-3. **Branch protection on `main`:** require the `test` job of `patcher-image.yml` (unit tests,
+4. **Branch protection on `main`:** require the `test` job of `patcher-image.yml` (unit tests,
    `patcher validate`, schema and lock-file drift). It runs on every PR, so Dependabot, tool-pins,
    patch, state and docs PRs all report it. Bot PRs only run checks once the GitHub App (step 1) opens
    them.
-4. **GHCR:** images are published to `ghcr.io/<owner>/<image>` and start **private**. Make them
+5. **GHCR:** images are published to `ghcr.io/<owner>/<image>` and start **private**. Make them
    public, or give your clusters' pull secrets access.
-5. **Release lines:** edit each recipe's `source.lines` to the versions you actually run.
-6. **First run:** *Actions → patch → Run workflow*, `recipe=dex`. Check the job summary (the report
+6. **Release lines:** edit each recipe's `source.lines` to the versions you actually run.
+7. **First run:** *Actions → patch → Run workflow*, `recipe=dex`. Check the job summary (the report
    is posted there), then the PR it opens.
 
 ## Self-hosted runners
@@ -353,21 +361,28 @@ Notes:
 
 ### Verifying an image
 
+Everything below is made by this repository's `release.yml`, run from `main`. Pin exactly that identity, here and in
+admission policies: a copy of the workflow on another branch can't sign (see
+[The release environment](#the-release-environment)).
+
 ```bash
 IMG=ghcr.io/<owner>/dex:v2.46.1-patched.1
+ID=https://github.com/<owner>/<repo>/.github/workflows/release.yml@refs/heads/main
+ISSUER=https://token.actions.githubusercontent.com
 
-# signature, made by this repository's release workflow
-cosign verify "$IMG" \
-  --certificate-identity-regexp '^https://github.com/<owner>/<repo>/\.github/workflows/release\.yml@' \
-  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+# signature
+cosign verify "$IMG" --certificate-identity "$ID" --certificate-oidc-issuer "$ISSUER"
 
 # SLSA build provenance
-gh attestation verify "oci://$IMG" --owner <owner>
+gh attestation verify "oci://$IMG" --repo <owner>/<repo> \
+  --signer-workflow <owner>/<repo>/.github/workflows/release.yml --source-ref refs/heads/main
+
+# SBOM (CycloneDX)
+cosign verify-attestation "$IMG" --type cyclonedx --certificate-identity "$ID" --certificate-oidc-issuer "$ISSUER" \
+  | jq -r '.payload' | base64 -d | jq '.predicate' > sbom.cdx.json
 
 # our VEX decisions, applied to a fresh scan
-cosign verify-attestation "$IMG" --type openvex \
-  --certificate-identity-regexp '^https://github.com/<owner>/<repo>/' \
-  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+cosign verify-attestation "$IMG" --type openvex --certificate-identity "$ID" --certificate-oidc-issuer "$ISSUER" \
   | jq -r '.payload' | base64 -d | jq '.predicate' > vex.json
 trivy image --vex vex.json "$IMG"
 ```
@@ -375,6 +390,27 @@ trivy image --vex vex.json "$IMG"
 Copa refreshes are signed and attested by the same workflow. An image a refresh published before refreshes moved into
 `release.yml` (2026-10-31) has only a `rescan.yml` signature, with no SBOM, OpenVEX or provenance, until its line is
 refreshed or released again.
+
+### The release environment
+
+The jobs that push images, sign, attest or use the GitHub App key run in the `release` environment:
+- `release.yml`'s push, publish, attest, promote and state jobs;
+- `patch.yml`'s `pr` job;
+- `tool-pins.yml`;
+- `patcher-image.yml`'s image and manifest jobs.
+
+The environment admits `main` only (*Deployment branches and tags*), and it holds the App key. Anyone with write
+access can push a branch with an edited `release.yml` and dispatch it. Those jobs then stop at the environment
+gate, before any credential is handed out. So an identity of `release.yml@refs/heads/main` means the workflow as
+reviewed on `main`, and the verification commands above pin exactly that.
+
+The jobs use `deployment: false`: no deployment records, while the branch policy and the environment's secrets still
+apply. A test (`test_jobs_that_publish_or_hold_the_app_key_run_in_the_release_environment`) fails for any job that gets
+one of those permissions, or the App key, without the environment. It also fails if a job that runs upstream code gets
+the environment.
+
+To check the gate after setting it up, dispatch `release.yml` from any other branch. Its first privileged job fails
+with a message that the branch isn't allowed to deploy to `release`.
 
 ### Consuming images
 

@@ -156,7 +156,7 @@ build:
 | `tool-pins.yml` | Mondays 07:00 ET | updates the version+sha256 tool pins in `patcher/Dockerfile` (releases ≥ 14 days old) |
 | Dependabot | daily 07:00 ET | GitHub Actions, the patcher's Python packages and image bases (14-day cooldown) |
 
-Setup (GitHub App, code security settings, GHCR visibility) is in the [runbook](docs/runbook.md#one-time-setup). Jobs run on GitHub-hosted runners unless the `PATCHER_RUNS_ON*` variables select your own ([self-hosted runners](docs/runbook.md#self-hosted-runners)). Images are built for amd64 and arm64; the `PATCHER_PLATFORMS` variable limits that, e.g. to arm64 only ([fewer platforms](docs/runbook.md#fewer-platforms)).
+Setup (GitHub App, the `release` environment that admits `main` only, code security settings, GHCR visibility) is in the [runbook](docs/runbook.md#one-time-setup). Jobs run on GitHub-hosted runners unless the `PATCHER_RUNS_ON*` variables select your own ([self-hosted runners](docs/runbook.md#self-hosted-runners)). Images are built for amd64 and arm64; the `PATCHER_PLATFORMS` variable limits that, e.g. to arm64 only ([fewer platforms](docs/runbook.md#fewer-platforms)).
 
 ## Known limits
 

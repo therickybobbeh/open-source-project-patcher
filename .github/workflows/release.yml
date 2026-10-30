@@ -10,6 +10,10 @@
 # One run releases one line: a push that lands several patch sets dispatches a run per line, because any job can
 # write any artifact of its own run, and one project's build must not be able to swap another project's archives.
 #
+# The jobs that push, sign, attest or hold the GitHub App key run in the `release` environment, which admits main only
+# (its deployment branch policy; the App key is its secret). A copy of this workflow edited on another branch and
+# dispatched from there stops at that gate, so every signature made by `release.yml@refs/heads/main` comes from main.
+#
 # A run that failed after its builds is finished without rebuilding: dispatch it with `rebuild: false`
 # (docs/runbook.md, "A release failed after the builds").
 #
@@ -169,6 +173,9 @@ jobs:
     if: needs.plan.outputs.count == '1' && needs.plan.outputs.build == 'true'
     runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
     timeout-minutes: 30
+    environment:  # admits main only (docs/runbook.md, "The release environment")
+      name: release
+      deployment: false  # no deployment records; the branch policy and its secrets apply all the same
     name: push ${{ needs.plan.outputs.recipe }} ${{ needs.plan.outputs.line }}
     concurrency:
       group: release-push-${{ needs.plan.outputs.recipe }}-${{ needs.plan.outputs.line }}
@@ -209,6 +216,9 @@ jobs:
       && (needs.push.result == 'success' || needs.plan.outputs.build == 'false')
     runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
     timeout-minutes: 120
+    environment:  # admits main only (docs/runbook.md, "The release environment")
+      name: release
+      deployment: false  # no deployment records; the branch policy and its secrets apply all the same
     name: publish ${{ needs.plan.outputs.recipe }} ${{ needs.plan.outputs.line }}
     concurrency:
       group: publish-${{ needs.plan.outputs.recipe }}-${{ needs.plan.outputs.line }}
@@ -260,7 +270,7 @@ jobs:
         run: |
           # only what an image doesn't have yet from this workflow: finishing a revision an earlier run signed must not
           # leave a second signature, SBOM or (different) VEX document on the same digest
-          identity="^https://github\.com/${GITHUB_REPOSITORY//./\\.}/\.github/workflows/release\.yml@"
+          identity="^https://github\.com/${GITHUB_REPOSITORY//./\\.}/\.github/workflows/release\.yml@refs/heads/main$"
           has() {
             cosign "$@" --certificate-identity-regexp "$identity" \
               --certificate-oidc-issuer https://token.actions.githubusercontent.com "$ref" > /dev/null 2>&1
@@ -308,6 +318,9 @@ jobs:
     if: ${{ !cancelled() && needs.publish.result == 'success' && needs.publish.outputs.count != '0' }}
     runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
     timeout-minutes: 15
+    environment:  # admits main only (docs/runbook.md, "The release environment")
+      name: release
+      deployment: false  # no deployment records; the branch policy and its secrets apply all the same
     strategy:
       matrix: ${{ fromJSON(needs.publish.outputs.subjects) }}
     name: provenance ${{ matrix.image }}
@@ -324,7 +337,7 @@ jobs:
           SUBJECT: oci://${{ matrix.repository }}@${{ matrix.digest }}
         run: |
           if gh attestation verify "$SUBJECT" -R "$GITHUB_REPOSITORY" \
-               --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml" > /dev/null 2>&1; then
+               --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml" --source-ref refs/heads/main > /dev/null 2>&1; then
             echo "$SUBJECT: provenance attested already"
             echo "attested=true" >> "$GITHUB_OUTPUT"
           fi
@@ -349,6 +362,9 @@ jobs:
     if: ${{ !cancelled() && needs.attest.result == 'success' }}   # see attest
     runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
     timeout-minutes: 10
+    environment:  # admits main only (docs/runbook.md, "The release environment")
+      name: release
+      deployment: false  # no deployment records; the branch policy and its secrets apply all the same
     name: promote ${{ needs.plan.outputs.recipe }} ${{ needs.plan.outputs.line }}
     concurrency:
       group: promote-${{ needs.plan.outputs.recipe }}-${{ needs.plan.outputs.line }}
@@ -384,6 +400,9 @@ jobs:
     if: ${{ !cancelled() && needs.promote.result == 'success' }}   # see attest
     runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
     timeout-minutes: 15
+    environment:  # admits main only (docs/runbook.md, "The release environment")
+      name: release
+      deployment: false  # no deployment records; the branch policy and its secrets apply all the same
     name: state ${{ needs.plan.outputs.recipe }} ${{ needs.plan.outputs.line }}
     concurrency:
       group: state-${{ needs.plan.outputs.recipe }}-${{ needs.plan.outputs.line }}

@@ -202,6 +202,10 @@ workflow and action files of the commit that started the run, so it only helps w
 | `rescan.yml` | no | `packages: read`, `pull-requests: read`; its refresh job only dispatches `release.yml` (`actions: write`) |
 | `tool-pins.yml` | no | GitHub App token |
 
+Every job above that pushes, signs, attests or uses the App token runs in the `release` environment, which admits
+`main` only and holds the App key. A workflow edited on another branch can't sign anything, so verification pins
+`release.yml@refs/heads/main` ([runbook](runbook.md#the-release-environment)).
+
 Supply-chain rules for the pipeline itself:
 - Every GitHub Action is pinned to a commit SHA.
 - Every tool download in the patcher image is pinned to a version and its sha256.
