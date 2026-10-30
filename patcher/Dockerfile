@@ -49,6 +49,10 @@ ARG YQ_SHA256_ARM64=189088da0c6429ec5178dfaab1a114805f6cab0b61b165ab236efedf1d57
 ARG CRANE_VERSION=0.22.1
 ARG CRANE_SHA256_AMD64=0ab7a1d6932a213aed964ce97666c3077fe691c8606413674a8b3e0b9ec4cda0
 ARG CRANE_SHA256_ARM64=898c0cff975f898a33e8c4580bdafb0e7c02c7faa33374e946762f97c4ab7110
+# OPA's CLI for policies over files: evaluates the release gate (policy/)
+ARG CONFTEST_VERSION=0.71.1
+ARG CONFTEST_SHA256_AMD64=c3f6b2a753bd56e377a1e51a95ae3e057f926f2e9139f7d5b5dfbbaf810f7985
+ARG CONFTEST_SHA256_ARM64=218c682e110ae7e826dc14a746a6f9b43eb782643dbe730b771fd305634e3f47
 
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 
@@ -95,6 +99,9 @@ RUN ARCH="${TARGETARCH:-$(dpkg --print-architecture)}" \
  && fetch "https://github.com/google/go-containerregistry/releases/download/v${CRANE_VERSION}/go-containerregistry_Linux_$(pick x86_64 arm64).tar.gz" \
       crane.tgz "$(pick "$CRANE_SHA256_AMD64" "$CRANE_SHA256_ARM64")" \
  && tar -xzf crane.tgz crane && install -m 0755 crane /usr/local/bin/crane \
+ && fetch "https://github.com/open-policy-agent/conftest/releases/download/v${CONFTEST_VERSION}/conftest_${CONFTEST_VERSION}_Linux_$(pick x86_64 arm64).tar.gz" \
+      conftest.tgz "$(pick "$CONFTEST_SHA256_AMD64" "$CONFTEST_SHA256_ARM64")" \
+ && tar -xzf conftest.tgz conftest && install -m 0755 conftest /usr/local/bin/conftest \
  && rm -rf /tmp/*
 
 # MISE_GO_SET_GOBIN=false: `go install` goes to $GOPATH/bin (/opt/go/bin, on PATH and writable for the test user),

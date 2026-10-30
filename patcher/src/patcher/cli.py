@@ -82,14 +82,17 @@ def plan(
     all_lines: bool = typer.Option(False, "--all", help="Every line of every recipe"),
     repo: Optional[Path] = RepoOpt,
 ) -> None:
-    """Print the GitHub Actions matrix ({"include": [{recipe, line}]}) of lines that need a run."""
+    """Print the lines that need a run, as a GitHub Actions matrix: {"include": [{recipe, line, platform, arch}],
+    "errors": [{recipe, line, error}]}. A recipe that can't be planned is an error row; the others are still planned."""
     r = _repo(repo)
     changed = None
     if changed_files:
         text = sys.stdin.read() if str(changed_files) == "-" else changed_files.read_text()
         changed = [l.strip() for l in text.splitlines() if l.strip()]
-    matrix = pipeline.plan_matrix(r, recipes=recipe or None, changed_files=changed, include_all=all_lines, before=before)
-    typer.echo(json.dumps({"include": matrix}))
+    errors: list[dict] = []
+    matrix = pipeline.plan_matrix(r, recipes=recipe or None, changed_files=changed, include_all=all_lines, before=before,
+                                  errors=errors)
+    typer.echo(json.dumps({"include": matrix, "errors": errors}))
 
 
 @app.command("run")
@@ -198,15 +201,35 @@ def publish(
     out: Path = typer.Option(Path("out")),
     repo: Optional[Path] = RepoOpt,
 ) -> None:
-    """Release flow: merge per-arch images, Copa, push final + moving tags, update state/."""
+    """Release flow: merge per-arch images, Copa, push the final tags, update state/ (`promote` moves the moving ones)."""
     r = _repo(repo)
     _emit(pipeline.publish(r, r.load_recipe(recipe), line, _platforms(platforms), out.resolve(), tag, revision, finish_existing))
 
 
 @app.command()
-def rescan(out: Path = typer.Option(Path("out/rescan")), repo: Optional[Path] = RepoOpt) -> None:
-    """Scan every published image; print {"refresh": [...], "rerun": [...]} matrices."""
-    _emit(pipeline.rescan(_repo(repo), out.resolve()))
+def rescan(
+    out: Path = typer.Option(Path("out/rescan")),
+    pending: Optional[Path] = typer.Option(None, help="File listing the state files open PRs change "
+                                                      "(state/<recipe>/<line>.yaml, one per line): those lines are skipped"),
+    repo: Optional[Path] = RepoOpt,
+) -> None:
+    """Scan every published image; print {"refresh": [...], "rerun": [...], "pending": [...], "errors": [...]}. A line that
+    can't be scanned is an error row; the others are still scanned."""
+    paths = pending.read_text().splitlines() if pending else []
+    _emit(pipeline.rescan(_repo(repo), out.resolve(), pipeline.pending_lines(paths)))
+
+
+@app.command()
+def promote(
+    recipe: str,
+    line: str = typer.Option(..., help="For the log; the images come from the release record"),
+    release: Path = typer.Option(..., help="publish's or refresh's release.json"),
+    repo: Optional[Path] = RepoOpt,
+) -> None:
+    """Move the moving tags (`<upstream tag>-patched`) to the digests in a release record. Run it after signing."""
+    r = _repo(repo)
+    moved = pipeline.promote(r, r.load_recipe(recipe), json.loads(release.read_text()))
+    log(f"{recipe} {line}: " + (", ".join(moved) if moved else "nothing to promote"))
 
 
 @app.command()

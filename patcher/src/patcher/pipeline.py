@@ -14,13 +14,14 @@ import json
 import os
 import re
 import shutil
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-from . import adapters, archive, components, jars, reach, releases, toolchain, upstream
+from . import adapters, archive, components, gate, jars, reach, releases, toolchain, upstream
 from .adapters.base import Ctx, Result
 from .build import BuiltImage, arch_of, build_image, image_digest, native_platform, smoke_test, template_ctx
-from .config import Repo, line_key, render
+from .config import Repo, line_key, render, wanted_platforms
 from .ecosystems import CVE_ECOSYSTEMS
 from . import copa
 from .models import RELEASABLE_STATUSES, ImageSpec, Level, Line, LineState, Recipe, ReleasedImage
@@ -280,6 +281,8 @@ def run_line(repo: Repo, recipe: Recipe, line: Line, opts: RunOptions) -> Summar
         shutil.rmtree(out)
     out.mkdir(parents=True)
     g = repo.global_config()
+    if recipe.build and not recipe.build.platforms:
+        raise ValueError(f"{recipe.name}: built for none of PATCHER_PLATFORMS ({', '.join(wanted_platforms() or [])})")
 
     if recipe.mode == "image-only":
         return _run_image_only(repo, recipe, line, out, opts)
@@ -602,6 +605,8 @@ def _test_word(t: TestOutcome | None) -> str:
 
 
 def _write_outputs(repo: Repo, s: Summary, att: Attempt | None, out: Path) -> None:
+    if s.status in RELEASABLE:  # what the release would be held to, so a reviewer sees it before merging
+        s.gate = gate.check(repo.root, "patch", s.recipe, s.line, [(i.name, i.ref, i.after) for i in s.images if i.after], s.vex)
     gen = out / "generated"
     gen.mkdir(exist_ok=True)
     md = render_markdown(s)
@@ -644,7 +649,9 @@ def _write_outputs(repo: Repo, s: Summary, att: Attempt | None, out: Path) -> No
         "generatedAt": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
         "images": [{"name": i.name, "ref": i.ref, "upstream": i.upstream_ref,
                     "after": i.after.to_json() if i.after else None} for i in s.images],
-        "draft": s.status not in RELEASABLE,
+        "gate": {k: v.to_json() for k, v in s.gate.items()},
+        # tests that failed, or (with gate.enforce) a gate the release would stop at: not ready to merge
+        "draft": s.status not in RELEASABLE or (s.recipe.gate.enforce and not all(v.passed for v in s.gate.values())),
     }
     (out / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     findings = [f for i in s.images if i.after for f in i.after.findings]
@@ -739,11 +746,19 @@ def _run_image_only(repo: Repo, recipe: Recipe, line: Line, out: Path, opts: Run
 #   build    release_build   per platform: rebuild the reviewed patch set, save      upstream code, no credentials,
 #                            each image as an archive (archive.py)                   pushes nothing
 #   push     release_push    pick the revision, push the archives as <final>-<arch>  credentials, no upstream code
-#   publish  publish         merge the platforms, Copa, final + moving tags, state   credentials, no upstream code
+#   publish  publish         merge the platforms, Copa, final tags, state            credentials, no upstream code
+#   (the workflow signs and attests here)
+#   promote  promote         move each moving tag to the signed digest               credentials, no upstream code
 
 # the platforms release builds support, with the GitHub-hosted runner each one is built on natively; the
 # PATCHER_RUNS_ON_UPSTREAM(_ARM64) variables pick self-hosted runners instead (release.yml's build job)
 RUNNERS = {"linux/amd64": "ubuntu-24.04", "linux/arm64": "ubuntu-24.04-arm"}
+
+
+def _check_wanted_platforms() -> None:
+    """PATCHER_PLATFORMS may only name platforms release builds run on: a typo would quietly skip every recipe."""
+    if unknown := [p for p in wanted_platforms() or [] if p not in RUNNERS]:
+        raise ValueError(f"PATCHER_PLATFORMS: no release runner for {', '.join(unknown)}; use {', '.join(RUNNERS)}")
 
 
 def find_generated(repo: Repo, recipe: Recipe, key: str, tag: str | None = None) -> tuple[Path, dict]:
@@ -797,6 +812,24 @@ def release_targets(repo: Repo, changed_files: list[str]) -> tuple[list[tuple[st
     return list(dict.fromkeys(targets)), errors
 
 
+@contextmanager
+def _isolated(errors: list[dict] | None, recipe: str, line: str = ""):
+    """One recipe's (or line's) error goes to `errors` as a row, and the caller carries on with the next one; the
+    workflow then fails a job for those rows, which raises a CI alert. With `errors` None, the error is raised."""
+    if errors is None:
+        yield
+        return
+    try:
+        yield
+    except Exception as e:  # noqa: BLE001 - reported per recipe; the healthy ones still run
+        msg = (str(e).splitlines() or [repr(e)])[0]
+        if isinstance(e, CommandError):  # which command, and why
+            msg += f": {first_error(e.tail)}"
+        row = {"recipe": recipe, "line": line, "error": msg[:300]}
+        if row not in errors:
+            errors.append(row)
+
+
 def _release_row(repo: Repo, name: str, key: str) -> dict:
     recipe = repo.load_recipe(name)
     if recipe.mode == "component":
@@ -808,6 +841,8 @@ def _release_row(repo: Repo, name: str, key: str) -> dict:
         raise ValueError(f"{name}: no `build` section, nothing to release")
     build = recipe.mode != "image-only"  # image-only: `publish` overlays the vendor image itself, in one cross build
     plats = release_platforms(recipe)
+    if not plats:
+        return {"recipe": name, "line": key, "reason": f"built for none of PATCHER_PLATFORMS ({', '.join(wanted_platforms() or [])})"}
     if build and (missing := [p for p in plats if p not in RUNNERS]):
         raise ValueError(f"{name}: no native runner for {', '.join(missing)}; release builds run on {', '.join(RUNNERS)}")
     return {"recipe": name, "line": key, "build": build, "platforms": plats,
@@ -819,14 +854,12 @@ def release_plan(repo: Repo, targets: list[tuple[str, str]]) -> dict:
     with their native runners; `skipped` rows for what is never released, with the reason; `errors` rows for what can't
     be released as it is (an unknown recipe or line, a platform without a runner). One target's error doesn't stop the
     others: release.yml releases those and then fails, which raises a CI alert."""
+    _check_wanted_platforms()
     include, skipped, errors = [], [], []
     for name, key in dict.fromkeys(targets):
-        try:
+        with _isolated(errors, name, key):  # release.yml fails the run after releasing the others
             row = _release_row(repo, name, key)
-        except Exception as e:  # noqa: BLE001 - reported per target; release.yml fails the run after the others
-            errors.append({"recipe": name, "line": key, "error": (str(e).splitlines() or [repr(e)])[0][:300]})
-            continue
-        (skipped if "reason" in row else include).append(row)
+            (skipped if "reason" in row else include).append(row)
     return {"include": include, "skipped": skipped, "errors": errors}
 
 
@@ -1045,7 +1078,8 @@ def release_push(repo: Repo, recipe: Recipe, key: str, out: Path, images: Path |
 
 def publish(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, out: Path, tag: str | None = None,
             revision: int | None = None, finish_existing: bool = False) -> list[dict]:
-    """Merge a revision's per-arch images, Copa the result, push the immutable and moving tags, update state.
+    """Merge a revision's per-arch images, Copa the result, push the immutable tags, update state. The moving tags
+    move later (`promote`), once the workflow has signed and attested what this pushed.
 
     `revision`: the one `release_push` pushed in this run. Without it (the run built nothing: `rebuild: false`), the
     highest revision whose per-arch images all exist (`built_revision`). Never a revision state/ records.
@@ -1084,6 +1118,7 @@ def publish(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, o
                            "new revision")
     released: list[dict] = []
     images: list[ReleasedImage] = []
+    scanned: list[tuple] = []  # (image key, ref, final scan) for the gate
     for img in todo:
         spec, cr = img.spec, None
         if img.ref in existing:
@@ -1097,7 +1132,6 @@ def publish(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, o
             if not (cr and cr.patched_ref):
                 run(["docker", "buildx", "imagetools", "create", "-t", img.ref, build_ref])
             copa_note = cr.note() if cr else "disabled"
-        run(["docker", "buildx", "imagetools", "create", "-t", img.moving, img.ref])
         digest = image_digest(img.ref)
         after = scan_image(f"{img.repository}@{digest}", out / f"scan-release-{spec.key}.json", severities=g.scan.severities,
                            platform=img.platforms[0], src="remote")
@@ -1108,6 +1142,8 @@ def publish(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, o
         images.append(ReleasedImage(name=spec.key, ref=img.ref, digest=digest, knownFixable=_fixable_keys(after)))
         released.append({"image": spec.key, "repository": img.repository, "tag": img.final, "digest": digest, "vex": str(vex_path),
                          "copa": copa_note, "jars": [f"/{s.path}: {s.name} {s.new}" for s in swaps.get(spec.key, [])]})
+        scanned.append((spec.key, f"{img.repository}@{digest}", after))
+    _gate(repo, recipe, key, scanned, released)
     st = repo.state(recipe.name)
     st.lines[key] = LineState(upstreamTag=doc["tag"], commit=doc["commit"], revision=rev,
                               releasedAt=dt.datetime.now(dt.timezone.utc).replace(microsecond=0),
@@ -1125,7 +1161,7 @@ def _publish_image_only(repo: Repo, recipe: Recipe, key: str, platforms: list[st
     registry may have newer ones by now, and those were never reviewed."""
     g = repo.global_config()
     st = repo.state(recipe.name)
-    released, images = [], []
+    released, images, scanned = [], [], []
     gen, doc = find_generated(repo, recipe, key, tag)
     _releasable(gen, doc)
     recorded = doc.get("imageTags") or {}
@@ -1162,7 +1198,6 @@ def _publish_image_only(repo: Repo, recipe: Recipe, key: str, platforms: list[st
                             src="remote")
         if not (cr and cr.patched_ref):
             run(["docker", "buildx", "imagetools", "create", "-t", f"{repo_ref}:{final}", f"{repo_ref}:{final}-build"])
-        run(["docker", "buildx", "imagetools", "create", "-t", f"{repo_ref}:{tag}-patched", f"{repo_ref}:{final}"])
         digest = image_digest(f"{repo_ref}:{final}")
         after = scan_image(f"{repo_ref}@{digest}", out / f"scan-release-{spec.key}.json", severities=g.scan.severities,
                            platform=plats[0], src="remote")
@@ -1173,11 +1208,40 @@ def _publish_image_only(repo: Repo, recipe: Recipe, key: str, platforms: list[st
         released.append({"image": spec.key, "repository": repo_ref, "tag": final, "digest": digest, "vex": str(vex_path),
                          "copa": cr.note() if cr else "disabled",
                          "jars": [f"/{s.path}: {s.name} {s.new}" for s in mine_jars]})
+        scanned.append((spec.key, f"{repo_ref}@{digest}", after))
+    _gate(repo, recipe, key, scanned, released)
     st.lines[key] = LineState(upstreamTag=targets[0][1], commit="n/a", revision=rev, platforms=platforms,
                               releasedAt=dt.datetime.now(dt.timezone.utc).replace(microsecond=0), images=images)
     repo.save_state(recipe.name, st)
     (out / "release.json").write_text(json.dumps(released, indent=2) + "\n")
     return released
+
+
+def _gate(repo: Repo, recipe: Recipe, key: str, scanned: list[tuple], released: list[dict]) -> None:
+    """The release gate on each image about to be signed. Its verdict goes into the release record, which the state PR
+    shows. With gate.enforce, a denied image stops the release here, before state/ and release.json are written: nothing
+    is signed, promoted or recorded."""
+    verdicts = gate.check(repo.root, "release", recipe, key, scanned, repo.vex(recipe.name))
+    for r in released:
+        if r["image"] in verdicts:
+            r["gate"] = verdicts[r["image"]].to_json()
+    gate.enforce(recipe, key, verdicts)
+
+
+def promote(repo: Repo, recipe: Recipe, released: list[dict]) -> list[str]:
+    """Move each image's moving tag (`<upstream tag>-patched`) to the digest a publish or Copa refresh pushed. It runs
+    after the image is signed and attested: whoever follows the moving tag only ever gets a complete release, and if
+    signing failed the tag stays on the previous one. By digest, so it is exactly what was signed. Refuses images
+    that aren't this recipe's."""
+    ours = {f"{repo.global_config().registry}/{spec.name}" for spec in recipe.build.images} if recipe.build else set()
+    moved = []
+    for r in released:
+        if r["repository"] not in ours:
+            raise ValueError(f"{r['repository']} is not an image of {recipe.name}: nothing is promoted")
+        moving = f"{r['repository']}:{upstream_tag_of(repo, r['tag'])}-patched"
+        run(["docker", "buildx", "imagetools", "create", "-t", moving, f"{r['repository']}@{r['digest']}"])
+        moved.append(moving)
+    return moved
 
 
 # --- rescan / refresh / plan ---------------------------------------------------------------
@@ -1187,33 +1251,52 @@ def _fixable_keys(report: ScanReport) -> list[str]:
     return sorted({"|".join(f.key) for f in report.fixable()})
 
 
-def rescan(repo: Repo, out: Path) -> dict:
+def pending_lines(paths: list[str]) -> set[tuple[str, str]]:
+    """(recipe, line) of each state file (`state/<recipe>/<line>.yaml`) in `paths`: those open PRs change."""
+    pending = set()
+    for p in paths:
+        parts = p.strip().split("/")
+        if len(parts) == 3 and parts[0] == "state" and parts[2].endswith(".yaml"):
+            pending.add((parts[1], parts[2].removesuffix(".yaml")))
+    return pending
+
+
+def rescan(repo: Repo, out: Path, pending: set[tuple[str, str]] = frozenset()) -> dict:
     """Scan every published image; act only on fixable findings that are new since the release
     (known leftovers, e.g. in bundled binaries, are already explained in the release PR).
-    New OS-only findings -> Copa refresh; new language findings -> source re-run."""
+    New OS-only findings -> Copa refresh; new language findings -> source re-run.
+
+    `pending` lines have a state PR that isn't merged yet: state/ is behind what they published, so they wait for it
+    (listed under `pending`) instead of being scanned, and refreshed again, from the older revision."""
+    from .vex import match as vex_match
+
     g = repo.global_config()
-    result = {"refresh": [], "rerun": []}
+    result = {"refresh": [], "rerun": [], "pending": [], "errors": []}
     out.mkdir(parents=True, exist_ok=True)
     for path in repo.recipe_paths():
-        recipe = repo.load_recipe(path.stem)
-        vexf = repo.vex(recipe.name)
-        from .vex import match as vex_match
-
-        for key, ls in repo.state(recipe.name).lines.items():
-            kinds = set()
-            platform = (ls.platforms or (recipe.build.platforms if recipe.build else ["linux/amd64"]))[0]
-            for img in ls.images:
-                rep = scan_image(f"{img.ref.rsplit(':', 1)[0]}@{img.digest}", out / f"rescan-{recipe.name}-{key}-{img.name}.json",
-                                 severities=g.scan.severities, platform=platform, src="remote")
-                known = set(img.knownFixable)
-                for f in rep.fixable():
-                    if "|".join(f.key) not in known and not vex_match(vexf, f):
-                        kinds.add("os" if f.ecosystem == "os" else "lang")
-            entry = {"recipe": recipe.name, "line": key}
-            if "lang" in kinds:
-                result["rerun"].append(entry)
-            elif "os" in kinds:
-                result["refresh"].append(entry)
+        with _isolated(result["errors"], path.stem):  # an unreadable recipe or state file: the others are still scanned
+            recipe = repo.load_recipe(path.stem)
+            vexf = repo.vex(recipe.name)
+            for key, ls in repo.state(recipe.name).lines.items():
+                if (recipe.name, key) in pending:
+                    result["pending"].append({"recipe": recipe.name, "line": key})
+                    continue
+                with _isolated(result["errors"], recipe.name, key):  # a scan that fails skips this line only
+                    kinds = set()
+                    platform = (ls.platforms or (recipe.build.platforms if recipe.build else None) or ["linux/amd64"])[0]
+                    for img in ls.images:
+                        rep = scan_image(f"{img.ref.rsplit(':', 1)[0]}@{img.digest}",
+                                         out / f"rescan-{recipe.name}-{key}-{img.name}.json",
+                                         severities=g.scan.severities, platform=platform, src="remote")
+                        known = set(img.knownFixable)
+                        for f in rep.fixable():
+                            if "|".join(f.key) not in known and not vex_match(vexf, f):
+                                kinds.add("os" if f.ecosystem == "os" else "lang")
+                    entry = {"recipe": recipe.name, "line": key}
+                    if "lang" in kinds:
+                        result["rerun"].append(entry)
+                    elif "os" in kinds:
+                        result["refresh"].append(entry)
     (out / "result.json").write_text(json.dumps(result, indent=2) + "\n")
     return result
 
@@ -1236,8 +1319,21 @@ def _refresh_revision(repo: Repo, ls: LineState, platforms: list[str]) -> int:
     return rev
 
 
+def _check_moving_tags(repo: Repo, ls: LineState) -> None:
+    """A refresh starts from the images state/ records. An image whose moving tag points elsewhere was published again
+    since (a release or refresh whose state PR isn't merged): refreshing the recorded one would move the tag back."""
+    for img in ls.images:
+        repository, tag = img.ref.rsplit(":", 1)
+        moving = f"{repository}:{upstream_tag_of(repo, tag)}-patched"
+        if (at := image_digest(moving)) != img.digest:
+            raise RuntimeError(f"{moving} is at {at}, not at {img.digest} as state/ records: a newer release or refresh "
+                               "isn't recorded yet (merge its state PR). Nothing was refreshed")
+
+
 def refresh(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, out: Path) -> list[dict]:
-    """Copa-only re-patch of the currently published images to the next revision."""
+    """Copa-only re-patch of the currently published images to the next revision. release.yml runs it in place of
+    `publish` (a `refresh` dispatch, which the nightly rescan sends), so the result is signed, attested and promoted as
+    a release is: each image gets its OpenVEX document here, as `publish` writes it."""
     if not recipe.publish:
         log(f"{recipe.name}: publish: false, nothing to refresh")
         return []
@@ -1248,9 +1344,10 @@ def refresh(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, o
         raise LookupError(f"{recipe.name} line {key} has never been released")
     out = out / recipe.name / key
     out.mkdir(parents=True, exist_ok=True)
+    _check_moving_tags(repo, ls)
     platforms = ls.platforms or platforms or recipe.build.platforms  # patch exactly what was released
     rev = _refresh_revision(repo, ls, platforms)
-    released, images = [], []
+    released, images, scanned = [], [], []
     specs = {s.key: s for s in recipe.build.images}
     for img in ls.images:
         spec = specs.get(img.name)
@@ -1260,7 +1357,7 @@ def refresh(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, o
         repo_ref, cur_tag = img.ref.rsplit(":", 1)
         up_tag = upstream_tag_of(repo, cur_tag)
         final = final_tag(repo, up_tag, rev)
-        plats = image_platforms(recipe, spec, platforms)  # the recorded platforms this image has
+        plats = [p for p in platforms if not spec.platforms or p in spec.platforms]  # the recorded platforms this image has
         if not plats:
             images.append(img)
             continue
@@ -1276,12 +1373,17 @@ def refresh(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, o
             raise RuntimeError(f"revision {rev} was taken while Copa ran ({', '.join(taken)}), by a release of this line? "
                                "Nothing was overwritten; the next rescan refreshes again")
         run(["docker", "buildx", "imagetools", "create", "-t", f"{repo_ref}:{final}", cr.patched_ref])
-        run(["docker", "buildx", "imagetools", "create", "-t", f"{repo_ref}:{up_tag}-patched", f"{repo_ref}:{final}"])
         digest = image_digest(f"{repo_ref}:{final}")
         after = scan_image(f"{repo_ref}@{digest}", out / f"scan-refresh-{spec.key}.json", severities=g.scan.severities,
                            platform=plats[0], src="remote")
+        vex_path = out / f"vex-{spec.key}.openvex.json"
+        vex_path.write_text(json.dumps(openvex(repo.vex(recipe.name), oci_purl(repo_ref, digest), after.findings,
+                                               extra_docs=[cr.vex] if cr.vex else []), indent=2) + "\n")
         images.append(ReleasedImage(name=spec.key, ref=f"{repo_ref}:{final}", digest=digest, knownFixable=_fixable_keys(after)))
-        released.append({"image": spec.key, "repository": repo_ref, "tag": final, "digest": digest, "copa": "patched"})
+        released.append({"image": spec.key, "repository": repo_ref, "tag": final, "digest": digest, "vex": str(vex_path),
+                         "copa": cr.note()})
+        scanned.append((spec.key, f"{repo_ref}@{digest}", after))
+    _gate(repo, recipe, key, scanned, released)
     if released:
         st.lines[key] = ls.model_copy(update={"revision": rev, "images": images,
                                                "releasedAt": dt.datetime.now(dt.timezone.utc).replace(microsecond=0)})
@@ -1290,8 +1392,28 @@ def refresh(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, o
     return released
 
 
+def _patch_platform(recipe: Recipe) -> str:
+    """The platform a patch run builds and tests on: the first one the line is released for (linux/amd64 unless
+    PATCHER_PLATFORMS or the recipe say otherwise). patch.yml runs it on that platform's runner, so it builds natively."""
+    plats = release_platforms(recipe) if recipe.build else []
+    return plats[0] if plats else "linux/amd64"
+
+
+def _built_here(recipe: Recipe) -> bool:
+    """False for a recipe PATCHER_PLATFORMS leaves no platform: it is neither patched nor released here."""
+    if recipe.build and not recipe.build.platforms:
+        log(f"{recipe.name}: built for none of PATCHER_PLATFORMS ({', '.join(wanted_platforms() or [])}), skipped")
+        return False
+    return True
+
+
 def plan_matrix(repo: Repo, *, recipes: list[str] | None = None, changed_files: list[str] | None = None,
-                include_all: bool = False, before: str | None = None) -> list[dict]:
+                include_all: bool = False, before: str | None = None, errors: list[dict] | None = None) -> list[dict]:
+    """The lines that need a patch run, each with the platform it builds on (`_patch_platform`).
+
+    `errors`: a recipe that can't be planned (an unreadable recipe, upstream tags that can't be listed) becomes a row
+    there and the others are still planned (patch.yml runs them, then fails `plan-errors`). Without it, it is raised."""
+    _check_wanted_platforms()
     names = [p.stem for p in repo.recipe_paths()]
     selected: dict[str, set[str] | None] = {}  # recipe -> line keys (None = all)
     if recipes:
@@ -1303,7 +1425,7 @@ def plan_matrix(repo: Repo, *, recipes: list[str] | None = None, changed_files: 
                 continue  # comments, `description` or `notes` only: the next run picks the text up
             parts = f.split("/")
             if f == "recipes/_global.yaml":  # org-wide policy: every line. (patcher/ code changes run nothing here:
-                return plan_matrix(repo, include_all=True)  # patcher-image.yml tests them; dispatch `all` on purpose)
+                return plan_matrix(repo, include_all=True, errors=errors)  # patcher-image.yml tests them; dispatch `all`)
             if parts[0] in ("recipes", "skips", "vex") and len(parts) == 2 and f.endswith(".yaml"):
                 selected[Path(parts[1]).stem] = None
             elif parts[0] == "patches" and len(parts) > 2:
@@ -1311,46 +1433,50 @@ def plan_matrix(repo: Repo, *, recipes: list[str] | None = None, changed_files: 
         # a changed component re-runs every recipe that bundles it; components never run on their own
         parents: dict[str, list[str]] = {}
         for n in names:
-            for c in repo.load_recipe(n).components:
-                parents.setdefault(c.recipe, []).append(n)
+            with _isolated(errors, n):
+                for c in repo.load_recipe(n).components:
+                    parents.setdefault(c.recipe, []).append(n)
         for comp in [n for n in list(selected) if n in parents]:
             for parent in parents[comp]:
                 selected.setdefault(parent, None)
     else:
         for name in names:
-            recipe = repo.load_recipe(name)
-            if not recipe.source or recipe.mode == "component":
-                continue
-            state = repo.state(name)
-            if recipe.mode == "image-only":  # new upstream image tag -> run
+            with _isolated(errors, name):  # e.g. its upstream tags can't be listed
+                recipe = repo.load_recipe(name)
+                if not recipe.source or recipe.mode == "component" or not _built_here(recipe):
+                    continue
+                state = repo.state(name)
+                if recipe.mode == "image-only":  # new upstream image tag -> run
+                    for line in recipe.source.lines:
+                        key = line_key(line)
+                        cur = state.lines.get(key)
+                        tag = _image_only_targets(recipe, line)[0][1]
+                        if include_all or ((cur is None or cur.upstreamTag != tag) and not _pr_pending(repo, name, key, tag)
+                                           and not _merged(repo, name, key, tag)):
+                            selected.setdefault(name, set()).add(key)
+                    continue
+                tags = upstream.list_tags(recipe.source.url) if any(not l.branch for l in recipe.source.lines) else {}
                 for line in recipe.source.lines:
                     key = line_key(line)
+                    tag, commit = upstream.resolve_line(recipe.source, line, tags)
                     cur = state.lines.get(key)
-                    tag = _image_only_targets(recipe, line)[0][1]
-                    if include_all or ((cur is None or cur.upstreamTag != tag) and not _pr_pending(repo, name, key, tag)
-                                       and not _merged(repo, name, key, tag)):
+                    new = cur is None or cur.upstreamTag != tag or (line.branch and cur.commit != commit)
+                    if include_all or (new and not _pr_pending(repo, name, key, tag) and not _merged(repo, name, key, tag, commit)):
                         selected.setdefault(name, set()).add(key)
-                continue
-            tags = upstream.list_tags(recipe.source.url) if any(not l.branch for l in recipe.source.lines) else {}
-            for line in recipe.source.lines:
-                key = line_key(line)
-                tag, commit = upstream.resolve_line(recipe.source, line, tags)
-                cur = state.lines.get(key)
-                new = cur is None or cur.upstreamTag != tag or (line.branch and cur.commit != commit)
-                if include_all or (new and not _pr_pending(repo, name, key, tag) and not _merged(repo, name, key, tag, commit)):
-                    selected.setdefault(name, set()).add(key)
     matrix = []
     for name, keys in sorted(selected.items()):
         if name not in names:
             continue
-        recipe = repo.load_recipe(name)
-        if recipe.mode == "component":
-            continue
-        lines = recipe.source.lines if recipe.source else []
-        for line in lines:
-            k = line_key(line)
-            if keys is None or k in keys:
-                matrix.append({"recipe": name, "line": k})
+        with _isolated(errors, name):
+            recipe = repo.load_recipe(name)
+            if recipe.mode == "component" or not _built_here(recipe):
+                continue
+            platform = _patch_platform(recipe)
+            lines = recipe.source.lines if recipe.source else []
+            for line in lines:
+                k = line_key(line)
+                if keys is None or k in keys:
+                    matrix.append({"recipe": name, "line": k, "platform": platform, "arch": arch_of(platform)})
     return matrix
 
 

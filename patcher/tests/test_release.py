@@ -279,11 +279,9 @@ def test_publish_merges_the_revision_push_pushed(tmp_path, monkeypatch):
         ["-t", f"{final}-build", staging(5, "amd64"), staging(5, "arm64")],
         ["copa", f"{final}-build", "v1.2.3-patched.5", ["linux/amd64", "linux/arm64"]],
         ["-t", final, f"{final}-build"],  # Copa had nothing to patch
-        ["-t", f"{REG}:v1.2.3-patched", final],
         ["-t", f"{debug}-build", staging(5, "amd64", True)],  # amd64 only
         ["copa", f"{debug}-build", "v1.2.3-debug-patched.5", ["linux/amd64"]],
-        ["-t", debug, f"{debug}-build"],
-        ["-t", f"{REG}:v1.2.3-debug-patched", debug]]
+        ["-t", debug, f"{debug}-build"]]  # no moving tags: `promote` moves them once the images are signed
     assert [(r["tag"], r["copa"]) for r in released] == [("v1.2.3-patched.5", "disabled"), ("v1.2.3-debug-patched.5", "disabled")]
     st = repo.state("app").lines["v1"]
     assert (st.revision, st.platforms, [i.ref for i in st.images]) == (5, ["linux/amd64", "linux/arm64"], [final, debug])
@@ -298,12 +296,10 @@ def test_publish_without_a_build_finishes_the_newest_built_revision_as_it_is(tmp
     cmds = fake_publish_tools(monkeypatch)
     released = pipeline.publish(repo, repo.load_recipe("app"), "v1", None, tmp_path / "out")
     final, debug = f"{REG}:v1.2.3-patched.5", f"{REG}:v1.2.3-debug-patched.5"
-    assert cmds == [
-        ["-t", f"{REG}:v1.2.3-patched", final],  # app: kept as it is, no second merge or Copa
+    assert cmds == [  # app: kept as it is, no second merge or Copa
         ["-t", f"{debug}-build", staging(5, "amd64", True)],  # app-debug never got that far
         ["copa", f"{debug}-build", "v1.2.3-debug-patched.5", ["linux/amd64"]],
-        ["-t", debug, f"{debug}-build"],
-        ["-t", f"{REG}:v1.2.3-debug-patched", debug]]
+        ["-t", debug, f"{debug}-build"]]
     assert released[0]["copa"].startswith("unchanged") and repo.state("app").lines["v1"].revision == 5
 
 
@@ -329,10 +325,8 @@ def test_copa_refresh_takes_a_free_revision_and_each_image_s_platforms(tmp_path,
     # Copa writes to a scratch tag, never to a release's own names; the result is then tagged as the revision
     assert calls == [("v1.2.3-patched.4-refresh", ["linux/amd64", "linux/arm64"]),
                      ["-t", f"{REG}:v1.2.3-patched.4", f"{REG}:v1.2.3-patched.4-refresh"],
-                     ["-t", f"{REG}:v1.2.3-patched", f"{REG}:v1.2.3-patched.4"],
                      ("v1.2.3-debug-patched.4-refresh", ["linux/amd64"]),
-                     ["-t", f"{REG}:v1.2.3-debug-patched.4", f"{REG}:v1.2.3-debug-patched.4-refresh"],
-                     ["-t", f"{REG}:v1.2.3-debug-patched", f"{REG}:v1.2.3-debug-patched.4"]]
+                     ["-t", f"{REG}:v1.2.3-debug-patched.4", f"{REG}:v1.2.3-debug-patched.4-refresh"]]  # `promote` moves the moving tags
     assert repo.state("app").lines["v1"].revision == 4
 
     # a release takes the revision while Copa runs: the refresh stops, and nothing of the release is overwritten
@@ -342,6 +336,80 @@ def test_copa_refresh_takes_a_free_revision_and_each_image_s_platforms(tmp_path,
     with pytest.raises(RuntimeError, match="revision 5 was taken while Copa ran"):
         pipeline.refresh(repo, repo.load_recipe("app"), "v1", None, tmp_path / "out")
     assert calls == ["v1.2.3-patched.5-refresh"] and repo.state("app").lines["v1"].revision == 4
+
+
+def test_a_refresh_carries_its_openvex_and_never_moves_the_tag_back(tmp_path, monkeypatch):
+    """release.yml signs a refresh and attaches its OpenVEX as it does a release's. A refresh starts from what state/
+    records: a moving tag that points elsewhere means a newer revision isn't recorded yet."""
+    from patcher.copa import CopaResult
+    from patcher.models import ReleasedImage
+
+    repo = make_repo(tmp_path)
+    st = repo.state("app")
+    st.lines["v1"] = st.lines["v1"].model_copy(update={"platforms": ["linux/amd64", "linux/arm64"], "images": [
+        ReleasedImage(name="app", ref=f"{REG}:v1.2.3-patched.2", digest=DIGEST)]})
+    repo.save_state("app", st)
+    registry(monkeypatch)
+    copa_vex = tmp_path / "copa.vex.json"  # Copa's own statements for the OS packages it patched
+    copa_vex.write_text(json.dumps({"statements": [{"vulnerability": {"name": "CVE-2026-1"}, "status": "fixed"}]}))
+    patched = []
+    monkeypatch.setattr(pipeline.copa, "for_image", lambda spec, image, out_tag, out, **k: patched.append(out_tag)
+                        or CopaResult(f"{REG}:{out_tag}", 1, vex=copa_vex))
+    monkeypatch.setattr(pipeline, "run", lambda cmd, **k: None)
+    monkeypatch.setattr(pipeline, "scan_image", lambda ref, path, **k: ScanReport(ref))
+    newer = "sha256:" + "e" * 64  # a release whose state PR isn't merged moved the tag on
+    monkeypatch.setattr(pipeline, "image_digest", lambda ref: newer if ref == f"{REG}:v1.2.3-patched" else DIGEST)
+    with pytest.raises(RuntimeError, match="isn't recorded yet"):
+        pipeline.refresh(repo, repo.load_recipe("app"), "v1", None, tmp_path / "out")
+    assert patched == [] and repo.state("app").lines["v1"].revision == 2
+
+    monkeypatch.setattr(pipeline, "image_digest", lambda ref: DIGEST)  # the tag is where state/ says
+    released = pipeline.refresh(repo, repo.load_recipe("app"), "v1", None, tmp_path / "out")
+    assert [(r["tag"], r["copa"]) for r in released] == [("v1.2.3-patched.3", "patched 1 OS finding(s)")]
+    assert json.loads(Path(released[0]["vex"]).read_text())["statements"] == [{"vulnerability": {"name": "CVE-2026-1"},
+                                                                              "status": "fixed"}]
+
+
+def test_rescan_waits_for_a_line_s_state_pr(tmp_path, monkeypatch):
+    from patcher.models import ReleasedImage
+
+    repo = make_repo(tmp_path)
+    st = repo.state("app")
+    st.lines["v1"] = st.lines["v1"].model_copy(update={"images": [ReleasedImage(name="app", ref=f"{REG}:v1.2.3-patched.2",
+                                                                                 digest=DIGEST)]})
+    repo.save_state("app", st)
+    scanned = []
+    monkeypatch.setattr(pipeline, "scan_image", lambda ref, path, **k: scanned.append(ref) or ScanReport(ref))
+    # the paths open PRs change (rescan.yml lists them): state files name their line
+    pending = pipeline.pending_lines(["state/app/v1.yaml", "state/other/v2.yaml", "generated/app/v1.2.3/bump-plan.json", ""])
+    assert pending == {("app", "v1"), ("other", "v2")}
+    assert pipeline.rescan(repo, tmp_path / "rescan", pending) == {"refresh": [], "rerun": [], "errors": [],
+                                                                   "pending": [{"recipe": "app", "line": "v1"}]}
+    assert scanned == []
+    pipeline.rescan(repo, tmp_path / "rescan")
+    assert scanned == [f"{REG}@{DIGEST}"]
+
+
+def test_one_line_that_cant_be_rescanned_doesnt_stop_the_others(tmp_path, monkeypatch):
+    from patcher.models import ReleasedImage
+
+    repo = make_repo(tmp_path, app_recipe(), recipe("other", build={"images": [{"name": "other"}]}))
+    (tmp_path / "recipes" / "broken.yaml").write_text("name: broken\nbogus: 1\n")
+    for name, ref in (("app", f"{REG}:v1.2.3-patched.2"), ("other", "ghcr.io/me/other:v1.2.3-patched.1")):
+        repo.save_state(name, State(lines={"v1": LineState(
+            upstreamTag="v1.2.3", commit="c0ffee", revision=2, releasedAt=dt.datetime(2026, 10, 1, tzinfo=dt.timezone.utc),
+            images=[ReleasedImage(name=name, ref=ref, digest=DIGEST)])}))
+    scanned = []
+
+    def scan(ref, path, **k):
+        if ref.startswith(f"{REG}@"):
+            raise CommandError(f"trivy image {ref}", 1, "FATAL error: TOOMANYREQUESTS")
+        return scanned.append(ref) or ScanReport(ref)
+
+    monkeypatch.setattr(pipeline, "scan_image", scan)
+    result = pipeline.rescan(repo, tmp_path / "rescan")
+    assert [(e["recipe"], e["line"]) for e in result["errors"]] == [("app", "v1"), ("broken", "")]
+    assert "TOOMANYREQUESTS" in result["errors"][0]["error"] and scanned == [f"ghcr.io/me/other@{DIGEST}"]
 
 
 def test_publish_only_keeps_an_existing_final_tag_when_finishing(tmp_path, monkeypatch):
@@ -354,8 +422,23 @@ def test_publish_only_keeps_an_existing_final_tag_when_finishing(tmp_path, monke
         pipeline.publish(repo, repo.load_recipe("app"), "v1", None, tmp_path / "out", revision=5)
     assert cmds == [] and repo.state("app").lines["v1"].revision == 2  # nothing published, nothing recorded
     # a re-run of the same publish job (--finish-existing) finishes what its first attempt pushed
-    pipeline.publish(repo, repo.load_recipe("app"), "v1", None, tmp_path / "out", revision=5, finish_existing=True)
-    assert cmds[0] == ["-t", f"{REG}:v1.2.3-patched", final] and repo.state("app").lines["v1"].revision == 5
+    released = pipeline.publish(repo, repo.load_recipe("app"), "v1", None, tmp_path / "out", revision=5, finish_existing=True)
+    assert released[0]["copa"].startswith("unchanged") and repo.state("app").lines["v1"].revision == 5
+
+
+def test_promote_moves_each_moving_tag_to_the_released_digest(tmp_path, monkeypatch):
+    repo = make_repo(tmp_path)
+    cmds = fake_publish_tools(monkeypatch)
+    released = [{"image": "app", "repository": REG, "tag": "v1.2.3-patched.5", "digest": DIGEST},
+                {"image": "app-debug", "repository": REG, "tag": "v1.2.3-debug-patched.5", "digest": DIGEST}]
+    moved = pipeline.promote(repo, repo.load_recipe("app"), released)
+    # by digest: exactly what was signed, whatever the final tag points at by now
+    assert cmds == [["-t", f"{REG}:v1.2.3-patched", f"{REG}@{DIGEST}"], ["-t", f"{REG}:v1.2.3-debug-patched", f"{REG}@{DIGEST}"]]
+    assert moved == [f"{REG}:v1.2.3-patched", f"{REG}:v1.2.3-debug-patched"]
+    cmds.clear()
+    with pytest.raises(ValueError, match="not an image of app"):
+        pipeline.promote(repo, repo.load_recipe("app"), [{**released[0], "repository": "ghcr.io/someone-else/app"}])
+    assert cmds == []
 
 
 def test_built_revision_asks_for_each_tag_once(tmp_path, monkeypatch):
@@ -441,3 +524,62 @@ def test_image_platforms_must_be_among_the_build_platforms():
     with pytest.raises(ValidationError):
         Build.model_validate({"platforms": [], "images": [{"name": "a"}]})
     assert Build.model_validate({"images": [{"name": "a"}]}).platforms == ["linux/amd64", "linux/arm64"]
+
+
+def test_patcher_platforms_builds_and_releases_only_those(tmp_path, monkeypatch):
+    """One setting for a setup that needs fewer platforms: every recipe is narrowed to them, and an image that exists
+    for none of them is left out."""
+    repo = make_repo(tmp_path, app_recipe(), recipe("amd", build={"platforms": ["linux/amd64"], "images": [{"name": "amd"}]}))
+    monkeypatch.setenv("PATCHER_PLATFORMS", "arm64")  # short for linux/arm64
+    app = repo.load_recipe("app")
+    assert app.build.platforms == ["linux/arm64"] and [i.key for i in app.build.images] == ["app"]  # app-debug: amd64 only
+    plan = pipeline.release_plan(repo, [("app", "v1"), ("amd", "v1")])
+    assert [(r["recipe"], [a["arch"] for a in r["arches"]]) for r in plan["include"]] == [("app", ["arm64"])]
+    assert [(s["recipe"], s["reason"]) for s in plan["skipped"]] == [("amd", "built for none of PATCHER_PLATFORMS (linux/arm64)")]
+    # patch runs build there too: patch.yml takes the runner from `arch`
+    assert pipeline.plan_matrix(repo, recipes=["app", "amd"]) == [{"recipe": "app", "line": "v1", "platform": "linux/arm64",
+                                                                   "arch": "arm64"}]
+    # publish merges, Copas and records only those
+    registry(monkeypatch, staging(5, "arm64"))
+    cmds = fake_publish_tools(monkeypatch)
+    pipeline.publish(repo, app, "v1", None, tmp_path / "out", revision=5)
+    assert cmds[:2] == [["-t", f"{REG}:v1.2.3-patched.5-build", staging(5, "arm64")],
+                        ["copa", f"{REG}:v1.2.3-patched.5-build", "v1.2.3-patched.5", ["linux/arm64"]]]
+    assert repo.state("app").lines["v1"].platforms == ["linux/arm64"]
+
+    for every in ("linux/amd64, linux/arm64", ""):
+        monkeypatch.setenv("PATCHER_PLATFORMS", every)
+        assert repo.load_recipe("app").build.platforms == ["linux/amd64", "linux/arm64"]
+        assert len(repo.load_recipe("app").build.images) == 2
+    monkeypatch.setenv("PATCHER_PLATFORMS", "linux/s390x")  # no release runner: a typo must not quietly skip every recipe
+    with pytest.raises(ValueError, match="no release runner for linux/s390x"):
+        pipeline.release_plan(repo, [("app", "v1")])
+    with pytest.raises(ValueError, match="no release runner for linux/s390x"):
+        pipeline.plan_matrix(repo)
+    monkeypatch.setenv("PATCHER_PLATFORMS", "linux/arm64;")
+    with pytest.raises(ValueError, match="not a platform"):
+        repo.load_recipe("app")
+
+
+def test_a_refresh_patches_what_was_released_whatever_patcher_platforms_says(tmp_path, monkeypatch):
+    from patcher.copa import CopaResult
+    from patcher.models import ReleasedImage
+
+    repo = make_repo(tmp_path)
+    st = repo.state("app")
+    st.lines["v1"] = st.lines["v1"].model_copy(update={"platforms": ["linux/amd64", "linux/arm64"], "images": [
+        ReleasedImage(name="app", ref=f"{REG}:v1.2.3-patched.2", digest=DIGEST),
+        ReleasedImage(name="app-debug", ref=f"{REG}:v1.2.3-debug-patched.2", digest=DIGEST)]})
+    repo.save_state("app", st)
+    registry(monkeypatch)
+    patched = []
+    monkeypatch.setattr(pipeline.copa, "for_image", lambda spec, image, out_tag, out, **k: patched.append((spec.key, k["platforms"]))
+                        or CopaResult(f"{REG}:{out_tag}", 1))
+    monkeypatch.setattr(pipeline, "run", lambda cmd, **k: None)
+    monkeypatch.setattr(pipeline, "image_digest", lambda ref: DIGEST)
+    monkeypatch.setattr(pipeline, "scan_image", lambda ref, path, **k: ScanReport(ref))
+    monkeypatch.setenv("PATCHER_PLATFORMS", "linux/arm64")
+    pipeline.refresh(repo, repo.load_recipe("app"), "v1", None, tmp_path / "out")
+    # what users pull keeps every platform it had until the next release; app-debug (amd64 only) isn't built here at all
+    assert patched == [("app", ["linux/amd64", "linux/arm64"])]
+    assert [i.ref for i in repo.state("app").lines["v1"].images] == [f"{REG}:v1.2.3-patched.3", f"{REG}:v1.2.3-debug-patched.2"]

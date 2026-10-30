@@ -18,6 +18,7 @@ Real recipes are the best examples. See [Worked examples](#worked-examples) at t
 | `source` | [Source](#source-and-release-lines) | required for `source` | Where upstream lives and which release lines we track |
 | `toolchain` | [Toolchain](#toolchain) | | Toolchains to install with mise |
 | `policy` | [Policy](#policy) | from `_global.yaml` | How far a dependency may move without a human |
+| `gate` | `{enforce, failOn: {fixable, unfixed}}` | from `_global.yaml` | The release gate: which findings an image may still have when it is released, and whether a denied release stops ([gate.md](gate.md)). Fields set here win |
 | `ecosystems` | list of [ecosystems](#ecosystems) | `[]` | What to patch and how |
 | `overrides` / `holds` | map ecosystem → list | `{}` | [Forced versions and pins](#overrides-and-holds) |
 | `prepare` | list of commands | `[]` | Run after checkout, before the first scan (e.g. warm `~/.m2`) |
@@ -387,6 +388,7 @@ rule was bumped, no cutoff is set, so the fix stays installable.
 ```yaml
 build:
   platforms: [linux/amd64, linux/arm64]   # the default; each is built on its own native runner at release
+                                      # (the PATCHER_PLATFORMS variable narrows every recipe, see the runbook)
   setup: ["make build"]               # optional, before the images
   env: { BUILDX_BUILDER: default }    # optional
   images:
@@ -538,6 +540,7 @@ random-uuid`), so the JVM starts with `libs/` on its classpath.
 | `registry` | Where images go; CI overrides it with `PATCHER_REGISTRY=ghcr.io/<owner>` |
 | `tagFormat` | `{{upstream_tag}}-patched.{{revision}}` |
 | `policy`, `overrides`, `holds` | Defaults for every recipe (including the 7-day `minReleaseAgeDays` rule) |
+| `gate` | The release gate for every recipe: report-only, fixable CRITICALs fail it ([gate.md](gate.md)) |
 | `skipGraceDays` | Expired skips warn, and fail the run this many days after `expires` |
 | `scan.severities`, `scan.maxRounds`, `scan.skipDirs` | Trivy severities, plan/apply rounds, dirs skipped everywhere |
 

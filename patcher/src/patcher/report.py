@@ -11,6 +11,7 @@ from .models import RELEASABLE_STATUSES, Recipe, SkipEntry, VexFile
 from .planner import Unresolved
 from .scan import Finding, ScanReport
 from .tests_runner import TestOutcome
+from . import gate as gatemod
 from . import vex as vexmod
 
 SEVERITIES = ["CRITICAL", "HIGH", "MEDIUM", "LOW", "UNKNOWN"]
@@ -84,6 +85,7 @@ class Summary:
     jar_unresolved: list[Unresolved] = field(default_factory=list)  # findings in bundled jars that weren't swapped, and why
     src: str = ""  # the kept attempt's checkout (components build from it)
     image_tags: dict[str, str] = field(default_factory=dict)  # image-only: each image's upstream tag, which the release publishes
+    gate: dict = field(default_factory=dict)  # image key -> gate.Verdict, on the image's final scan
 
 
 def _fixable_keys(r: ScanReport | None) -> dict[tuple[str, str], Finding]:
@@ -184,6 +186,8 @@ def render_markdown(s: Summary) -> str:
         new = [a[k] for k in a.keys() - b.keys()]
         out.append(f"| {label} | {_sev_counts(b.values()) if before else 'n/a'} | {_sev_counts(a.values()) if after else 'n/a'} | {len(fixed)} | {len(new)} |")
     out.append("")
+
+    out += gatemod.render_markdown(s.gate, s.recipe.gate.enforce)
 
     if s.malicious:
         out += ["### ⛔ Malicious-package advisories for bumped versions", "",
