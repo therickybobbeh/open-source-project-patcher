@@ -124,8 +124,8 @@ def _attempt(repo: Repo, recipe: Recipe, tag: str, commit: str, out: Path, opts:
     upstream.apply_patches(src, repo.patches(recipe.name), repo.overlay_dir(recipe.name))
     log_file = out / "patcher.log"
     env = toolchain.activate(recipe.toolchain, _base_env(recipe, out), src=src, recipe=recipe)
-    for cmd in recipe.prepare:
-        run(cmd, cwd=src, env=env, log_file=log_file, capture=False, clean=True)
+    for cmd in recipe.prepare:  # it can download a lot (ocb resolves ~1,000 Go modules): retried on network errors
+        retry_on_network(lambda cmd=cmd: run(cmd, cwd=src, env=env, log_file=log_file, capture=False, clean=True))
     if fs_before is None:
         fs_before = _scan_fs(repo, recipe, src, out / "scan-fs-before.json")
 
@@ -427,7 +427,7 @@ def _baseline_tests(repo: Repo, recipe: Recipe, tag: str, commit: str, out: Path
         upstream.apply_patches(src, repo.patches(recipe.name), repo.overlay_dir(recipe.name))
         env = toolchain.activate(recipe.toolchain, _base_env(recipe, out), src=src, recipe=recipe)
         for cmd in recipe.prepare:
-            run(cmd, cwd=src, env=env, log_file=out / "patcher.log", capture=False, clean=True)
+            retry_on_network(lambda cmd=cmd: run(cmd, cwd=src, env=env, log_file=out / "patcher.log", capture=False, clean=True))
         return run_tests(src, recipe.tests, repo.skips(recipe.name), out / "tests-baseline", {**env, **(install_env or {})},
                          grace_days=repo.global_config().skipGraceDays)
     except (CommandError, RuntimeError) as e:

@@ -3,6 +3,8 @@
 import datetime as dt
 import json
 
+import pytest
+
 from patcher import releases
 from patcher.models import Recipe
 from patcher.planner import build_plan
@@ -231,3 +233,31 @@ def test_an_out_of_memory_test_build_is_an_environment_problem(tmp_path):
     plain = run_tests(tmp_path, Tests(framework="go", command="echo '--- FAIL: TestX (0.00s)'; exit 1"), SkipFile(),
                       tmp_path / "out2", {}, grace_days=30)
     assert not plain.oom and plain.note == ""
+
+
+def test_network_errors_are_retried_once(monkeypatch):
+    from patcher import proc
+    from patcher.proc import CommandError, retry_on_network
+
+    # what proxy.golang.org sent while ocb resolved otelcol-contrib v0.164.0's ~1,000 modules (the job failed)
+    dropped = ('github.com/kamstrup/intmap@v0.5.2: read "https://proxy.golang.org/github.com/kamstrup/intmap/@v/v0.5.2.zip": '
+               "stream error: stream ID 3277; INTERNAL_ERROR; received from peer")
+    monkeypatch.setattr(proc.time, "sleep", lambda s: None)
+    calls = []
+
+    def flaky():
+        calls.append(1)
+        if len(calls) == 1:
+            raise CommandError("ocb --skip-compilation", 1, dropped)
+        return "generated"
+
+    assert retry_on_network(flaky) == "generated" and len(calls) == 2
+    calls.clear()
+
+    def broken():  # not a network error: no retry
+        calls.append(1)
+        raise CommandError("ocb", 1, "go: errors parsing go.mod")
+
+    with pytest.raises(CommandError):
+        retry_on_network(broken)
+    assert len(calls) == 1
