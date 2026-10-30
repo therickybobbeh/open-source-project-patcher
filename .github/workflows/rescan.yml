@@ -16,6 +16,7 @@ env:
 jobs:
   scan:
     runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
+    timeout-minutes: 60
     outputs:
       refresh: ${{ steps.r.outputs.refresh }}
       rerun: ${{ steps.r.outputs.rerun }}
@@ -48,6 +49,7 @@ jobs:
   # upstream release lines no recipe tracks (v3.6 shipped, recipes follow v3.5): one issue each
   new-lines:
     runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
+    timeout-minutes: 15
     permissions:
       contents: read
       issues: write
@@ -70,6 +72,7 @@ jobs:
   # be within 90 days, per endoflife.date: one issue each. A lookup that fails fails the job, so no issue closes
   eol:
     runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
+    timeout-minutes: 15
     permissions:
       contents: read
       issues: write
@@ -95,6 +98,7 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON(needs.scan.outputs.refresh) }}
     runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
+    timeout-minutes: 120
     name: copa refresh ${{ matrix.recipe }} ${{ matrix.line }}
     permissions:
       contents: write        # only used by the GITHUB_TOKEN fallback in open-pr (the state PR)
@@ -142,6 +146,7 @@ jobs:
     needs: scan
     if: needs.scan.outputs.rerun != '[]'
     runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
+    timeout-minutes: 15
     permissions:
       actions: write
     steps:

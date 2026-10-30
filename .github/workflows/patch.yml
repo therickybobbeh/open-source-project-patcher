@@ -37,6 +37,7 @@ concurrency:
 jobs:
   plan:
     runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
+    timeout-minutes: 15
     permissions:
       contents: read
       actions: read          # scheduled runs skip lines another run is patching right now
@@ -140,6 +141,7 @@ jobs:
     needs: [plan, patch]
     if: always() && needs.plan.outputs.count != '0'
     runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
