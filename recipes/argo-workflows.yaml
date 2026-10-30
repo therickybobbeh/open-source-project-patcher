@@ -8,7 +8,7 @@ source:
     - tagPattern: '^v4\.1\.\d+$'
 toolchain:
   go: "1.26"
-  node: "20"          # ui/package.json engines >=20; the image builds the UI on node:20
+  node: "24"          # ui/package.json engines >=20; the image's UI stage is raised to node 24 (minVersions)
   yarn: "1.22.22"     # yarn classic (ui/yarn.lock, ui/.yarnrc)
 ecosystems:
   # vendor/ is not committed: the Makefile runs `go mod vendor` before building
@@ -18,6 +18,9 @@ ecosystems:
     dirs: [ui]
   - type: dockerfile
     files: [Dockerfile]
+    # upstream builds the UI on node:20-alpine, end-of-life since 2026-04-30 (main too). 24 is LTS until 2028-04 and
+    # still ships yarn classic, which the UI stage runs; node 26 images have no yarn
+    minVersions: {node: "24"}
 scan:
   skipDirs: [test, examples, docs, hack, sdks, manifests]
 tests:

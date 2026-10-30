@@ -11,6 +11,8 @@ important review surfaces are:
   Dockerfile bases and other supported inputs.
 - **Policy:** the maximum routine version movement and release-age cooldown.
 - **Overrides and holds:** deliberate exceptions that must explain why.
+- **Base image floors (`minVersions`):** keep Dockerfile stages off end-of-life
+  runtimes (an upstream UI built on Node 20, say).
 - **Tests and smoke checks:** evidence that the patched source and image work.
 
 Start new recipes from the validated examples in

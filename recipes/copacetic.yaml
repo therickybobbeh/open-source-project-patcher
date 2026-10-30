@@ -7,13 +7,14 @@ source:
     - name: v0
       tagPattern: '^v0\.\d+\.\d+$'
 toolchain:
-  go: "1.25"
+  go: "1.26"  # 1.25 is end-of-life (2026-08)
 ecosystems:
   - type: gomod
     dirs: ["."]
   # also bumps `ARG GO_VERSION` / `ARG ALPINE_VERSION` in frontend.Dockerfile
   - type: dockerfile
     files: [frontend.Dockerfile, Dockerfile.copa]
+    minVersions: {golang: "1.26"}  # v0.15.0 builds with Go 1.25, end-of-life since 2026-08
 scan:
   skipDirs: [integration, test, website]
 tests:

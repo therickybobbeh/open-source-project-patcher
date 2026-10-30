@@ -197,6 +197,13 @@ aren't the project's dependencies, so no recipe bump reaches them. A newer base 
 dockerfile ecosystem refreshes digests every run), Copa library patching, or an upgrade line in the
 Dockerfile (via `patches/`) fixes them.
 
+### The Dockerfile builds on an end-of-life runtime (`node:20-alpine`, `golang:1.25`, `alpine:3.17.0`)
+At the default `patch` level a base image stays in its release line, so upstream's end-of-life
+choice carries over. Set `minVersions` on the recipe's dockerfile ecosystem
+(`minVersions: {node: "24"}`, see [recipes.md](recipes.md#dockerfile)): images below the line move
+to its newest tag. Pick a line the stage still works on: Node 26 images ship without yarn, so a
+yarn-classic UI stage needs Node 24 or an install step. Check the image build in the patch PR.
+
 ### A component shows `error` or `not-found`
 - **`version of /usr/bin/x unknown`:** the binary has no Go build info version. Set `version`,
   `versionFrom` (a file in the parent's checkout), or `versionCommand` (args that print it).

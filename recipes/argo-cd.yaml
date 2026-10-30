@@ -21,6 +21,9 @@ ecosystems:
     dirs: [ui]
   - type: dockerfile
     files: [Dockerfile]
+    # v3.4 builds its UI on node:23.0.0, end-of-life since 2025-06 (v3.5 is on 24). 24 is LTS until 2028-04 and
+    # still ships yarn classic, which v3.4's UI stage runs; node 26 images have no yarn
+    minVersions: {node: "24"}
 scan:
   skipDirs: [hack/tools, hack/get-previous-release, test/e2e, docs]
 regen: []

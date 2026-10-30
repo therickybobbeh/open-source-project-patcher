@@ -167,6 +167,18 @@ class DockerfileEco(_Model):
     pinDigest: bool = True
     ignore: list[str] = Field(default_factory=list, description="Image-name regexes to leave alone")
     level: Level = Field(Level.patch, description="How far a base image tag may move")
+    minVersions: dict[str, str] = Field(default_factory=dict, description=(
+        "Release lines base images must not fall below, by image name (`node`, `alpine`, `library/node`), e.g. "
+        "{node: \"24\"} for a build stage on an end-of-life Node. A tag below its line moves to the newest tag of the "
+        "same shape in it (24: 24.x.y, 3.24: 3.24.x), whatever `level` says; tags at or above it follow `level`"))
+
+    @model_validator(mode="after")
+    def _release_lines(self) -> "DockerfileEco":
+        for image, line in self.minVersions.items():
+            parts = line.split(".")
+            if len(parts) > 2 or not all(p.isdigit() for p in parts):
+                raise ValueError(f"minVersions.{image}: {line!r} is not a release line (one or two numbers: 24, 3.24)")
+        return self
 
 
 class VersionSource(_Model):

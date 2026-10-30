@@ -14,8 +14,15 @@ ecosystems:
   - type: gomod
     # the modules compiled into /otelcol (the root go.mod's local replaces)
     dirs: [".", baseline, internal/signalfx-agent, "pkg/*/*", pkg/splunkta]
+  # base images pinned by digest; the stage that writes /etc/passwd and the directories the image copies runs on
+  # alpine:3.17.0, end-of-life since 2024-11 (main too)
+  - type: dockerfile
+    files: [cmd/otelcol/Dockerfile]
+    minVersions: {alpine: "3.24"}
 scan:
-  skipDirs: [examples, internal/tools, packaging, tests]  # examples, release tooling, integration tests: not in the image
+  # examples, release tooling, integration tests, and the Ansible/Chef/Puppet/Salt/Nomad integrations (#61 listed
+  # the Puppet module's Gemfile.lock as "investigate"): not in the image
+  skipDirs: [deployments, examples, internal/tools, packaging, tests]
 tests:
   framework: go
   command: make test-all  # upstream CI's unit tests (with -race), every module; integration tests sit behind build tags
