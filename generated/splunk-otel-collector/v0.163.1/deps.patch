@@ -1,0 +1,108 @@
+diff --git a/baseline/go.mod b/baseline/go.mod
+index 52d8b5a..ceadafc 100644
+--- a/baseline/go.mod
++++ b/baseline/go.mod
+@@ -289,7 +289,7 @@ require (
+ 	github.com/go-asn1-ber/asn1-ber v1.5.8 // indirect
+ 	github.com/go-faster/city v1.0.1 // indirect
+ 	github.com/go-faster/errors v0.7.1 // indirect
+-	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
++	github.com/go-jose/go-jose/v4 v4.1.6 // indirect
+ 	github.com/go-kit/log v0.2.1 // indirect
+ 	github.com/go-ldap/ldap/v3 v3.4.15 // indirect
+ 	github.com/go-logfmt/logfmt v0.6.0 // indirect
+diff --git a/baseline/go.sum b/baseline/go.sum
+index bea6e6e..de4c31c 100644
+--- a/baseline/go.sum
++++ b/baseline/go.sum
+@@ -381,8 +381,8 @@ github.com/go-faster/city v1.0.1 h1:4WAxSZ3V2Ws4QRDrscLEDcibJY8uf41H6AhXDrNDcGw=
+ github.com/go-faster/city v1.0.1/go.mod h1:jKcUJId49qdW3L1qKHH/3wPeUstCVpVSXTM6vO3VcTw=
+ github.com/go-faster/errors v0.7.1 h1:MkJTnDoEdi9pDabt1dpWf7AA8/BaSYZqibYyhZ20AYg=
+ github.com/go-faster/errors v0.7.1/go.mod h1:5ySTjWFiphBs07IKuiL69nxdfd5+fzh1u7FPGZP2quo=
+-github.com/go-jose/go-jose/v4 v4.1.4 h1:moDMcTHmvE6Groj34emNPLs/qtYXRVcd6S7NHbHz3kA=
+-github.com/go-jose/go-jose/v4 v4.1.4/go.mod h1:x4oUasVrzR7071A4TnHLGSPpNOm2a21K9Kf04k1rs08=
++github.com/go-jose/go-jose/v4 v4.1.6 h1:sNRkftxFJxwsILiQukqp5z83QBSmntVwmgRY7AqBDO4=
++github.com/go-jose/go-jose/v4 v4.1.6/go.mod h1:x4oUasVrzR7071A4TnHLGSPpNOm2a21K9Kf04k1rs08=
+ github.com/go-kit/kit v0.8.0/go.mod h1:xBxKIO96dXMWWy0MnWVtmwkA9/13aqxPnvrjFYMA2as=
+ github.com/go-kit/kit v0.9.0/go.mod h1:xBxKIO96dXMWWy0MnWVtmwkA9/13aqxPnvrjFYMA2as=
+ github.com/go-kit/log v0.2.1 h1:MRVx0/zhvdseW+Gza6N9rVzU/IVzaeE1SFI4raAhmBU=
+diff --git a/cmd/otelcol/Dockerfile b/cmd/otelcol/Dockerfile
+index fd3b503..11c9c18 100644
+--- a/cmd/otelcol/Dockerfile
++++ b/cmd/otelcol/Dockerfile
+@@ -1,8 +1,8 @@
+ ARG DOCKER_REPO=docker.io
+-FROM ${DOCKER_REPO}/alpine:3.24 as certs
++FROM ${DOCKER_REPO}/alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a as certs
+ RUN apk --update add 'ca-certificates>=20261020-r0'
+ 
+-FROM ${DOCKER_REPO}/alpine:3.17.0 AS otelcol
++FROM ${DOCKER_REPO}/alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a AS otelcol
+ ARG TARGETARCH
+ COPY dist/otelcol_linux_${TARGETARCH} /otelcol
+ # Note that this shouldn't be necessary, but in some cases the file seems to be
+@@ -14,7 +14,7 @@ RUN mkdir -p /otel/collector /splunk-otel-collector /tmp/tmp
+ # Nested to avoid inheriting existing tmp files.
+ RUN chmod 755 /tmp/tmp
+ 
+-FROM ${DOCKER_REPO}/debian:13 as journalctl
++FROM ${DOCKER_REPO}/debian:13@sha256:2dc419c6d7fe3dad0a2f9fd469c34cc90b0f9ba642d8fde837fe3d7d34a0e7f1 as journalctl
+ RUN apt update
+ RUN apt install -y systemd
+ COPY dist/collect-libs.sh /collect-libs.sh
+diff --git a/go.mod b/go.mod
+index 6b6134a..c8d9486 100644
+--- a/go.mod
++++ b/go.mod
+@@ -192,7 +192,7 @@ require (
+ 	github.com/go-asn1-ber/asn1-ber v1.5.8 // indirect
+ 	github.com/go-faster/city v1.0.1 // indirect
+ 	github.com/go-faster/errors v0.7.1 // indirect
+-	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
++	github.com/go-jose/go-jose/v4 v4.1.6 // indirect
+ 	github.com/go-ldap/ldap/v3 v3.4.15 // indirect
+ 	github.com/go-openapi/analysis v1.0.0 // indirect
+ 	github.com/go-openapi/errors v0.22.9 // indirect
+diff --git a/go.sum b/go.sum
+index 85edca8..e62ae5d 100644
+--- a/go.sum
++++ b/go.sum
+@@ -451,8 +451,8 @@ github.com/go-faster/city v1.0.1 h1:4WAxSZ3V2Ws4QRDrscLEDcibJY8uf41H6AhXDrNDcGw=
+ github.com/go-faster/city v1.0.1/go.mod h1:jKcUJId49qdW3L1qKHH/3wPeUstCVpVSXTM6vO3VcTw=
+ github.com/go-faster/errors v0.7.1 h1:MkJTnDoEdi9pDabt1dpWf7AA8/BaSYZqibYyhZ20AYg=
+ github.com/go-faster/errors v0.7.1/go.mod h1:5ySTjWFiphBs07IKuiL69nxdfd5+fzh1u7FPGZP2quo=
+-github.com/go-jose/go-jose/v4 v4.1.4 h1:moDMcTHmvE6Groj34emNPLs/qtYXRVcd6S7NHbHz3kA=
+-github.com/go-jose/go-jose/v4 v4.1.4/go.mod h1:x4oUasVrzR7071A4TnHLGSPpNOm2a21K9Kf04k1rs08=
++github.com/go-jose/go-jose/v4 v4.1.6 h1:sNRkftxFJxwsILiQukqp5z83QBSmntVwmgRY7AqBDO4=
++github.com/go-jose/go-jose/v4 v4.1.6/go.mod h1:x4oUasVrzR7071A4TnHLGSPpNOm2a21K9Kf04k1rs08=
+ github.com/go-kit/kit v0.8.0/go.mod h1:xBxKIO96dXMWWy0MnWVtmwkA9/13aqxPnvrjFYMA2as=
+ github.com/go-kit/kit v0.9.0/go.mod h1:xBxKIO96dXMWWy0MnWVtmwkA9/13aqxPnvrjFYMA2as=
+ github.com/go-kit/log v0.1.0/go.mod h1:zbhenjAZHb184qTLMA9ZjW7ThYL0H2mk7Q6pNt4vbaY=
+diff --git a/internal/signalfx-agent/go.mod b/internal/signalfx-agent/go.mod
+index 5c86fd5..cd9933e 100644
+--- a/internal/signalfx-agent/go.mod
++++ b/internal/signalfx-agent/go.mod
+@@ -150,7 +150,7 @@ require (
+ 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
+ 	github.com/josharian/intern v1.0.0 // indirect
+ 	github.com/json-iterator/go v1.1.12 // indirect
+-	github.com/klauspost/compress v1.18.0 // indirect
++	github.com/klauspost/compress v1.18.7 // indirect
+ 	github.com/klauspost/cpuid/v2 v2.2.11 // indirect
+ 	github.com/lufia/plan9stats v0.0.0-20231016141302-07b5767bb0ed // indirect
+ 	github.com/moby/docker-image-spec v1.3.1 // indirect
+diff --git a/internal/signalfx-agent/go.sum b/internal/signalfx-agent/go.sum
+index 36772cd..240bc30 100644
+--- a/internal/signalfx-agent/go.sum
++++ b/internal/signalfx-agent/go.sum
+@@ -249,8 +249,8 @@ github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI
+ github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
+ github.com/klauspost/asmfmt v1.3.2 h1:4Ri7ox3EwapiOjCki+hw14RyKk201CN4rzyCJRFLpK4=
+ github.com/klauspost/asmfmt v1.3.2/go.mod h1:AG8TuvYojzulgDAMCnYn50l/5QV3Bs/tp6j0HLHbNSE=
+-github.com/klauspost/compress v1.18.0 h1:c/Cqfb0r+Yi+JtIEq73FWXVkRonBlf0CRNYc8Zttxdo=
+-github.com/klauspost/compress v1.18.0/go.mod h1:2Pp+KzxcywXVXMr50+X0Q/Lsb43OQHYWRCY2AiWywWQ=
++github.com/klauspost/compress v1.18.7 h1:aUyZsS4kH3QTKurYhAOwAHxllVPnOthb3vPfnF1Ehjw=
++github.com/klauspost/compress v1.18.7/go.mod h1:cwPg85FWrGar70rWktvGQj8/hthj3wpl0PGDogxkrSQ=
+ github.com/klauspost/cpuid/v2 v2.2.11 h1:0OwqZRYI2rFrjS4kvkDnqJkKHdHaRnCm68/DY4OxRzU=
+ github.com/klauspost/cpuid/v2 v2.2.11/go.mod h1:hqwkgyIinND0mEev00jJYCxPNVRVXFQeu1XKlok6oO0=
+ github.com/kr/pretty v0.2.0/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=
