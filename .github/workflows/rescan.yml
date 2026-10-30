@@ -66,6 +66,28 @@ jobs:
           uv run --project patcher --frozen patcher new-lines --json > "$RUNNER_TEMP/new-lines.json"
           scripts/line-issues.sh "$RUNNER_TEMP/new-lines.json"
 
+  # runtimes the recipes build with (Dockerfile bases after minVersions, toolchains) that are end-of-life, or will
+  # be within 90 days, per endoflife.date: one issue each. A lookup that fails fails the job, so no issue closes
+  eol:
+    runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          enable-cache: false  # no shared cache: patch jobs, which run upstream code, can write it
+      - name: Report and track end-of-life runtimes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          uv run --project patcher --frozen patcher eol >> "$GITHUB_STEP_SUMMARY"
+          uv run --project patcher --frozen patcher eol --json > "$RUNNER_TEMP/eol.json"
+          scripts/eol-issues.sh "$RUNNER_TEMP/eol.json"
+
   refresh:
     needs: scan
     if: fromJSON(needs.scan.outputs.refresh).include[0] != null

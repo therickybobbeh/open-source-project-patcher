@@ -50,7 +50,8 @@ remain. What can't be rebuilt gets what is possible:
 | `reach.py` | govulncheck reachability (draft VEX) and the osv-scanner malicious-package check |
 | `components.py` | Bundled binaries: find the version, patch and test it with its component recipe, overlay it into the image |
 | `jars.py` | Bundled Java distributions: plan jar swaps like Maven bumps, fetch the jars from Maven Central pinned by sha256, overlay them (with the components) and re-apply them at release |
-| `onboarding.py`, `inventory.py` | `patcher init` drafts; `inventory.yaml` coverage |
+| `onboarding.py`, `inventory.py` | `patcher init` drafts; `inventory.yaml` coverage; upstream release lines no recipe tracks |
+| `eol.py` | End-of-life runtimes (endoflife.date): the Dockerfile bases of each tracked line, after `minVersions`, and the recipes' toolchains |
 | `build.py`, `copa.py`, `registry.py` | buildx or custom builds, smoke tests, Copa per platform, anonymous registry lookups |
 | `archive.py` | Image archives, the release build's hand-off to the push job: `docker save`, the one-image-of-this-platform check, `crane push` |
 | `report.py`, `vex.py` | Before/after report (the PR body), and OpenVEX documents for each image |

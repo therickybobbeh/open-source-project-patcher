@@ -320,6 +320,22 @@ def new_lines(
         typer.echo("| — | every recipe tracks the newest upstream release | | |")
 
 
+@app.command("eol")
+def eol_cmd(
+    within_days: int = typer.Option(90, help="Also report releases whose end of life is at most this many days away"),
+    json_out: bool = typer.Option(False, "--json", help="JSON instead of Markdown"),
+    repo: Optional[Path] = RepoOpt,
+) -> None:
+    """Runtimes that are end-of-life, or soon will be (endoflife.date): base images in each tracked line's
+    Dockerfiles, after `minVersions`, and the recipes' toolchains."""
+    from dataclasses import asdict
+
+    from . import eol
+
+    found = eol.check(_repo(repo), within_days)
+    typer.echo(json.dumps([asdict(x) for x in found], indent=2) if json_out else eol.render_markdown(found, within_days))
+
+
 @app.command()
 def pins(
     write: bool = typer.Option(False, "--write", help="Rewrite the ARGs (default: only report)"),
