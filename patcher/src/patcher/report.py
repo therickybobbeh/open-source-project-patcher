@@ -83,6 +83,7 @@ class Summary:
     jars: list = field(default_factory=list)  # jars.Swap: bundled jars swapped in, per image (written to jars.json)
     jar_unresolved: list[Unresolved] = field(default_factory=list)  # findings in bundled jars that weren't swapped, and why
     src: str = ""  # the kept attempt's checkout (components build from it)
+    image_tags: dict[str, str] = field(default_factory=dict)  # image-only: each image's upstream tag, which the release publishes
 
 
 def _fixable_keys(r: ScanReport | None) -> dict[tuple[str, str], Finding]:
