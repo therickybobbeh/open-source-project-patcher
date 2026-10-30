@@ -84,17 +84,45 @@ def test_release_jobs():
     for name, (job, _) in release.items():
         for a in patcher_args(job):
             by_command.setdefault(a.split()[0], []).append(name)
-    assert by_command == {"release-build": ["build"], "release-push": ["push"], "publish": ["publish"]}
+    # a Copa refresh runs in place of `publish`, so it is signed, attested, promoted and recorded the same way
+    assert by_command == {"release-build": ["build"], "release-push": ["push"], "publish": ["publish"], "refresh": ["publish"]}
     build, perms = release["build"]
     assert perms == {"contents": "read"}
     # what it builds is released: it reads no cache another project's job could have written either
     assert all(s["with"].get("image-cache") == "false" and not s["with"].get("cache-key") for s in steps(build) if s.get("uses") == RUN_PATCHER)
     assert release["push"][1] == {"contents": "read", "packages": "write"}
     # `push` is skipped when a run builds nothing; a job after it with a plain condition would be skipped as well
-    for name in ("publish", "attest", "state"):
+    for name in ("publish", "attest", "promote", "state"):
         assert "!cancelled()" in str(release[name][0]["if"]), name
+    # the moving tag moves only after signing and provenance, and state records only promoted releases
+    assert "attest" in release["promote"][0]["needs"] and "needs.attest.result == 'success'" in release["promote"][0]["if"]
+    assert "promote" in release["state"][0]["needs"] and "needs.promote.result == 'success'" in release["state"][0]["if"]
+    assert release["promote"][1] == {"contents": "read", "packages": "write"}
     # the state PR is made from publish's outputs, never from an artifact (any job of the run can write those)
     assert not any("download-artifact" in s.get("uses", "") for s in steps(release["state"][0]))
+
+
+def test_a_recipe_that_cant_be_planned_or_scanned_raises_its_own_alert():
+    """`patcher plan` and `rescan` report a recipe they can't handle as an error row and carry on with the others. A
+    small job then fails (a CI alert); it runs every time, so it passes again, closing the alert, once all is well."""
+    for wf, name, needs in (("patch.yml", "plan-errors", "plan"), ("rescan.yml", "scan-errors", "scan")):
+        check = {n: j for n, j, _ in jobs(ROOT / ".github" / "workflows" / wf)}[name]
+        assert check["needs"] == needs and "if" not in check and check["permissions"] == {}, name
+        assert "jq length" in steps(check)[0]["run"], name
+    plan = {n: j for n, j, _ in jobs(ROOT / ".github" / "workflows" / "patch.yml")}["plan"]
+    plan_step = next(s for s in steps(plan) if s.get("id") == "plan")
+    assert "{include: .include}" in plan_step["run"]  # error rows never reach the patch matrix
+
+
+def test_rescan_publishes_nothing_itself():
+    """Copa refreshes run in release.yml, signed, attested, promoted and recorded like a release under its per-line locks.
+    rescan only dispatches them: no registry write, no signing, no GitHub App key."""
+    rescan = {name: job for name, job, _ in jobs(ROOT / ".github" / "workflows" / "rescan.yml")}
+    for name, job, perms in jobs(ROOT / ".github" / "workflows" / "rescan.yml"):
+        assert not {k for k, v in perms.items() if v == "write"} - {"issues", "actions"}, name
+        assert "secrets.PATCHER_" not in yaml.safe_dump(job), name
+    dispatch = steps(rescan["refresh"])[0]["run"]
+    assert "gh workflow run release.yml" in dispatch and "-f refresh=true" in dispatch
 
 
 @pytest.mark.parametrize("path", WORKFLOWS, ids=lambda p: p.name)
@@ -138,6 +166,17 @@ def test_every_job_sets_a_timeout(path):
     for name, job, _ in jobs(path):
         limit = job.get("timeout-minutes")
         assert isinstance(limit, int) and 0 < limit <= 360, f"{path.name}/{name}: set timeout-minutes (at most 360)"
+
+
+def test_patcher_platforms_reaches_every_run():
+    """PATCHER_PLATFORMS (a repository variable) narrows what is built and released: the workflows that plan, build or
+    release pass it to the patcher, the container wrapper passes it on, and patch runs build on the plan's platform."""
+    for name in ("patch.yml", "release.yml", "rescan.yml"):
+        doc = yaml.safe_load((ROOT / ".github" / "workflows" / name).read_text())
+        assert doc["env"]["PATCHER_PLATFORMS"] == "${{ vars.PATCHER_PLATFORMS }}", name
+    assert "-e PATCHER_PLATFORMS" in (ROOT / "scripts" / "patcher-docker.sh").read_text()
+    patch = {name: job for name, job, _ in jobs(ROOT / ".github" / "workflows" / "patch.yml")}["patch"]
+    assert "--platform ${{ matrix.platform }}" in patcher_args(patch)[0] and "matrix.arch == 'arm64'" in patch["runs-on"]
 
 
 def test_release_builds_default_to_the_native_runners():
