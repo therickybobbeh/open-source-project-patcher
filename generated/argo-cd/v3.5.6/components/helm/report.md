@@ -31,12 +31,12 @@ Upstream: https://github.com/helm/helm @ `d591a19b953b` (line `helm-4.2.1`)
 
 | Severity | Vulnerability | Package | Installed | Fixed in | Where | Reason |
 |---|---|---|---|---|---|---|
-| UNKNOWN | CVE-2026-78661 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | source (`trivy fs`): `go.mod` | cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03) |
-| UNKNOWN | CVE-2026-97045 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | source (`trivy fs`): `go.mod` | cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03) |
+| UNKNOWN | CVE-2026-78661 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | source (`trivy fs`): `go.mod` | cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03) |
+| UNKNOWN | CVE-2026-97045 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | source (`trivy fs`): `go.mod` | cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03) |
 
 ### Upstream tests
 
-✅ passed in 2.6 min — `go test  ./...`
+✅ passed in 1.9 min — `go test  ./...`
 
 ### VEX suggestions (govulncheck reachability)
 
