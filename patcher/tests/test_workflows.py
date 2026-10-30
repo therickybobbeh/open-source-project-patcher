@@ -88,8 +88,12 @@ def test_release_jobs():
     assert all(s["with"].get("image-cache") == "false" and not s["with"].get("cache-key") for s in steps(build) if s.get("uses") == RUN_PATCHER)
     assert release["push"][1] == {"contents": "read", "packages": "write"}
     # `push` is skipped when a run builds nothing; a job after it with a plain condition would be skipped as well
-    for name in ("publish", "attest", "state"):
+    for name in ("publish", "attest", "promote", "state"):
         assert "!cancelled()" in str(release[name][0]["if"]), name
+    # the moving tag moves only after signing and provenance, and state records only promoted releases
+    assert "attest" in release["promote"][0]["needs"] and "needs.attest.result == 'success'" in release["promote"][0]["if"]
+    assert "promote" in release["state"][0]["needs"] and "needs.promote.result == 'success'" in release["state"][0]["if"]
+    assert release["promote"][1] == {"contents": "read", "packages": "write"}
     # the state PR is made from publish's outputs, never from an artifact (any job of the run can write those)
     assert not any("download-artifact" in s.get("uses", "") for s in steps(release["state"][0]))
 

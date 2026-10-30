@@ -305,11 +305,47 @@ jobs:
           subject-digest: ${{ matrix.digest }}
           push-to-registry: true
 
-  # Last, so state/ only ever records complete releases (signed, SBOM, VEX, provenance). Whatever fails before this
-  # leaves an unrecorded revision, which a run with `rebuild: false` finishes.
-  state:
+  # After signing, SBOM, VEX and provenance: the moving tag (`<upstream tag>-patched`) only ever points at a complete
+  # release. If anything before failed, it stays on the previous revision until a run with `rebuild: false` finishes
+  # this one.
+  promote:
     needs: [plan, publish, attest]
     if: ${{ !cancelled() && needs.attest.result == 'success' }}   # see attest
+    runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
+    timeout-minutes: 10
+    name: promote ${{ needs.plan.outputs.recipe }} ${{ needs.plan.outputs.line }}
+    concurrency:
+      group: promote-${{ needs.plan.outputs.recipe }}-${{ needs.plan.outputs.line }}
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          enable-cache: false  # no shared cache: this job moves release tags
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      # the release record from publish's outputs (see there), never an artifact; tags move by digest
+      - env:
+          RELEASE: ${{ needs.publish.outputs.release }}
+          RECIPE: ${{ needs.plan.outputs.recipe }}
+          LINE: ${{ needs.plan.outputs.line }}
+        run: |
+          base64 -d <<<"$RELEASE" > "$RUNNER_TEMP/release.json"
+          uv run --project patcher --frozen patcher promote "$RECIPE" --line "$LINE" --release "$RUNNER_TEMP/release.json"
+
+  # Last, so state/ only ever records complete releases (signed, SBOM, VEX, provenance, promoted). Whatever fails
+  # before this leaves an unrecorded revision, which a run with `rebuild: false` finishes.
+  state:
+    needs: [plan, publish, promote]
+    if: ${{ !cancelled() && needs.promote.result == 'success' }}   # see attest
     runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
     name: state ${{ needs.plan.outputs.recipe }} ${{ needs.plan.outputs.line }}
     concurrency:
