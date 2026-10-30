@@ -8,7 +8,7 @@ Upstream: https://github.com/project-copacetic/copacetic @ `bce7b4305e37` (line 
 |---|---|---|---|---|
 | source (`trivy fs`) | 0 / 9 / 11 / 2 | 0 / 0 / 1 / 0 | 21 | 0 |
 | image `copa` | n/a | 0 / 0 / 0 / 0 | 0 | 2 |
-| image `copacetic-frontend` | 0 / 11 / 19 / 3 | 0 / 0 / 0 / 0 | 36 | 3 |
+| image `copacetic-frontend` | 0 / 11 / 19 / 3 | 0 / 0 / 0 / 0 | 37 | 4 |
 
 ### Changes applied
 
@@ -25,36 +25,36 @@ Upstream: https://github.com/project-copacetic/copacetic @ `bce7b4305e37` (line 
 | gomod | `go.mod` | `golang.org/x/mod` | `v0.37.0` | `v0.40.0` | CVE-2026-56864, CVE-2026-56865 |
 | gomod | `go.mod` | `go` | `1.25.13` | `1.26.8` | required by a bumped dependency |
 | gomod | `go.mod` | `github.com/containerd/containerd/v2` | `v2.3.2` | `v2.3.6` | CVE-2026-53493, CVE-2026-53495, CVE-2026-95837, CVE-2026-95838 |
-| dockerfile | `frontend.Dockerfile` | `ARG GO_VERSION` | `1.25.13` | `1.26.10` | golang:1.25.13-alpine3.23 -> 1.26.10-alpine3.23 |
+| dockerfile | `frontend.Dockerfile` | `ARG GO_VERSION` | `1.25.13` | `1.26.10` | golang:1.25.13-alpine3.23 -> 1.26.10-alpine3.23 (minVersions: the 1.26 line) |
 | dockerfile | `frontend.Dockerfile` | `gcr.io/distroless/static-debian12` | `static-debian12:nonroot` | `static-debian12:nonroot@sha256:afa5c872c891853ca7fcf1f12c3edb23f7eeef36189728842dd51042ff57f7ab` | base image refresh |
-| dockerfile | `Dockerfile.copa` | `ARG GO_VERSION` | `1.25.13` | `1.26.10` | golang:1.25.13-bookworm -> 1.26.10-bookworm |
-| dockerfile | `Dockerfile.copa` | `debian` | `debian:12-slim` | `debian:12-slim@sha256:99c0b25c46d0214d5a2091092e7908907dcaecd6a962cde0ac700acee222b6f3` | base image refresh |
+| dockerfile | `Dockerfile.copa` | `debian` | `debian:13-slim` | `debian:13-slim@sha256:f6b08b09a05725f9431502d3b5714f5c4576e82c1a84fa1debe0c24a7e0c3ec4` | base image refresh |
 
 ### Still fixable after patching
 
 | Severity | Vulnerability | Package | Installed | Fixed in | Where | Reason |
 |---|---|---|---|---|---|---|
 | MEDIUM | CVE-2026-33997 | `github.com/docker/docker` | `v28.5.2+incompatible` | `29.3.1` | source (`trivy fs`): `go.mod` | needs-human: fix requires a bump beyond the `minor` policy |
-| UNKNOWN | DLA-4845-1 | `ca-certificates` | `20250419~deb12u1` | `20250419~deb12u2` | image `copacetic-frontend` | Copa failed: #22 2.244 dpkg: error processing package ca-certificates (--install): |
-| UNKNOWN | CVE-2026-78661 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | source (`trivy fs`): `go.mod` | cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03) |
-| UNKNOWN | CVE-2026-97045 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | source (`trivy fs`): `go.mod` | cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03) |
-| UNKNOWN | CVE-2026-78661 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | image `copa` | cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03) |
-| UNKNOWN | CVE-2026-97045 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | image `copa` | cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03) |
-| UNKNOWN | CVE-2026-78661 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | image `copacetic-frontend` | cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03) |
-| UNKNOWN | CVE-2026-97045 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | image `copacetic-frontend` | cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03) |
-| UNKNOWN | DLA-4792-1 | `tzdata` | `2026b-0+deb12u1` | `2026c-0+deb12u1` | image `copacetic-frontend` | Copa failed: #22 2.244 dpkg: error processing package ca-certificates (--install): |
-| UNKNOWN | DLA-4854-1 | `tzdata` | `2026b-0+deb12u1` | `2026e-0+deb12u1` | image `copacetic-frontend` | Copa failed: #22 2.244 dpkg: error processing package ca-certificates (--install): |
+| UNKNOWN | DLA-4845-1 | `ca-certificates` | `20250419~deb12u1` | `20250419~deb12u2` | image `copacetic-frontend` | Copa failed: #22 2.376 dpkg: error processing package ca-certificates (--install): |
+| UNKNOWN | CVE-2026-78661 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | source (`trivy fs`): `go.mod` | cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03) |
+| UNKNOWN | CVE-2026-97045 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | source (`trivy fs`): `go.mod` | cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03) |
+| UNKNOWN | CVE-2026-78661 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | image `copa` | cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03) |
+| UNKNOWN | CVE-2026-97045 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | image `copa` | cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03) |
+| UNKNOWN | CVE-2026-78661 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | image `copacetic-frontend` | cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03) |
+| UNKNOWN | CVE-2026-97045 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | image `copacetic-frontend` | cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03) |
+| UNKNOWN | DLA-4792-1 | `tzdata` | `2026b-0+deb12u1` | `2026c-0+deb12u1` | image `copacetic-frontend` | Copa failed: #22 2.376 dpkg: error processing package ca-certificates (--install): |
+| UNKNOWN | DLA-4854-1 | `tzdata` | `2026b-0+deb12u1` | `2026e-0+deb12u1` | image `copacetic-frontend` | Copa failed: #22 2.376 dpkg: error processing package ca-certificates (--install): |
+| UNKNOWN | DLA-4867-1 | `tzdata` | `2026b-0+deb12u1` | `2026f-0+deb12u1` | image `copacetic-frontend` | Copa failed: #22 2.376 dpkg: error processing package ca-certificates (--install): |
 
 ### Upstream tests
 
-✅ passed in 0.9 min — `make test CODECOV_OPTS=""`
+✅ passed in 1.0 min — `make test CODECOV_OPTS=""`
 
 ### Images
 
 | Image | Ref | Smoke | Copa |
 |---|---|---|---|
 | copa | `patcher.local/copa:v0.15.0-patched.dev` | ✅ `--version` | no fixable OS packages |
-| copacetic-frontend | `patcher.local/copacetic-frontend:v0.15.0-patched.dev` | - | failed: #22 2.244 dpkg: error processing package ca-certificates (--install): |
+| copacetic-frontend | `patcher.local/copacetic-frontend:v0.15.0-patched.dev` | - | failed: #22 2.376 dpkg: error processing package ca-certificates (--install): |
 
 ### VEX suggestions (govulncheck reachability)
 
