@@ -262,10 +262,12 @@ Set `expires` so decisions get revisited.
    (`build.platforms`, default amd64 and arm64; an image's own `platforms` narrows it). This job runs upstream
    code, so it has no registry credentials: it saves the images as archives instead of pushing them.
 2. **push**: pushes the archives as per-arch tags of a new revision, after checking each one.
-3. **publish**: merges the platforms, runs Copa, pushes the final and moving tags, signs with cosign (keyless), and
+3. **publish**: merges the platforms, runs Copa, pushes the final tags, signs with cosign (keyless), and
    attaches a CycloneDX SBOM and the OpenVEX document.
 4. **attest**: SLSA provenance for each image.
-5. **state**: opens the `state/` PR. It comes last, so `state/` only records complete releases.
+5. **promote**: moves the moving tag (`<tag>-patched`) to the signed digest. If anything before failed, it stays on
+   the previous revision.
+6. **state**: opens the `state/` PR. It comes last, so `state/` only records complete releases.
 
 Why the jobs are split this way is in [architecture.md](architecture.md#release-flow). A push that lands several
 patch sets starts one run per line. A line that can't be released (an unknown recipe or line, a platform without a
@@ -273,7 +275,7 @@ native runner) fails its run, which raises a [failure alert](#failure-alerts); t
 
 ### A release failed after the builds
 
-When `push`, `publish`, the signing, `attest` or `state` failed, the images are built already. Finish the release
+When `push`, `publish`, the signing, `attest`, `promote` or `state` failed, the images are built already. Finish the release
 without building again:
 
 ```bash
@@ -285,10 +287,10 @@ highest revision after the one `state/` records whose per-arch images (`<final>-
 are all in the registry, and carries on from there:
 - **Its final tag doesn't exist yet:** it is merged and Copa-patched as usual.
 - **Its final tag exists** (the earlier `publish` pushed it, then failed): the image is kept as it is, with no second
-  merge or Copa, so its digest doesn't change. The moving tag points to it, it is scanned, and the OpenVEX document
-  is written from that scan (without Copa's own statements, which the earlier run had). A signature, SBOM, OpenVEX
+  merge or Copa, so its digest doesn't change. It is scanned, and the OpenVEX document is written from that scan
+  (without Copa's own statements, which the earlier run had). A signature, SBOM, OpenVEX
   or provenance attestation is only added if this workflow hasn't attached one yet.
-- `attest` and `state` run as usual, and the `state/` PR records the revision.
+- `attest`, `promote` and `state` run as usual: the moving tag moves, and the `state/` PR records the revision.
 
 Notes:
 - A revision that `state/` records is never published again. With nothing left to finish, the run fails with
@@ -334,6 +336,10 @@ cosign verify-attestation "$IMG" --type openvex \
 trivy image --vex vex.json "$IMG"
 ```
 
+Copa refreshes are signed and attested by the same workflow. An image a refresh published before refreshes moved into
+`release.yml` (2026-10-31) has only a `rescan.yml` signature, with no SBOM, OpenVEX or provenance, until its line is
+refreshed or released again.
+
 ### Consuming images
 
 | Tag | Use |
@@ -347,10 +353,20 @@ Immutable tags are never rewritten.
 
 ### Copa refresh PRs
 
-When `rescan` finds new fixable **OS** packages in a published image, it publishes and signs the
-next revision right away (Copa only, no source rebuild). It then opens a `state/` PR titled
-`[<recipe>] copa refresh of <line>`. Merge it so the state matches the registry. New **language**
-findings instead trigger a `patch.yml` run, which ends in a normal patch PR.
+When `rescan` finds new fixable **OS** packages in a published image, it dispatches a `refresh` run of `release.yml`
+for that line. That run builds nothing. Its `publish` job re-patches the released images with Copa to the next
+revision. The run then handles that revision exactly like a release:
+- it signs it and attaches its SBOM and OpenVEX;
+- it attests its provenance;
+- it moves the moving tag;
+- it opens a `state/` PR titled `[<recipe>] copa refresh of <line>`.
+
+Merge that PR so the state matches the registry; until it's merged, rescan skips the line. New **language** findings
+instead trigger a `patch.yml` run, which ends in a normal patch PR.
+
+To refresh a line by hand: *Actions → release → Run workflow*, with `refresh` ticked. A refresh stops before Copa,
+and publishes nothing, if a moving tag no longer points at the digest `state/` records. That means a newer release or
+refresh isn't recorded yet: merge its `state/` PR first.
 
 ## Adding a release line or a project
 
@@ -445,6 +461,7 @@ new one.
 | `patcher release-plan --recipe R --line L` (or `--changed-files F`) | The release's line, platforms and runners (release.yml's plan job) |
 | `patcher release-build <recipe> --line L --platform P` | Release build for one platform: saves the images to `out/<recipe>/<line>/images/<arch>/`, pushes nothing |
 | `patcher release-push <recipe> --line L [--platforms P,…]` | Pushes those archives as `<final>-<arch>` of a new revision; never overwrites a tag |
-| `patcher publish <recipe> --line L [--revision N [--finish-existing]] [--platforms P,…]` | Merge, Copa, final and moving tags, `state/`. Without `--revision`: finishes the newest revision whose per-arch images all exist |
-| `patcher rescan` / `patcher refresh <recipe> --line L` | Nightly re-scan and the Copa-only refresh |
+| `patcher publish <recipe> --line L [--revision N [--finish-existing]] [--platforms P,…]` | Merge, Copa, final tags, `state/`. Without `--revision`: finishes the newest revision whose per-arch images all exist |
+| `patcher promote <recipe> --line L --release FILE` | Move the moving tags to the digests in a release record (after signing) |
+| `patcher rescan [--pending F]` / `patcher refresh <recipe> --line L` | Nightly re-scan (skipping the lines whose state files `F` lists: open state PRs) and the Copa-only refresh, which release.yml runs in place of `publish` |
 | `patcher pins [--write]` | Tool pin updates for `patcher/Dockerfile` |

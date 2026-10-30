@@ -84,17 +84,33 @@ def test_release_jobs():
     for name, (job, _) in release.items():
         for a in patcher_args(job):
             by_command.setdefault(a.split()[0], []).append(name)
-    assert by_command == {"release-build": ["build"], "release-push": ["push"], "publish": ["publish"]}
+    # a Copa refresh runs in place of `publish`, so it is signed, attested, promoted and recorded the same way
+    assert by_command == {"release-build": ["build"], "release-push": ["push"], "publish": ["publish"], "refresh": ["publish"]}
     build, perms = release["build"]
     assert perms == {"contents": "read"}
     # what it builds is released: it reads no cache another project's job could have written either
     assert all(s["with"].get("image-cache") == "false" and not s["with"].get("cache-key") for s in steps(build) if s.get("uses") == RUN_PATCHER)
     assert release["push"][1] == {"contents": "read", "packages": "write"}
     # `push` is skipped when a run builds nothing; a job after it with a plain condition would be skipped as well
-    for name in ("publish", "attest", "state"):
+    for name in ("publish", "attest", "promote", "state"):
         assert "!cancelled()" in str(release[name][0]["if"]), name
+    # the moving tag moves only after signing and provenance, and state records only promoted releases
+    assert "attest" in release["promote"][0]["needs"] and "needs.attest.result == 'success'" in release["promote"][0]["if"]
+    assert "promote" in release["state"][0]["needs"] and "needs.promote.result == 'success'" in release["state"][0]["if"]
+    assert release["promote"][1] == {"contents": "read", "packages": "write"}
     # the state PR is made from publish's outputs, never from an artifact (any job of the run can write those)
     assert not any("download-artifact" in s.get("uses", "") for s in steps(release["state"][0]))
+
+
+def test_rescan_publishes_nothing_itself():
+    """Copa refreshes run in release.yml, signed, attested, promoted and recorded like a release under its per-line locks.
+    rescan only dispatches them: no registry write, no signing, no GitHub App key."""
+    rescan = {name: job for name, job, _ in jobs(ROOT / ".github" / "workflows" / "rescan.yml")}
+    for name, job, perms in jobs(ROOT / ".github" / "workflows" / "rescan.yml"):
+        assert not {k for k, v in perms.items() if v == "write"} - {"issues", "actions"}, name
+        assert "secrets.PATCHER_" not in yaml.safe_dump(job), name
+    dispatch = steps(rescan["refresh"])[0]["run"]
+    assert "gh workflow run release.yml" in dispatch and "-f refresh=true" in dispatch
 
 
 @pytest.mark.parametrize("path", WORKFLOWS, ids=lambda p: p.name)

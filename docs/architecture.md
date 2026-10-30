@@ -71,7 +71,7 @@ flowchart TD
     push --> release["release.yml: publish, attest<br/>merge, Copa, cosign sign, SBOM + OpenVEX attest,<br/>SLSA provenance"]
     release --> state["release.yml: state<br/>PR updating state/{project}/{line}.yaml"]
     state --> rescan["rescan.yml, daily<br/>scan published images"]
-    rescan -->|new OS-only findings| refresh["Copa refresh to the next revision<br/>(no rebuild)"]
+    rescan -->|new OS-only findings| refresh["release.yml, refresh run: Copa to the next revision<br/>(no rebuild), signed, attested and recorded like a release"]
     rescan -->|new language findings| plan
 ```
 
@@ -139,8 +139,9 @@ in a job that holds registry credentials:
 | `plan` | `patcher release-plan`: the line, whether anything is built, the platforms and their runners. A push that lands several patch sets dispatches one run per line instead | no | `contents: read`, `actions: write` |
 | `build`, one per platform | `patcher release-build`: applies the reviewed `deps.patch` to the verified upstream commit, builds each image for the platform with its components and bundled jars overlaid, and saves it as an archive (`docker save` to `images/<arch>/<image>.tar`), uploaded as an artifact | **yes** | `contents: read` only. No login, no cache |
 | `push` | `patcher release-push`: takes the next free revision, checks every archive, pushes each to `<final>-<arch>` with crane | no | `packages: write` |
-| `publish` | `patcher publish`: merges the per-arch images, Copa, final and moving tags, scan, OpenVEX, release record; then cosign signs and attaches the SBOM and OpenVEX | no | `packages: write`, `id-token: write` |
+| `publish` | `patcher publish`: merges the per-arch images, Copa, final tags, scan, OpenVEX, release record; then cosign signs and attaches the SBOM and OpenVEX | no | `packages: write`, `id-token: write` |
 | `attest` | SLSA build provenance, one per image (skipped for an image that has it already) | no | `packages: write`, `id-token: write`, `attestations: write` |
+| `promote` | `patcher promote`: moves each `<upstream tag>-patched` moving tag to the signed digest, so it never points at an image that isn't signed and attested | no | `packages: write` |
 | `state` | the PR updating `state/<project>/<line>.yaml`, from `publish`'s job outputs | no | GitHub App token (`contents`, `pull-requests: write` for its fallback) |
 
 **Why the build job gets no credentials.** Building upstream code runs it: the recipe's `build.setup` (upstream
@@ -164,8 +165,8 @@ started can wait for the credentials to show up. So the job that builds holds no
   `state` as job outputs, which no other job can write.
 - **No cache where credentials are, or where a release is built.** Any job on a branch can write that branch's GitHub
   Actions cache, the jobs that run upstream code included. A job that reads it can end up running binaries another job
-  planted: the patcher image's layers, toolchains on `PATH`. So every `release.yml` job that runs the patcher, and Copa
-  refresh, builds the patcher image without the layer cache and restores no toolchain cache (`run-patcher` with
+  planted: the patcher image's layers, toolchains on `PATH`. So every `release.yml` job that runs the patcher, Copa
+  refreshes included, builds the patcher image without the layer cache and restores no toolchain cache (`run-patcher` with
   `image-cache: "false"` and no `cache-key`), and the plan job's `setup-uv` restores no cache either. The release build
   takes longer for it, but one project's code can't reach another project's release. The patch jobs still share
   caches; what they produce is reviewed in the PR.
@@ -197,7 +198,7 @@ workflow and action files of the commit that started the run, so it only helps w
 | `release.yml` / push | no | `packages: write`; pushes only the per-arch tags it computes |
 | `release.yml` / publish, attest | no | `packages: write`, `id-token: write` (keyless cosign), `attestations: write` |
 | `release.yml` / plan, state | no | `actions: write` (dispatch); GitHub App token (the `state/` PR) |
-| `rescan.yml` | no | `packages: read`; refresh adds `packages: write` + `id-token: write`, and reads no cache |
+| `rescan.yml` | no | `packages: read`, `pull-requests: read`; its refresh job only dispatches `release.yml` (`actions: write`) |
 | `tool-pins.yml` | no | GitHub App token |
 
 Supply-chain rules for the pipeline itself:
@@ -219,7 +220,7 @@ held to the same cutoff.
 | Tag | Meaning |
 |---|---|
 | `<upstream tag>-patched.<revision>` | Immutable release, e.g. `v2.46.1-patched.3`, `v2.46.1-distroless-patched.3` |
-| `<upstream tag>-patched` | Moving tag that always points to the newest revision |
+| `<upstream tag>-patched` | Moving tag: the newest complete revision. It moves only after the image is signed and attested |
 | `<final>-<arch>`, `<final>-build` | Staging tags used while releasing: the push job's per-arch images and their merge. When Copa patches several platforms it pushes its per-platform results under the same `<final>-<arch>` names. Safe to garbage-collect once the revision is in `state/` |
 
 How revisions are chosen:
@@ -239,6 +240,11 @@ How revisions are chosen:
 - **Copa refresh:** each refresh publishes a new revision of the same upstream tag, the first after the recorded one
   with no tag yet (as for a release). Copa pushes to a scratch tag, `<final>-refresh`; the result becomes `<final>` only
   if no release has taken that revision in the meantime, otherwise the refresh stops and the next rescan tries again.
+  - A refresh runs in `release.yml` (a `refresh` dispatch, which the nightly rescan sends). It shares the line's
+    publish, promote and state locks with releases, and the same signer identity.
+  - It starts from what `state/` records. If a moving tag points elsewhere, a newer revision isn't recorded yet, and
+    the refresh stops before Copa: refreshing the recorded image would move the tag back to an older build.
+  - Rescan skips lines with an open `state/` PR, so it doesn't refresh from a state that's about to change.
 - **Image-only releases:** each run publishes a new revision, the first after the recorded one with no final or
   `-build` tag yet.
 
@@ -247,8 +253,11 @@ How revisions are chosen:
 At release time, each image's fixable findings are stored in `state/` as `knownFixable`. These are
 already explained in the release PR (for example, CVEs inside a bundled helm binary). `rescan` acts
 only on fixable findings that are **new** and not covered by a VEX statement:
-- **new OS-package findings only:** `refresh`, a Copa re-patch that publishes the next revision;
+- **new OS-package findings only:** a `refresh` run of `release.yml`, a Copa re-patch that publishes the next
+  revision, signed, attested and recorded like a release;
 - **any new language finding:** dispatch `patch.yml` for that line, so it is rebuilt from source.
+
+A line whose `state/` PR isn't merged yet is not scanned: `state/` on `main` still records the revision before.
 
 ## Keeping the pipeline itself current
 

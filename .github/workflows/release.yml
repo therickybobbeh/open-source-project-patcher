@@ -12,6 +12,10 @@
 #
 # A run that failed after its builds is finished without rebuilding: dispatch it with `rebuild: false`
 # (docs/runbook.md, "A release failed after the builds").
+#
+# A `refresh` dispatch, which the nightly rescan sends for new OS findings, builds nothing either: `publish` runs Copa
+# on the released images (`patcher refresh`, the next revision), and the jobs after it sign, attest, promote and record
+# that revision exactly as they do a release, under the same per-line concurrency groups.
 name: release
 
 on:
@@ -32,6 +36,12 @@ on:
           the registry, after a run that failed past its builds
         type: boolean
         default: true
+      refresh:
+        description: >-
+          Copa refresh instead: re-patch the released images' OS packages to a new revision, with no build (what the
+          nightly rescan dispatches)
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -52,6 +62,7 @@ jobs:
       line: ${{ steps.plan.outputs.line }}
       build: ${{ steps.plan.outputs.build }}
       arches: ${{ steps.plan.outputs.arches }}
+      refresh: ${{ steps.plan.outputs.refresh }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -73,6 +84,7 @@ jobs:
           RECIPE: ${{ inputs.recipe }}
           LINE: ${{ inputs.line }}
           REBUILD: ${{ inputs.rebuild }}
+          REFRESH: ${{ inputs.refresh }}
           BEFORE: ${{ github.event.before }}
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -103,10 +115,12 @@ jobs:
           target='{}'
           if [ "$count" = 1 ]; then target=$(jq -c '.include[0]' <<<"$plan"); fi
           build=$(jq -r '.build // false' <<<"$target")
-          # `rebuild: false`: nothing is built or pushed; publish finishes the newest revision that is in the registry
-          if [ "$REBUILD" = false ]; then build=false; fi
+          # `rebuild: false`: nothing is built or pushed; publish finishes the newest revision that is in the registry.
+          # `refresh`: nothing is built either; publish runs Copa on the released images
+          if [ "$REBUILD" = false ] || [ "$REFRESH" = true ]; then build=false; fi
           {
             echo "count=$count"
+            echo "refresh=${REFRESH:-false}"
             echo "recipe=$(jq -r '.recipe // ""' <<<"$target")"
             echo "line=$(jq -r '.line // ""' <<<"$target")"
             echo "build=$build"
@@ -221,12 +235,21 @@ jobs:
       # refresh took the revision) and nothing is published, unless this is a re-run of this job (--finish-existing).
       # Without (nothing built in this run): the newest revision whose per-arch images all exist, where an image whose
       # final tag exists already (an earlier publish got that far) is kept as it is.
-      - uses: ./.github/actions/run-patcher
+      - if: needs.plan.outputs.refresh != 'true'
+        uses: ./.github/actions/run-patcher
         with:
           args: >-
             publish ${{ needs.plan.outputs.recipe }} --line ${{ needs.plan.outputs.line }} --out out
             ${{ needs.push.outputs.revision && format('--revision {0}', needs.push.outputs.revision) || '' }}
             ${{ github.run_attempt != '1' && '--finish-existing' || '' }}
+          image-cache: "false"
+      # A refresh: Copa on the images state/ records, to the next free revision; nothing if Copa has nothing to patch
+      # (the jobs after this one then have nothing to do). It stops if a moving tag has moved on from what state/
+      # records: a newer release isn't recorded yet.
+      - if: needs.plan.outputs.refresh == 'true'
+        uses: ./.github/actions/run-patcher
+        with:
+          args: refresh ${{ needs.plan.outputs.recipe }} --line ${{ needs.plan.outputs.line }} --out out
           image-cache: "false"
       - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
       - name: Sign + attach SBOM and OpenVEX
@@ -317,11 +340,47 @@ jobs:
           subject-digest: ${{ matrix.digest }}
           push-to-registry: true
 
-  # Last, so state/ only ever records complete releases (signed, SBOM, VEX, provenance). Whatever fails before this
-  # leaves an unrecorded revision, which a run with `rebuild: false` finishes.
-  state:
+  # After signing, SBOM, VEX and provenance: the moving tag (`<upstream tag>-patched`) only ever points at a complete
+  # release. If anything before failed, it stays on the previous revision until a run with `rebuild: false` finishes
+  # this one.
+  promote:
     needs: [plan, publish, attest]
     if: ${{ !cancelled() && needs.attest.result == 'success' }}   # see attest
+    runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
+    timeout-minutes: 10
+    name: promote ${{ needs.plan.outputs.recipe }} ${{ needs.plan.outputs.line }}
+    concurrency:
+      group: promote-${{ needs.plan.outputs.recipe }}-${{ needs.plan.outputs.line }}
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          enable-cache: false  # no shared cache: this job moves release tags
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      # the release record from publish's outputs (see there), never an artifact; tags move by digest
+      - env:
+          RELEASE: ${{ needs.publish.outputs.release }}
+          RECIPE: ${{ needs.plan.outputs.recipe }}
+          LINE: ${{ needs.plan.outputs.line }}
+        run: |
+          base64 -d <<<"$RELEASE" > "$RUNNER_TEMP/release.json"
+          uv run --project patcher --frozen patcher promote "$RECIPE" --line "$LINE" --release "$RUNNER_TEMP/release.json"
+
+  # Last, so state/ only ever records complete releases (signed, SBOM, VEX, provenance, promoted). Whatever fails
+  # before this leaves an unrecorded revision, which a run with `rebuild: false` finishes.
+  state:
+    needs: [plan, publish, promote]
+    if: ${{ !cancelled() && needs.promote.result == 'success' }}   # see attest
     runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
     timeout-minutes: 15
     name: state ${{ needs.plan.outputs.recipe }} ${{ needs.plan.outputs.line }}
@@ -351,7 +410,11 @@ jobs:
           private-key: ${{ secrets.PATCHER_APP_PRIVATE_KEY }}
           branch: state/${{ needs.plan.outputs.recipe }}/${{ needs.plan.outputs.line }}
           add-paths: state/${{ needs.plan.outputs.recipe }}/${{ needs.plan.outputs.line }}.yaml
-          commit-message: "state: released ${{ needs.plan.outputs.recipe }} ${{ needs.plan.outputs.line }}"
-          title: "[${{ needs.plan.outputs.recipe }}] record release of ${{ needs.plan.outputs.line }}"
+          commit-message: >-
+            state: ${{ needs.plan.outputs.refresh == 'true' && 'copa refresh' || 'released' }}
+            ${{ needs.plan.outputs.recipe }} ${{ needs.plan.outputs.line }}
+          title: >-
+            [${{ needs.plan.outputs.recipe }}] ${{ needs.plan.outputs.refresh == 'true' && 'copa refresh' || 'record release' }}
+            of ${{ needs.plan.outputs.line }}
           body-path: ${{ runner.temp }}/release.json
           labels: automated, release
