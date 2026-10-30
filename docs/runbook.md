@@ -382,6 +382,20 @@ and a tag the recipe's `exclude` patterns match don't count. Add the line to tra
 itself. To stay where you are, close the issue: it isn't reopened, and the next major or minor opens a
 new one.
 
+**End-of-life runtimes.** The same daily run checks what each recipe builds with against
+[endoflife.date](https://endoflife.date) (`patcher eol`):
+- **What it checks:** the base images in each tracked line's Dockerfiles (after `minVersions`) and the
+  recipe's toolchain (Go, Node.js, Python, Temurin).
+- **When it opens an issue:** one per recipe and release, labelled `end-of-life`, once the release is
+  within 90 days of its end of life or past it. For example: "End of life: argo-rollouts Node.js 22".
+- **What it covers:** runtimes in an image name or tag (`static-debian12`, `-alpine3.23`, `bookworm`)
+  count. Bases a custom build command builds from count only when a dockerfile ecosystem lists the file.
+- **To fix:** raise the base with `minVersions` on the dockerfile ecosystem (see
+  [recipes.md](recipes.md#dockerfile)), or bump `toolchain`. The issue closes itself on the next run.
+- **To accept it:** close the issue; it isn't reopened.
+- **If a lookup fails** (endoflife.date or a Dockerfile can't be read), the job fails rather than
+  closing issues.
+
 ## Dependency hygiene of this repo
 
 | What | Mechanism | When | Your part |

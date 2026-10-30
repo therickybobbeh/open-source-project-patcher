@@ -269,6 +269,7 @@ The tool is detected per dir:
   `level`: with `{node: "24"}`, `node:20-alpine` becomes `node:24-alpine` and `node:23.0.0` the newest
   `24.x.y`. Tags at or above the line follow `level` as usual. Use it when upstream builds on an
   end-of-life runtime, and say why in a comment; the report marks these moves `(minVersions: …)`.
+  The daily rescan's `end-of-life` issues say when one is needed (`patcher eol`).
 - **Hints:** a newer *minor* of the same major is reported, e.g. gomplate v5.2 → v5.3. It is not
   applied unless you raise `level`.
 
