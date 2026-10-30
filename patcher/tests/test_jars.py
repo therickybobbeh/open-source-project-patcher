@@ -294,7 +294,10 @@ def test_image_only_flow_swaps_jars_into_the_vendor_image(monkeypatch, tmp_path)
                      ("overlay", local, [(KAFKA.context_file, "/opt/kafka/libs/jackson-databind-2.19.0.jar")]),
                      ("smoke", local), "scan-image-after-kafka.json"]
     assert s.status == "success"  # not no-changes: the vendor image changed
-    assert json.loads((tmp_path / "out" / "kafka" / "k4" / "generated" / "jars.json").read_text())["swaps"][0]["new"] == "2.19.1"
+    gen = tmp_path / "out" / "kafka" / "k4" / "generated"
+    assert json.loads((gen / "jars.json").read_text())["swaps"][0]["new"] == "2.19.1"
+    # the release publishes exactly the upstream tag reviewed here, whatever the registry has by then
+    assert json.loads((gen / "bump-plan.json").read_text())["imageTags"] == {"kafka": "0.48.0-kafka-4.1.0"}
 
 
 def test_image_only_release_swaps_the_recorded_jars_on_every_platform(monkeypatch, tmp_path):
@@ -303,8 +306,14 @@ def test_image_only_release_swaps_the_recorded_jars_on_every_platform(monkeypatc
     repo, r, calls = kafka_repo(tmp_path, monkeypatch), kafka_recipe(), []
     gen = tmp_path / "generated" / "kafka" / "0.48.0-kafka-4.1.0"
     gen.mkdir(parents=True)
-    (gen / "bump-plan.json").write_text(json.dumps({"line": "k4", "tag": "0.48.0-kafka-4.1.0", "status": "success"}))
+    (gen / "bump-plan.json").write_text(json.dumps({"line": "k4", "tag": "0.48.0-kafka-4.1.0", "status": "success",
+                                                    "imageTags": {"kafka": "0.48.0-kafka-4.1.0"}}))
     (gen / "jars.json").write_text(json.dumps(jars.to_json([KAFKA], [])))
+
+    def newest_in_registry(recipe, line):
+        raise AssertionError("the release must not pick the registry's newest tag: it publishes the reviewed one")
+
+    monkeypatch.setattr(pipeline, "_image_only_targets", newest_in_registry)
     monkeypatch.setattr(jars, "restage", lambda image, platforms, swaps, ctx: calls.append(("restage", image, platforms, swaps)))
     monkeypatch.setattr(components, "overlay", lambda base, comps, out, **k: calls.append(("overlay", base, k["platforms"], k["tag_ref"])))
     monkeypatch.setattr(pipeline, "run", lambda cmd, **k: None)  # imagetools create
@@ -319,6 +328,21 @@ def test_image_only_release_swaps_the_recorded_jars_on_every_platform(monkeypatc
     assert calls == [("restage", "quay.io/strimzi/kafka:0.48.0-kafka-4.1.0", plats, [KAFKA]),
                      ("overlay", "quay.io/strimzi/kafka:0.48.0-kafka-4.1.0", plats, "ghcr.io/me/kafka:0.48.0-kafka-4.1.0-patched.2-build")]
     assert released[0]["jars"] == ["/opt/kafka/libs/jackson-databind-2.19.0.jar: com.fasterxml.jackson.core:jackson-databind 2.19.1"]
+
+
+def test_image_only_release_needs_a_releasable_patch_set_with_its_tags(monkeypatch, tmp_path):
+    from patcher import pipeline
+
+    repo, r = kafka_repo(tmp_path, monkeypatch), kafka_recipe()
+    gen = tmp_path / "generated" / "kafka" / "0.48.0-kafka-4.1.0"
+    gen.mkdir(parents=True)
+    plan = {"line": "k4", "tag": "0.48.0-kafka-4.1.0", "status": "smoke-failed", "imageTags": {"kafka": "0.48.0-kafka-4.1.0"}}
+    (gen / "bump-plan.json").write_text(json.dumps(plan))
+    with pytest.raises(RuntimeError, match="only successful runs are released"):
+        pipeline.publish(repo, r, "k4", ["linux/amd64"], tmp_path / "out")
+    (gen / "bump-plan.json").write_text(json.dumps({**plan, "status": "success", "imageTags": {}}))
+    with pytest.raises(RuntimeError, match="records no upstream tag for kafka"):
+        pipeline.publish(repo, r, "k4", ["linux/amd64"], tmp_path / "out")
 
 
 def test_release_build_overlays_the_recorded_jars(monkeypatch, tmp_path):

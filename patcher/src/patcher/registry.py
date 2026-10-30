@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import http.client
 import json
 import os
 import re
@@ -10,6 +11,8 @@ import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 from functools import lru_cache
+
+from .proc import log
 
 ACCEPT = ", ".join(
     [
@@ -57,34 +60,67 @@ class RegistryError(RuntimeError):
 
 
 _tokens: dict[tuple[str, str], str] = {}
+_warned: set[str] = set()
 
 
-def _request(method: str, url: str, headers: dict[str, str]) -> tuple[int, dict[str, str], bytes]:
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """urllib re-sends a request's headers, Authorization included, to wherever a redirect points."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+_no_redirects = urllib.request.build_opener(_NoRedirect)
+
+
+def _request(method: str, url: str, headers: dict[str, str], follow_redirects: bool = True) -> tuple[int, dict[str, str], bytes]:
+    """(status, lower-cased headers, body). Network failures raise RegistryError, which every caller handles."""
     req = urllib.request.Request(url, method=method, headers=headers)
     try:
-        with urllib.request.urlopen(req, timeout=60) as resp:
+        with (urllib.request.urlopen(req, timeout=60) if follow_redirects else _no_redirects.open(req, timeout=60)) as resp:
             return resp.status, {k.lower(): v for k, v in resp.headers.items()}, resp.read()
     except urllib.error.HTTPError as e:
         return e.code, {k.lower(): v for k, v in e.headers.items()}, e.read()
+    except (urllib.error.URLError, OSError, http.client.HTTPException) as e:
+        raise RegistryError(f"{method} {url}: {e}") from e
 
 
-def _auth_token(www_auth: str, repo: str) -> str:
+def _basic_auth(registry: str, realm: str) -> dict[str, str]:
+    """PATCHER_REGISTRY_BASIC_AUTH ("user:token") goes only to the registry PATCHER_REGISTRY_AUTH_HOST names, and only
+    when that registry's token realm is https on the same host: the registries come from upstream Dockerfiles, and an
+    auth challenge can name any realm."""
+    basic = os.environ.get("PATCHER_REGISTRY_BASIC_AUTH")
+    if not basic:
+        return {}
+    host = os.environ.get("PATCHER_REGISTRY_AUTH_HOST", "")
+    if not host:
+        if "host" not in _warned:
+            _warned.add("host")
+            log("warning: PATCHER_REGISTRY_BASIC_AUTH is set without PATCHER_REGISTRY_AUTH_HOST: not sent to any registry")
+        return {}
+    url = urllib.parse.urlsplit(realm)
+    if registry != host or url.scheme != "https" or url.netloc != host:
+        return {}
+    import base64
+
+    return {"Authorization": "Basic " + base64.b64encode(basic.encode()).decode()}
+
+
+def _auth_token(www_auth: str, ref: ImageRef) -> str:
     params = dict(re.findall(r'(\w+)="([^"]*)"', www_auth))
     realm = params.pop("realm", None)
     if not realm:
         raise RegistryError(f"unsupported auth challenge: {www_auth}")
-    params.setdefault("scope", f"repository:{repo}:pull")
+    params.setdefault("scope", f"repository:{ref.repository}:pull")
     url = f"{realm}?{urllib.parse.urlencode(params)}"
-    headers = {}
-    basic = os.environ.get("PATCHER_REGISTRY_BASIC_AUTH")  # optional "user:token" for private registries
-    if basic:
-        import base64
-
-        headers["Authorization"] = "Basic " + base64.b64encode(basic.encode()).decode()
-    status, _, body = _request("GET", url, headers)
+    headers = _basic_auth(ref.registry, realm)
+    status, _, body = _request("GET", url, headers, follow_redirects=not headers)
     if status != 200:
-        raise RegistryError(f"token request failed ({status}) for {repo}")
-    data = json.loads(body)
+        raise RegistryError(f"token request failed ({status}) for {ref.repository}")
+    try:
+        data = json.loads(body)
+    except ValueError as e:
+        raise RegistryError(f"token response for {ref.repository} is not JSON") from e
     return data.get("token") or data.get("access_token")
 
 
@@ -96,7 +132,7 @@ def _call(ref: ImageRef, method: str, path: str, accept: str | None = None) -> t
         headers["Authorization"] = f"Bearer {_tokens[key]}"
     status, resp_headers, body = _request(method, url, headers)
     if status == 401 and "www-authenticate" in resp_headers:
-        _tokens[key] = _auth_token(resp_headers["www-authenticate"], ref.repository)
+        _tokens[key] = _auth_token(resp_headers["www-authenticate"], ref)
         headers["Authorization"] = f"Bearer {_tokens[key]}"
         status, resp_headers, body = _request(method, url, headers)
     if status >= 400:

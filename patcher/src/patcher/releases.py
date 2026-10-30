@@ -186,14 +186,18 @@ def _prerelease(v: str) -> bool:
 
 
 _ages = ReleaseAges()
-_kev: set[str] | None = None
+_kev: set[str] | None = None  # the CISA feed, loaded once per process by the first policy that uses it
 
 
 def gate_for(policy) -> AgeGate | None:
-    """The run's age gate for `policy` (shared caches), or None when the rule is off."""
+    """The run's age gate for `policy` (shared caches), or None when the rule is off. Each policy gets the KEV list only
+    if it asks for it: one recipe's `kev: false` must not empty it for the next recipe or a component."""
     global _kev
     if not policy.minReleaseAgeDays:
         return None
-    if _kev is None:
-        _kev = load_kev() if policy.cooldownBypass.kev else set()
-    return AgeGate(policy.minReleaseAgeDays, set(policy.cooldownBypass.severities), _kev, _ages)
+    kev: set[str] = set()
+    if policy.cooldownBypass.kev:
+        if _kev is None:
+            _kev = load_kev()
+        kev = _kev
+    return AgeGate(policy.minReleaseAgeDays, set(policy.cooldownBypass.severities), kev, _ages)

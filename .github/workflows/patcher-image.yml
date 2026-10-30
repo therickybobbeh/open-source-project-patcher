@@ -23,12 +23,19 @@ concurrency:
 
 jobs:
   test:
-    runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON_UPSTREAM || vars.PATCHER_RUNS_ON || '"ubuntu-24.04"') }}
+    runs-on: ${{ fromJSON(vars.PATCHER_RUNS_ON_UPSTREAM || '"ubuntu-24.04"') }}
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Runner pools are kept apart
+        env:
+          PATCHER_RUNS_ON: ${{ vars.PATCHER_RUNS_ON }}
+          PATCHER_RUNS_ON_ARM64: ${{ vars.PATCHER_RUNS_ON_ARM64 }}
+          PATCHER_RUNS_ON_UPSTREAM: ${{ vars.PATCHER_RUNS_ON_UPSTREAM }}
+          PATCHER_RUNS_ON_UPSTREAM_ARM64: ${{ vars.PATCHER_RUNS_ON_UPSTREAM_ARM64 }}
+        run: scripts/check-runner-pools.sh
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           enable-cache: false  # no shared cache: patch jobs, which run upstream code, can write it

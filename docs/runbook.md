@@ -45,8 +45,16 @@ Any `runs-on` form works:
 - a label list: `["self-hosted", "linux", "x64"]`;
 - an Actions Runner Controller scale set: `"patcher-x64"`.
 
-An unset variable falls back: the `UPSTREAM` ones to `PATCHER_RUNS_ON` / `PATCHER_RUNS_ON_ARM64`, and those to
-GitHub-hosted runners. With no arm64 runners, set `build.platforms: [linux/amd64]` in the recipes.
+**Fallbacks:**
+- `PATCHER_RUNS_ON` and `PATCHER_RUNS_ON_ARM64` fall back to GitHub-hosted runners.
+- The `UPSTREAM` variables never fall back to the trusted pool. Upstream code must not land on the runners that
+  hold registry, signing and GitHub App credentials.
+- Unset, the `UPSTREAM` variables mean GitHub-hosted runners. Once `PATCHER_RUNS_ON` or `PATCHER_RUNS_ON_ARM64`
+  is set, its `UPSTREAM` counterpart must be set too. Otherwise the run stops at its first job with an error
+  naming the variable (`scripts/check-runner-pools.sh`).
+- To keep upstream code on GitHub-hosted runners in a self-hosted setup, set the `UPSTREAM` variable to
+  `"ubuntu-24.04"` (arm64: `"ubuntu-24.04-arm"`).
+- With no arm64 runners, set `build.platforms: [linux/amd64]` in the recipes.
 
 **Security.** Patch runs and release builds run upstream build and test code with the Docker socket,
 which is root on the runner.
@@ -54,10 +62,10 @@ which is root on the runner.
   lets a malicious build persist into the next job, including the jobs that hold registry credentials
   or the GitHub App's token.
 - **Keep those jobs apart.** Point `PATCHER_RUNS_ON_UPSTREAM` at a separate group that can't reach
-  internal systems.
+  internal systems. The check warns when it names the same runners as `PATCHER_RUNS_ON`.
 - **On a public repository,** fork pull requests run the `test` job on the `UPSTREAM` runners. Require
-  approval for outside contributors (*Settings → Actions → General*), or leave the `UPSTREAM` variables
-  unset.
+  approval for outside contributors (*Settings → Actions → General*), or set the `UPSTREAM` variables to the
+  GitHub-hosted labels.
 
 **Runner requirements.** Linux, with:
 - **Docker:** Docker Engine 25 or later, with the buildx plugin and the **containerd image store** enabled
@@ -78,6 +86,17 @@ delete the host's files and restart its Docker:
 - the switch to the containerd image store.
 
 The checkout is handed back to the runner's user without `sudo`.
+
+**A private registry for base-image lookups.** The patcher reads tags and digests of base images anonymously.
+For one registry that needs credentials, set:
+- `PATCHER_REGISTRY_BASIC_AUTH` to `user:token`;
+- `PATCHER_REGISTRY_AUTH_HOST` to that registry's host, port included, e.g. `nexus.example.com:8443`.
+
+The credentials go only to that registry, and only when its token service is https on the same host. They
+don't follow redirects. Upstream Dockerfiles choose which registries get contacted, and any registry's auth
+challenge can name any server. Without the host variable the credentials are sent nowhere, and a warning is
+logged. This covers a self-hosted registry or proxy (Harbor, Nexus, Artifactory) that issues its own tokens.
+Docker Hub's token service is on another host, so this variable doesn't cover Docker Hub.
 
 ## Reviewing a patch PR
 
