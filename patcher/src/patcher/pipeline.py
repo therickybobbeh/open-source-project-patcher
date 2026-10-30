@@ -621,6 +621,7 @@ def _write_outputs(repo: Repo, s: Summary, att: Attempt | None, out: Path) -> No
         "failures": [asdict(f) for f in s.failures],
         "unresolved": [asdict(u) for u in s.unresolved],
         "skips": [e.model_dump(mode="json") for e in (s.tests.skipped if s.tests else [])],
+        **({"imageTags": s.image_tags} if s.image_tags else {}),
     }
     (gen / "bump-plan.json").write_text(json.dumps(plan_doc, indent=2, sort_keys=False) + "\n")
     if s.jars or s.jar_unresolved:  # the release re-applies exactly these swaps
@@ -677,7 +678,8 @@ def _run_image_only(repo: Repo, recipe: Recipe, line: Line, out: Path, opts: Run
     """Closed-source images: scan the upstream image, try Copa, report. No source changes."""
     g = repo.global_config()
     targets = _image_only_targets(recipe, line)
-    s = Summary(recipe=recipe, line=line_key(line), tag=targets[0][1], commit="n/a", status="success", vex=repo.vex(recipe.name))
+    s = Summary(recipe=recipe, line=line_key(line), tag=targets[0][1], commit="n/a", status="success", vex=repo.vex(recipe.name),
+                image_tags={spec.key: tag for spec, tag in targets})
     cache: dict = {}
     chosen: dict[str, str] = {}  # component -> the one version this line ships
     gate = releases.gate_for(recipe.policy) if opts.cooldown else None
@@ -1063,7 +1065,7 @@ def publish(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, o
         (out / "release.json").write_text("[]\n")
         return []
     if recipe.mode == "image-only":
-        return _publish_image_only(repo, recipe, key, platforms or recipe.build.platforms, out)
+        return _publish_image_only(repo, recipe, key, platforms or recipe.build.platforms, out, tag)
     g = repo.global_config()
     gen, doc = find_generated(repo, recipe, key, tag)
     _releasable(gen, doc)
@@ -1117,15 +1119,21 @@ def publish(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, o
     return released
 
 
-def _publish_image_only(repo: Repo, recipe: Recipe, key: str, platforms: list[str], out: Path) -> list[dict]:
+def _publish_image_only(repo: Repo, recipe: Recipe, key: str, platforms: list[str], out: Path,
+                        tag: str | None = None) -> list[dict]:
     """Closed-source images: copy upstream into our registry, Copa what can be patched, record state. Each run publishes
     a new revision: the first after the recorded one with no final or `-build` tag yet, so an earlier attempt that
-    failed after pushing is never overwritten."""
+    failed after pushing is never overwritten. The upstream tags are the ones the reviewed patch set recorded: the
+    registry may have newer ones by now, and those were never reviewed."""
     g = repo.global_config()
-    line = next(l for l in recipe.source.lines if line_key(l) == key)
     st = repo.state(recipe.name)
     released, images = [], []
-    targets = _image_only_targets(recipe, line)
+    gen, doc = find_generated(repo, recipe, key, tag)
+    _releasable(gen, doc)
+    recorded = doc.get("imageTags") or {}
+    if missing := [spec.key for spec in recipe.build.images if spec.key not in recorded]:
+        raise RuntimeError(f"{gen}/bump-plan.json records no upstream tag for {', '.join(missing)}: re-run the patch flow")
+    targets = [(spec, recorded[spec.key]) for spec in recipe.build.images]
     prev = st.lines.get(key)
     rev = prev.revision + 1 if prev and prev.upstreamTag == targets[0][1] else 1
     def finals(rev: int) -> list[str]:
@@ -1135,7 +1143,6 @@ def _publish_image_only(repo: Repo, recipe: Recipe, key: str, platforms: list[st
         rev += 1
     comps, swaps = {}, {}
     if recipe.components or any(s.bundledJars for s in recipe.build.images):
-        gen, _ = find_generated(repo, recipe, key)
         comps = components.from_generated(repo, recipe, gen, out / "work") if recipe.components else {}
         swaps = jars.from_generated(gen)
     for spec, tag in targets:

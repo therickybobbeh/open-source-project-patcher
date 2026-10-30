@@ -19,6 +19,8 @@
 #   PATCHER_DOCKER_CONFIG  Docker config dir with registry logins (default ~/.docker). On macOS, Docker
 #                  Desktop's config uses a credential helper that doesn't exist in the container: point
 #                  this at a dir whose config.json has plain `auths` (or `{}` for public images only)
+#   PATCHER_REGISTRY_BASIC_AUTH, PATCHER_REGISTRY_AUTH_HOST  passed through: credentials for one private registry's
+#                  base-image lookups (see the runbook)
 set -euo pipefail
 
 repo=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -42,7 +44,8 @@ common=$(cd "$repo" && git rev-parse --path-format=absolute --git-common-dir 2>/
 if [[ -n "$common" && "$common" != "$repo"/* ]]; then git_mount=(-v "$common:$common:ro"); fi
 
 exec docker run --rm --network host \
-  -e PATCHER_REGISTRY -e GITHUB_ACTIONS -e PATCHER_WORKDIR="$workdir" \
+  -e PATCHER_REGISTRY -e PATCHER_REGISTRY_BASIC_AUTH -e PATCHER_REGISTRY_AUTH_HOST -e GITHUB_ACTIONS \
+  -e PATCHER_WORKDIR="$workdir" \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v "$docker_config:/root/.docker" \
   -v "$repo:$repo" -w "$repo" ${git_mount[@]+"${git_mount[@]}"} \
