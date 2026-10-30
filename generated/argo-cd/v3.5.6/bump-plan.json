@@ -290,7 +290,7 @@
         "vuln_id": "CVE-2026-78661",
         "severity": "UNKNOWN",
         "fixed": "0.62.0",
-        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
       },
       {
         "ecosystem": "gomod",
@@ -300,7 +300,7 @@
         "vuln_id": "CVE-2026-97045",
         "severity": "UNKNOWN",
         "fixed": "0.62.0",
-        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
       },
       {
         "ecosystem": "gomod",
@@ -350,7 +350,7 @@
         "vuln_id": "CVE-2026-78661",
         "severity": "UNKNOWN",
         "fixed": "0.62.0",
-        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
       },
       {
         "ecosystem": "gomod",
@@ -360,7 +360,7 @@
         "vuln_id": "CVE-2026-97045",
         "severity": "UNKNOWN",
         "fixed": "0.62.0",
-        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
       },
       {
         "ecosystem": "pnpm",
@@ -573,7 +573,7 @@
       "target": "Dockerfile",
       "name": "ARG BASE_IMAGE",
       "old": "ubuntu:26.04@sha256:f3d28607ddd78734bb7f71f117f3c6706c666b8b76cbff7c9ff6e5718d46ff64",
-      "new": "ubuntu:26.04@sha256:0e73b71479e7bc5f006bca872e25c3cd680dc052a0116f90d63ae363537db0dd",
+      "new": "ubuntu:26.04@sha256:6a06111c3b0a8600feadb270aec771dc239bf407b25625f93f44ab00e11f4d3c",
       "note": "base image refresh"
     },
     {
@@ -620,7 +620,7 @@
       "vuln_id": "CVE-2026-78661",
       "severity": "UNKNOWN",
       "fixed": "0.62.0",
-      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
     },
     {
       "ecosystem": "gomod",
@@ -630,7 +630,7 @@
       "vuln_id": "CVE-2026-97045",
       "severity": "UNKNOWN",
       "fixed": "0.62.0",
-      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
     },
     {
       "ecosystem": "gomod",
@@ -680,7 +680,7 @@
       "vuln_id": "CVE-2026-78661",
       "severity": "UNKNOWN",
       "fixed": "0.62.0",
-      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
     },
     {
       "ecosystem": "gomod",
@@ -690,7 +690,7 @@
       "vuln_id": "CVE-2026-97045",
       "severity": "UNKNOWN",
       "fixed": "0.62.0",
-      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
     },
     {
       "ecosystem": "pnpm",

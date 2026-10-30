@@ -114,7 +114,7 @@
         "vuln_id": "CVE-2026-78661",
         "severity": "UNKNOWN",
         "fixed": "0.62.0",
-        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
       },
       {
         "ecosystem": "gomod",
@@ -124,7 +124,7 @@
         "vuln_id": "CVE-2026-97045",
         "severity": "UNKNOWN",
         "fixed": "0.62.0",
-        "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
       }
     ],
     "toolchain": {}
@@ -191,7 +191,7 @@
       "vuln_id": "CVE-2026-78661",
       "severity": "UNKNOWN",
       "fixed": "0.62.0",
-      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
     },
     {
       "ecosystem": "gomod",
@@ -201,7 +201,7 @@
       "vuln_id": "CVE-2026-97045",
       "severity": "UNKNOWN",
       "fixed": "0.62.0",
-      "why": "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)"
+      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
     }
   ],
   "skips": []
