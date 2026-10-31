@@ -10,4 +10,4 @@ Upstream: https://github.com/GoogleCloudPlatform/docker-credential-gcr @ `bdb02d
 
 ### Upstream tests
 
-✅ passed in 0.4 min — `go build -o docker-credential-gcr . && PATH="$PWD:$PATH" go test  ./...`
+✅ passed in 0.2 min — `go build -o docker-credential-gcr . && PATH="$PWD:$PATH" go test  ./...`
