@@ -1,56 +1,12 @@
 {
   "recipe": "splunk-otel-collector",
   "line": "v0",
-  "tag": "v0.163.1",
-  "commit": "4b86b8ce0dace0625c2458bde98bb446c93e3caa",
+  "tag": "v0.164.0",
+  "commit": "370a0a68ebf661de554e9b9f28077959dc6033d8",
   "status": "success",
   "requires": {},
   "plan": {
-    "bumps": [
-      {
-        "ecosystem": "gomod",
-        "target": "baseline/go.mod",
-        "name": "github.com/go-jose/go-jose/v4",
-        "installed": "v4.1.4",
-        "to": "v4.1.6",
-        "level": "patch",
-        "reasons": [
-          "CVE-2026-116585",
-          "CVE-2026-116586",
-          "CVE-2026-116587"
-        ],
-        "direct": false,
-        "dir": "baseline"
-      },
-      {
-        "ecosystem": "gomod",
-        "target": "go.mod",
-        "name": "github.com/go-jose/go-jose/v4",
-        "installed": "v4.1.4",
-        "to": "v4.1.6",
-        "level": "patch",
-        "reasons": [
-          "CVE-2026-116585",
-          "CVE-2026-116586",
-          "CVE-2026-116587"
-        ],
-        "direct": false,
-        "dir": "."
-      },
-      {
-        "ecosystem": "gomod",
-        "target": "internal/signalfx-agent/go.mod",
-        "name": "github.com/klauspost/compress",
-        "installed": "v1.18.0",
-        "to": "v1.18.7",
-        "level": "patch",
-        "reasons": [
-          "CVE-2026-63209"
-        ],
-        "direct": false,
-        "dir": "internal/signalfx-agent"
-      }
-    ],
+    "bumps": [],
     "unresolved": [
       {
         "ecosystem": "gomod",
@@ -70,7 +26,7 @@
         "vuln_id": "CVE-2026-78661",
         "severity": "UNKNOWN",
         "fixed": "0.62.0",
-        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
+        "why": "cooldown: v0.62.0 released 3 day(s) ago (eligible 2026-11-03)"
       },
       {
         "ecosystem": "gomod",
@@ -80,7 +36,7 @@
         "vuln_id": "CVE-2026-97045",
         "severity": "UNKNOWN",
         "fixed": "0.62.0",
-        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
+        "why": "cooldown: v0.62.0 released 3 day(s) ago (eligible 2026-11-03)"
       },
       {
         "ecosystem": "gomod",
@@ -100,7 +56,7 @@
         "vuln_id": "CVE-2026-78661",
         "severity": "UNKNOWN",
         "fixed": "0.62.0",
-        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
+        "why": "cooldown: v0.62.0 released 3 day(s) ago (eligible 2026-11-03)"
       },
       {
         "ecosystem": "gomod",
@@ -110,7 +66,7 @@
         "vuln_id": "CVE-2026-97045",
         "severity": "UNKNOWN",
         "fixed": "0.62.0",
-        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
+        "why": "cooldown: v0.62.0 released 3 day(s) ago (eligible 2026-11-03)"
       },
       {
         "ecosystem": "gomod",
@@ -130,7 +86,7 @@
         "vuln_id": "CVE-2026-78661",
         "severity": "UNKNOWN",
         "fixed": "0.62.0",
-        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
+        "why": "cooldown: v0.62.0 released 3 day(s) ago (eligible 2026-11-03)"
       },
       {
         "ecosystem": "gomod",
@@ -140,37 +96,7 @@
         "vuln_id": "CVE-2026-97045",
         "severity": "UNKNOWN",
         "fixed": "0.62.0",
-        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
-      },
-      {
-        "ecosystem": "gomod",
-        "target": "pkg/exporter/splunkoutputsexporter/go.mod",
-        "name": "golang.org/x/crypto",
-        "installed": "v0.58.0",
-        "vuln_id": "GO-2026-5932",
-        "severity": "UNKNOWN",
-        "fixed": null,
-        "why": "no fixed version"
-      },
-      {
-        "ecosystem": "gomod",
-        "target": "pkg/exporter/splunkoutputsexporter/go.mod",
-        "name": "golang.org/x/net",
-        "installed": "v0.61.0",
-        "vuln_id": "CVE-2026-78661",
-        "severity": "UNKNOWN",
-        "fixed": "0.62.0",
-        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
-      },
-      {
-        "ecosystem": "gomod",
-        "target": "pkg/exporter/splunkoutputsexporter/go.mod",
-        "name": "golang.org/x/net",
-        "installed": "v0.61.0",
-        "vuln_id": "CVE-2026-97045",
-        "severity": "UNKNOWN",
-        "fixed": "0.62.0",
-        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
+        "why": "cooldown: v0.62.0 released 3 day(s) ago (eligible 2026-11-03)"
       },
       {
         "ecosystem": "gomod",
@@ -190,7 +116,7 @@
         "vuln_id": "CVE-2026-78661",
         "severity": "UNKNOWN",
         "fixed": "0.62.0",
-        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
+        "why": "cooldown: v0.62.0 released 3 day(s) ago (eligible 2026-11-03)"
       },
       {
         "ecosystem": "gomod",
@@ -200,37 +126,7 @@
         "vuln_id": "CVE-2026-97045",
         "severity": "UNKNOWN",
         "fixed": "0.62.0",
-        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
-      },
-      {
-        "ecosystem": "gomod",
-        "target": "pkg/receiver/splunkinputsreceiver/go.mod",
-        "name": "golang.org/x/crypto",
-        "installed": "v0.58.0",
-        "vuln_id": "GO-2026-5932",
-        "severity": "UNKNOWN",
-        "fixed": null,
-        "why": "no fixed version"
-      },
-      {
-        "ecosystem": "gomod",
-        "target": "pkg/receiver/splunkinputsreceiver/go.mod",
-        "name": "golang.org/x/net",
-        "installed": "v0.61.0",
-        "vuln_id": "CVE-2026-78661",
-        "severity": "UNKNOWN",
-        "fixed": "0.62.0",
-        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
-      },
-      {
-        "ecosystem": "gomod",
-        "target": "pkg/receiver/splunkinputsreceiver/go.mod",
-        "name": "golang.org/x/net",
-        "installed": "v0.61.0",
-        "vuln_id": "CVE-2026-97045",
-        "severity": "UNKNOWN",
-        "fixed": "0.62.0",
-        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
+        "why": "cooldown: v0.62.0 released 3 day(s) ago (eligible 2026-11-03)"
       },
       {
         "ecosystem": "gomod",
@@ -250,7 +146,7 @@
         "vuln_id": "CVE-2026-78661",
         "severity": "UNKNOWN",
         "fixed": "0.62.0",
-        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
+        "why": "cooldown: v0.62.0 released 3 day(s) ago (eligible 2026-11-03)"
       },
       {
         "ecosystem": "gomod",
@@ -260,36 +156,12 @@
         "vuln_id": "CVE-2026-97045",
         "severity": "UNKNOWN",
         "fixed": "0.62.0",
-        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
+        "why": "cooldown: v0.62.0 released 3 day(s) ago (eligible 2026-11-03)"
       }
     ],
     "toolchain": {}
   },
   "changes": [
-    {
-      "ecosystem": "gomod",
-      "target": "go.mod",
-      "name": "github.com/go-jose/go-jose/v4",
-      "old": "v4.1.4",
-      "new": "v4.1.6",
-      "note": "CVE-2026-116585, CVE-2026-116586, CVE-2026-116587"
-    },
-    {
-      "ecosystem": "gomod",
-      "target": "baseline/go.mod",
-      "name": "github.com/go-jose/go-jose/v4",
-      "old": "v4.1.4",
-      "new": "v4.1.6",
-      "note": "CVE-2026-116585, CVE-2026-116586, CVE-2026-116587"
-    },
-    {
-      "ecosystem": "gomod",
-      "target": "internal/signalfx-agent/go.mod",
-      "name": "github.com/klauspost/compress",
-      "old": "v1.18.0",
-      "new": "v1.18.7",
-      "note": "CVE-2026-63209"
-    },
     {
       "ecosystem": "dockerfile",
       "target": "cmd/otelcol/Dockerfile",
@@ -335,7 +207,7 @@
       "vuln_id": "CVE-2026-78661",
       "severity": "UNKNOWN",
       "fixed": "0.62.0",
-      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
+      "why": "cooldown: v0.62.0 released 3 day(s) ago (eligible 2026-11-03)"
     },
     {
       "ecosystem": "gomod",
@@ -345,7 +217,7 @@
       "vuln_id": "CVE-2026-97045",
       "severity": "UNKNOWN",
       "fixed": "0.62.0",
-      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
+      "why": "cooldown: v0.62.0 released 3 day(s) ago (eligible 2026-11-03)"
     },
     {
       "ecosystem": "gomod",
@@ -365,7 +237,7 @@
       "vuln_id": "CVE-2026-78661",
       "severity": "UNKNOWN",
       "fixed": "0.62.0",
-      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
+      "why": "cooldown: v0.62.0 released 3 day(s) ago (eligible 2026-11-03)"
     },
     {
       "ecosystem": "gomod",
@@ -375,7 +247,7 @@
       "vuln_id": "CVE-2026-97045",
       "severity": "UNKNOWN",
       "fixed": "0.62.0",
-      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
+      "why": "cooldown: v0.62.0 released 3 day(s) ago (eligible 2026-11-03)"
     },
     {
       "ecosystem": "gomod",
@@ -395,7 +267,7 @@
       "vuln_id": "CVE-2026-78661",
       "severity": "UNKNOWN",
       "fixed": "0.62.0",
-      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
+      "why": "cooldown: v0.62.0 released 3 day(s) ago (eligible 2026-11-03)"
     },
     {
       "ecosystem": "gomod",
@@ -405,37 +277,7 @@
       "vuln_id": "CVE-2026-97045",
       "severity": "UNKNOWN",
       "fixed": "0.62.0",
-      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
-    },
-    {
-      "ecosystem": "gomod",
-      "target": "pkg/exporter/splunkoutputsexporter/go.mod",
-      "name": "golang.org/x/crypto",
-      "installed": "v0.58.0",
-      "vuln_id": "GO-2026-5932",
-      "severity": "UNKNOWN",
-      "fixed": null,
-      "why": "no fixed version"
-    },
-    {
-      "ecosystem": "gomod",
-      "target": "pkg/exporter/splunkoutputsexporter/go.mod",
-      "name": "golang.org/x/net",
-      "installed": "v0.61.0",
-      "vuln_id": "CVE-2026-78661",
-      "severity": "UNKNOWN",
-      "fixed": "0.62.0",
-      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
-    },
-    {
-      "ecosystem": "gomod",
-      "target": "pkg/exporter/splunkoutputsexporter/go.mod",
-      "name": "golang.org/x/net",
-      "installed": "v0.61.0",
-      "vuln_id": "CVE-2026-97045",
-      "severity": "UNKNOWN",
-      "fixed": "0.62.0",
-      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
+      "why": "cooldown: v0.62.0 released 3 day(s) ago (eligible 2026-11-03)"
     },
     {
       "ecosystem": "gomod",
@@ -455,7 +297,7 @@
       "vuln_id": "CVE-2026-78661",
       "severity": "UNKNOWN",
       "fixed": "0.62.0",
-      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
+      "why": "cooldown: v0.62.0 released 3 day(s) ago (eligible 2026-11-03)"
     },
     {
       "ecosystem": "gomod",
@@ -465,37 +307,7 @@
       "vuln_id": "CVE-2026-97045",
       "severity": "UNKNOWN",
       "fixed": "0.62.0",
-      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
-    },
-    {
-      "ecosystem": "gomod",
-      "target": "pkg/receiver/splunkinputsreceiver/go.mod",
-      "name": "golang.org/x/crypto",
-      "installed": "v0.58.0",
-      "vuln_id": "GO-2026-5932",
-      "severity": "UNKNOWN",
-      "fixed": null,
-      "why": "no fixed version"
-    },
-    {
-      "ecosystem": "gomod",
-      "target": "pkg/receiver/splunkinputsreceiver/go.mod",
-      "name": "golang.org/x/net",
-      "installed": "v0.61.0",
-      "vuln_id": "CVE-2026-78661",
-      "severity": "UNKNOWN",
-      "fixed": "0.62.0",
-      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
-    },
-    {
-      "ecosystem": "gomod",
-      "target": "pkg/receiver/splunkinputsreceiver/go.mod",
-      "name": "golang.org/x/net",
-      "installed": "v0.61.0",
-      "vuln_id": "CVE-2026-97045",
-      "severity": "UNKNOWN",
-      "fixed": "0.62.0",
-      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
+      "why": "cooldown: v0.62.0 released 3 day(s) ago (eligible 2026-11-03)"
     },
     {
       "ecosystem": "gomod",
@@ -515,7 +327,7 @@
       "vuln_id": "CVE-2026-78661",
       "severity": "UNKNOWN",
       "fixed": "0.62.0",
-      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
+      "why": "cooldown: v0.62.0 released 3 day(s) ago (eligible 2026-11-03)"
     },
     {
       "ecosystem": "gomod",
@@ -525,7 +337,7 @@
       "vuln_id": "CVE-2026-97045",
       "severity": "UNKNOWN",
       "fixed": "0.62.0",
-      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
+      "why": "cooldown: v0.62.0 released 3 day(s) ago (eligible 2026-11-03)"
     }
   ],
   "skips": []

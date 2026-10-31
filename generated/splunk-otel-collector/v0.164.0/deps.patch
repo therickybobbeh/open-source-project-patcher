@@ -1,0 +1,24 @@
+diff --git a/cmd/otelcol/Dockerfile b/cmd/otelcol/Dockerfile
+index 052fc0a..47ac442 100644
+--- a/cmd/otelcol/Dockerfile
++++ b/cmd/otelcol/Dockerfile
+@@ -1,8 +1,8 @@
+ ARG DOCKER_REPO=docker.io
+-FROM ${DOCKER_REPO}/alpine:3.24 as certs
++FROM ${DOCKER_REPO}/alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a as certs
+ RUN apk --update add 'ca-certificates>=20261020-r0'
+ 
+-FROM ${DOCKER_REPO}/alpine:3.17.0 AS otelcol
++FROM ${DOCKER_REPO}/alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a AS otelcol
+ ARG TARGETARCH
+ COPY dist/otelcol_linux_${TARGETARCH} /otelcol
+ # Note that this shouldn't be necessary, but in some cases the file seems to be
+@@ -14,7 +14,7 @@ RUN mkdir -p /otel/collector /splunk-otel-collector /tmp/tmp
+ # Nested to avoid inheriting existing tmp files.
+ RUN chmod 755 /tmp/tmp
+ 
+-FROM ${DOCKER_REPO}/debian:13 as journalctl
++FROM ${DOCKER_REPO}/debian:13@sha256:2dc419c6d7fe3dad0a2f9fd469c34cc90b0f9ba642d8fde837fe3d7d34a0e7f1 as journalctl
+ RUN apt update
+ RUN apt install -y systemd
+ COPY dist/collect-libs.sh /collect-libs.sh
