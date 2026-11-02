@@ -7,6 +7,7 @@ These models are the source of truth for the JSON schemas in `schema/`
 from __future__ import annotations
 
 import datetime as dt
+import re
 from enum import Enum
 from typing import Annotated, Literal, Union
 
@@ -110,6 +111,25 @@ class Policy(_Model):
 
     def for_ecosystem(self, eco: str) -> Level:
         return self.ecosystems.get(eco, self.default)
+
+
+Severity = Literal["CRITICAL", "HIGH", "MEDIUM", "LOW", "UNKNOWN"]
+
+
+class GateFailOn(_Model):
+    fixable: list[Severity] = Field(default_factory=list, description="Severities of findings that have a fix released and "
+                                    "are still in the image, which fail the gate, e.g. [CRITICAL, HIGH]")
+    unfixed: list[Severity] = Field(default_factory=list, description="Severities of findings that have no fix released yet, "
+                                    "which fail the gate, e.g. [CRITICAL]")
+
+
+class Gate(_Model):
+    """What a released image may still contain, decided by the Rego policy in policy/ (OPA, through conftest) on each
+    image's final scan. Findings a VEX statement explains never count."""
+
+    enforce: bool = Field(False, description="true: a release the gate denies stops before it is signed, and its patch PR "
+                          "opens as a draft. false: the verdict is only reported")
+    failOn: GateFailOn = Field(default_factory=GateFailOn)
 
 
 # --- ecosystems -------------------------------------------------------------
@@ -260,6 +280,17 @@ class Hold(_Model):
     name: str
     max: str | None = None
     reason: str
+    tagPattern: str | None = Field(None, description="Only for upstream tags matching this regex, e.g. '^v3\\.' to hold a "
+                                                     "dependency for one major of a component and not the next")
+
+    @model_validator(mode="after")
+    def _pattern(self) -> "Hold":
+        if self.tagPattern:
+            try:
+                re.compile(self.tagPattern)
+            except re.error as e:  # fail `patcher validate`, not a run
+                raise ValueError(f"tagPattern {self.tagPattern!r}: {e}") from e
+        return self
 
 
 # --- regen / tests / build --------------------------------------------------
@@ -416,6 +447,7 @@ class Recipe(_Model):
     source: Source | None = None
     toolchain: Toolchain = Field(default_factory=Toolchain)
     policy: Policy = Field(default_factory=Policy)
+    gate: Gate = Field(default_factory=Gate, description="The release gate; fields set here win over _global.yaml's")
     ecosystems: list[Ecosystem] = Field(default_factory=list)
     overrides: dict[str, list[Override]] = Field(default_factory=dict)
     holds: dict[str, list[Hold]] = Field(default_factory=dict)
@@ -442,6 +474,11 @@ class Recipe(_Model):
                 raise ValueError(f"unknown ecosystem key {key!r} in overrides/holds (expected one of {ECOSYSTEM_KEYS})")
         return self
 
+    def for_tag(self, tag: str) -> "Recipe":
+        """This recipe as it applies to one upstream tag: holds whose `tagPattern` doesn't match it are left out."""
+        holds = {eco: [h for h in hs if not h.tagPattern or re.search(h.tagPattern, tag)] for eco, hs in self.holds.items()}
+        return self if holds == self.holds else self.model_copy(update={"holds": holds})
+
 
 class GlobalConfig(_Model):
     registry: str = Field(description="Where patched images go, e.g. `ghcr.io/my-org`")
@@ -451,6 +488,7 @@ class GlobalConfig(_Model):
     holds: dict[str, list[Hold]] = Field(default_factory=dict)
     skipGraceDays: int = Field(30, description="Expired skips warn; after this many days they fail the run")
     scan: "ScanConfig" = Field(default_factory=lambda: ScanConfig())
+    gate: Gate = Field(default_factory=Gate, description="The release gate for every recipe (policy/, docs/gate.md)")
 
 
 class ScanConfig(_Model):

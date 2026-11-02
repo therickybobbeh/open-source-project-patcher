@@ -44,6 +44,8 @@ TOOLS = (
          r"^osv-scanner_SHA256SUMS$"),
     Tool("CRANE", "google/go-containerregistry",
          {"amd64": "go-containerregistry_Linux_x86_64.tar.gz", "arm64": "go-containerregistry_Linux_arm64.tar.gz"}, r"^checksums\.txt$"),
+    Tool("CONFTEST", "open-policy-agent/conftest",
+         {"amd64": "conftest_{v}_Linux_x86_64.tar.gz", "arm64": "conftest_{v}_Linux_arm64.tar.gz"}, r"^checksums\.txt$"),
 )
 
 
