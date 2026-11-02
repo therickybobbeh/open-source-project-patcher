@@ -179,10 +179,12 @@ and MySQL in Argo Workflows' `workflow/sync`) exceed it on a busy Docker host.
 ## Images and Copa
 
 ### Copa fails on a distroless image: `No config file found at /usr/share/perl5/Debconf/Config.pm … dpkg: error processing package ca-certificates`
-**Cause:** Copa can't run package scripts that need debconf inside distroless Debian images.
-**Fix:** the base-image refresh (dockerfile adapter) usually resolves those findings. Set
-`copa: false` on that image to silence the attempt. The report shows `Copa failed: …` for whatever
-remains.
+**Cause:** Copa can't run package scripts that need debconf inside distroless Debian images. A release goes on
+without Copa (the report shows `Copa failed: …`). A Copa refresh that refreshes nothing because of it fails with
+`Copa could not patch <recipe> <line> (…)`, which raises a CI alert, rather than come back with every rescan.
+**Fix:** set `copa: false` on that image. Rescans then stop sending the line to Copa for it, and its OS findings
+wait for its next rebuild, whose base-image refresh (dockerfile adapter) usually resolves them. If the base image
+gets no newer digest, move to a maintained one with a patch in `patches/<recipe>/`.
 
 ### Copa library patching leaves Python or npm packages alone: `No Python update packages were specified to apply`
 **Cause:** every fix is beyond the image's `copa.level`. For example, pip 25.0.1's fixes are 25.3
@@ -239,6 +241,13 @@ published by this run, and the refresh's image is untouched.
 **Cause:** a release of the same line took revision N while Copa was patching. The refresh's result stays under the
 scratch tag `<final>-refresh`; nothing of the release was overwritten.
 **Fix:** nothing. The release runs Copa itself, and the next rescan refreshes again if it still has to.
+
+### Copa refresh: "…-patched is at sha256:…, not at sha256:… as state/ records"
+**Cause:** the line was published again after the revision `state/` records (a release or refresh whose `state/` PR
+isn't merged, or was closed). Refreshing the recorded image would move the moving tag back to an older build, so
+nothing was refreshed.
+**Fix:** merge that line's `state/` PR (reopen it if it was closed). The next rescan then starts from the newest
+revision.
 
 ### `release-plan`: "no native runner for linux/…"
 **Cause:** `build.platforms` lists a platform without a native GitHub-hosted runner. Release builds run natively,
