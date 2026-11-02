@@ -38,6 +38,9 @@ gate:
 - Everything else in the image's scan counts, bundled third-party binaries included: the gate judges the image people
   run, not only the code we rebuild.
 
+Changing these settings re-runs no line. A patch PR shows the verdict of its own run, and a release is checked
+against the settings on `main` when it runs.
+
 **Rolling it out:** keep `enforce: false` for a while and read the gate sections in the PRs. Then turn `enforce` on,
 first for the recipes that already pass. A gate that stops a release also stops a *better* image: the one released
 before stays current. Fix the finding, or record a VEX decision, rather than leave a line stuck.
