@@ -502,3 +502,55 @@ def test_image_platforms_must_be_among_the_build_platforms():
     with pytest.raises(ValidationError):
         Build.model_validate({"platforms": [], "images": [{"name": "a"}]})
     assert Build.model_validate({"images": [{"name": "a"}]}).platforms == ["linux/amd64", "linux/arm64"]
+
+
+def test_a_refresh_copa_cannot_do_fails_instead_of_passing_quietly(tmp_path, monkeypatch):
+    """argo-rollouts, 2026-10-31 to 11-02: Copa failed on both images every day (package scripts in a distroless image
+    need debconf), and every rescan passed. A refresh that refreshed nothing because Copa failed now fails the run."""
+    from patcher.copa import CopaResult
+    from patcher.models import ReleasedImage
+
+    repo = make_repo(tmp_path)
+    st = repo.state("app")
+    st.lines["v1"] = st.lines["v1"].model_copy(update={"platforms": ["linux/amd64", "linux/arm64"], "images": [
+        ReleasedImage(name="app", ref=f"{REG}:v1.2.3-patched.2", digest=DIGEST),
+        ReleasedImage(name="app-debug", ref=f"{REG}:v1.2.3-debug-patched.2", digest=DIGEST)]})
+    repo.save_state("app", st)
+    registry(monkeypatch)
+    dpkg = ("#28 1.790 dpkg: error processing package ca-certificates (--install):\n"
+            "#28 1.790  installed ca-certificates package post-installation script subprocess returned error exit status 2")
+    fails = {"app", "app-debug"}
+    monkeypatch.setattr(pipeline.copa, "for_image", lambda spec, image, out_tag, out, **k: CopaResult(None, 2, error=dpkg)
+                        if spec.key in fails else CopaResult(f"{REG}:{out_tag}", 1))
+    monkeypatch.setattr(pipeline, "run", lambda cmd, **k: None)
+    monkeypatch.setattr(pipeline, "image_digest", lambda ref: DIGEST)
+    monkeypatch.setattr(pipeline, "scan_image", lambda ref, path, **k: ScanReport(ref))
+    with pytest.raises(RuntimeError, match=r"Copa could not patch app v1 \(app: #28 1.790 dpkg: error processing package"):
+        pipeline.refresh(repo, repo.load_recipe("app"), "v1", None, tmp_path / "out")
+    assert repo.state("app").lines["v1"].revision == 2
+
+    fails = {"app-debug"}  # one image refreshed: it goes out, and the next rescan tries the other again
+    released = pipeline.refresh(repo, repo.load_recipe("app"), "v1", None, tmp_path / "out")
+    assert [r["image"] for r in released] == ["app"] and repo.state("app").lines["v1"].revision == 3
+
+
+def test_rescan_leaves_os_findings_of_a_copa_off_image_for_its_next_rebuild(tmp_path, monkeypatch):
+    """A refresh leaves an image with `copa: false` alone, so its OS findings don't send the line to one every day."""
+    from patcher.models import ReleasedImage
+    from patcher.scan import Finding
+
+    repo = make_repo(tmp_path, app_recipe(images=[{"name": "app", "copa": False},
+                                                  {"name": "app", "id": "app-debug", "upstreamTag": "{{tag}}-debug"}]))
+    st = repo.state("app")
+    st.lines["v1"] = st.lines["v1"].model_copy(update={"images": [
+        ReleasedImage(name="app", ref=f"{REG}:v1.2.3-patched.2", digest=DIGEST),
+        ReleasedImage(name="app-debug", ref=f"{REG}:v1.2.3-debug-patched.2", digest=DIGEST)]})
+    repo.save_state("app", st)
+    tzdata = Finding(target="debian 12.15", ecosystem="os", trivy_type="debian", name="tzdata", installed="2026b-0+deb12u1",
+                     fixed="2026f-0+deb12u1", vuln_id="DLA-4854-1", severity="UNKNOWN", status=None)
+    found = {}
+    monkeypatch.setattr(pipeline, "scan_image", lambda ref, path, **k: ScanReport(ref, found.get(Path(path).stem, [])))
+    found["rescan-app-v1-app"] = [tzdata]  # in the image Copa is off for
+    assert pipeline.rescan(repo, tmp_path / "rescan")["refresh"] == []
+    found["rescan-app-v1-app-debug"] = [tzdata]  # and in one Copa patches
+    assert pipeline.rescan(repo, tmp_path / "rescan")["refresh"] == [{"recipe": "app", "line": "v1"}]
