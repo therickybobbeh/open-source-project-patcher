@@ -159,8 +159,8 @@ def test_an_edit_to_comments_or_prose_runs_nothing(tmp_path):
     git("commit", "-qm", "one")
     before = git("rev-parse", "HEAD")
     (tmp_path / "recipes" / "app.yaml").write_text("# why we track this\n" + yaml.safe_dump(
-        {**recipe, "description": "the app", "notes": ["a note"]}))
-    (tmp_path / "recipes" / "_global.yaml").write_text("# org-wide policy\nregistry: ghcr.io/me\n")  # would re-run every line
+        {**recipe, "description": "the app", "notes": ["a note"], "autoMerge": {"state": False}}))
+    (tmp_path / "recipes" / "_global.yaml").write_text("# org-wide policy\nregistry: ghcr.io/me\nautoMerge: {state: false}\n")  # would re-run every line
     repo = Repo(tmp_path)
     assert pipeline.plan_matrix(repo, changed_files=["recipes/app.yaml", "recipes/_global.yaml"], before=before) == []
     # without the commit before the push, every change counts

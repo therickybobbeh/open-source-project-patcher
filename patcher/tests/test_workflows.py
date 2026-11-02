@@ -98,6 +98,9 @@ def test_only_the_state_pr_merges_itself():
     merging = [f"{path.name}/{name}" for path in WORKFLOWS for name, job, _ in jobs(path) for s in steps(job)
                if s.get("uses") == "./.github/actions/open-pr" and str((s.get("with") or {}).get("auto-merge", "false")) != "false"]
     assert merging == ["release.yml/state"]
+    state = next(s for name, job, _ in jobs(ROOT / ".github" / "workflows" / "release.yml") if name == "state"
+                 for s in steps(job) if s.get("uses") == "./.github/actions/open-pr")
+    assert state["with"]["auto-merge"] == "${{ needs.plan.outputs.auto-merge }}"  # autoMerge.state, the recipe's or global
     merge = yaml.safe_load((ROOT / ".github" / "actions" / "open-pr" / "action.yml").read_text())["runs"]["steps"][-1]["run"]
     for check in ("app/$APP", "defaultBranchRef", "files: [$f]", "--match-head-commit", r"^state/[^/]+/[^/]+\.yaml$"):
         assert check in merge, check

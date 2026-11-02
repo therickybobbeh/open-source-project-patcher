@@ -26,6 +26,7 @@ Real recipes are the best examples. See [Worked examples](#worked-examples) at t
 | `scan` | [Scan](#scan) | | Source-scan scope |
 | `tests` | [Tests](#tests) | | The upstream test suite |
 | `build` | [Build](#build) | | Images to build and publish |
+| `autoMerge.state` | bool | from `_global.yaml` (`true`) | The `state/` PR of a release or Copa refresh merges itself once the checks `main` requires pass. `false`: it waits for a human ([Releases](runbook.md#releases)) |
 | `components` | list of [component refs](#components) | `[]` | Bundled third-party binaries to rebuild from source and swap into this recipe's images |
 | `artifact` | [Artifact](#components) | required for `component` | How a component recipe's binary is built |
 | `env` | map | `{}` | Environment for every stage |
@@ -541,6 +542,7 @@ random-uuid`), so the JVM starts with `libs/` on its classpath.
 | `policy`, `overrides`, `holds` | Defaults for every recipe (including the 7-day `minReleaseAgeDays` rule) |
 | `skipGraceDays` | Expired skips warn, and fail the run this many days after `expires` |
 | `scan.severities`, `scan.maxRounds`, `scan.skipDirs` | Trivy severities, plan/apply rounds, dirs skipped everywhere |
+| `autoMerge.state` | Whether `state/` PRs merge themselves (`true`); a recipe can set its own. Changing it re-runs nothing |
 
 ## Worked examples
 

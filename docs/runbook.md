@@ -324,7 +324,8 @@ Set `expires` so decisions get revisited.
    - its head is still the commit it checked.
 
    Anything else is refused and fails the job. If auto-merge can't be turned on (repository settings), the PR stays
-   open with a warning, for a human to merge.
+   open with a warning, for a human to merge. To keep `state/` PRs for a human anyway, set `autoMerge: {state: false}`
+   in `_global.yaml`, or in one recipe.
 
 Why the jobs are split this way is in [architecture.md](architecture.md#release-flow). A push that lands several
 patch sets starts one run per line. A line that can't be released (an unknown recipe or line, a platform without a

@@ -583,3 +583,15 @@ def test_a_refresh_patches_what_was_released_whatever_patcher_platforms_says(tmp
     # what users pull keeps every platform it had until the next release; app-debug (amd64 only) isn't built here at all
     assert patched == [("app", ["linux/amd64", "linux/arm64"])]
     assert [i.ref for i in repo.state("app").lines["v1"].images] == [f"{REG}:v1.2.3-patched.3", f"{REG}:v1.2.3-debug-patched.2"]
+
+
+def test_auto_merge_of_the_state_pr_is_a_setting(tmp_path):
+    """autoMerge.state, from _global.yaml unless the recipe sets its own: release.yml's state job passes it to open-pr."""
+    repo = make_repo(tmp_path, app_recipe(), recipe("amd", build={"images": [{"name": "amd"}]}, autoMerge={"state": True}))
+
+    def auto_merge():
+        return {r["recipe"]: r["autoMerge"] for r in pipeline.release_plan(repo, [("app", "v1"), ("amd", "v1")])["include"]}
+
+    assert auto_merge() == {"app": True, "amd": True}  # the default
+    (tmp_path / "recipes" / "_global.yaml").write_text("registry: ghcr.io/me\nautoMerge: {state: false}\n")
+    assert auto_merge() == {"app": False, "amd": True}  # a recipe's own setting wins

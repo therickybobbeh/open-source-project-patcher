@@ -405,6 +405,12 @@ class RecipeScan(_Model):
     skipFiles: list[str] = Field(default_factory=list)
 
 
+class AutoMerge(_Model):
+    state: bool = Field(True, description="The `state/` PR of a release or Copa refresh merges itself (squash) once the checks "
+                                          "the default branch requires pass: it only records what the run published, and open-pr "
+                                          "checks that before merging. false: it waits for a human")
+
+
 class Recipe(_Model):
     name: str = Field(pattern=r"^[a-z0-9][a-z0-9-]*$")
     description: str | None = None
@@ -429,6 +435,7 @@ class Recipe(_Model):
     components: list[ComponentRef] = Field(default_factory=list, description="Bundled third-party binaries to rebuild and swap in")
     env: dict[str, str] = Field(default_factory=dict, description="Env for every stage")
     scan: RecipeScan = Field(default_factory=RecipeScan)
+    autoMerge: AutoMerge = Field(default_factory=AutoMerge, description="Fields set here win over _global.yaml's")
     notes: list[str] = Field(default_factory=list, description="Free-form notes copied into the PR report")
 
     @model_validator(mode="after")
@@ -451,6 +458,7 @@ class GlobalConfig(_Model):
     holds: dict[str, list[Hold]] = Field(default_factory=dict)
     skipGraceDays: int = Field(30, description="Expired skips warn; after this many days they fail the run")
     scan: "ScanConfig" = Field(default_factory=lambda: ScanConfig())
+    autoMerge: AutoMerge = Field(default_factory=AutoMerge, description="Which PRs the pipeline opens merge themselves")
 
 
 class ScanConfig(_Model):

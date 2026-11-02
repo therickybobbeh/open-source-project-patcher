@@ -68,6 +68,7 @@ jobs:
       build: ${{ steps.plan.outputs.build }}
       arches: ${{ steps.plan.outputs.arches }}
       refresh: ${{ steps.plan.outputs.refresh }}
+      auto-merge: ${{ steps.plan.outputs.auto-merge }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -130,6 +131,7 @@ jobs:
             echo "line=$(jq -r '.line // ""' <<<"$target")"
             echo "build=$build"
             echo "arches=$(jq -c '.arches // []' <<<"$target")"
+            echo "auto-merge=$(jq -r '.autoMerge // false' <<<"$target")"   # the recipe's autoMerge.state
           } >> "$GITHUB_OUTPUT"
           [ "$errors" -eq 0 ]   # a line that can't be released fails the run (a CI alert), after the others
 
@@ -438,4 +440,6 @@ jobs:
             of ${{ needs.plan.outputs.line }}
           body-path: ${{ runner.temp }}/release.json
           labels: automated, release
-          auto-merge: "true"   # it records what this run did; open-pr checks it is exactly that before merging
+          # autoMerge.state (_global.yaml, or the recipe): it records what this run did, and open-pr checks it is
+          # exactly that before merging
+          auto-merge: ${{ needs.plan.outputs.auto-merge }}

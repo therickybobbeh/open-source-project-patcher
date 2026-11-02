@@ -841,7 +841,7 @@ def _release_row(repo: Repo, name: str, key: str) -> dict:
         return {"recipe": name, "line": key, "reason": f"built for none of PATCHER_PLATFORMS ({', '.join(wanted_platforms() or [])})"}
     if build and (missing := [p for p in plats if p not in RUNNERS]):
         raise ValueError(f"{name}: no native runner for {', '.join(missing)}; release builds run on {', '.join(RUNNERS)}")
-    return {"recipe": name, "line": key, "build": build, "platforms": plats,
+    return {"recipe": name, "line": key, "build": build, "platforms": plats, "autoMerge": recipe.autoMerge.state,
             "arches": [{"platform": p, "arch": arch_of(p), "runner": RUNNERS[p]} for p in plats if p in RUNNERS]}
 
 
@@ -1460,8 +1460,8 @@ def plan_matrix(repo: Repo, *, recipes: list[str] | None = None, changed_files: 
 
 def _same_meaning(repo: Repo, path: str, before: str) -> bool:
     """A recipes/, skips/ or vex/ file whose parsed content is unchanged since `before`, apart from a recipe's
-    `description` and `notes`: comments, formatting or prose only. Re-running a line (an hour of tests for
-    some) can't change its outcome."""
+    `description` and `notes`, and `autoMerge` (what happens to the PRs afterwards): comments, formatting or prose
+    only. Re-running a line (an hour of tests for some) can't change its outcome."""
     import yaml
 
     if not path.endswith(".yaml") or path.split("/")[0] not in ("recipes", "skips", "vex"):
@@ -1474,7 +1474,7 @@ def _same_meaning(repo: Repo, path: str, before: str) -> bool:
     def meaning(text: str):
         doc = yaml.safe_load(text)
         if path.startswith("recipes/") and isinstance(doc, dict):
-            doc = {k: v for k, v in doc.items() if k not in ("description", "notes")}
+            doc = {k: v for k, v in doc.items() if k not in ("description", "notes", "autoMerge")}
         return doc
 
     try:

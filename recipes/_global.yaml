@@ -19,6 +19,11 @@ policy:
     severities: [CRITICAL]
     kev: true
 
+# Which PRs merge themselves; a recipe can set its own. `state`: the state/ PR a release or Copa refresh opens,
+# once the checks main requires pass (docs/runbook.md, Releases). Patch PRs always wait for a human.
+autoMerge:
+  state: true
+
 # Expired skips warn; this many days after expiry they fail the run.
 skipGraceDays: 30
 

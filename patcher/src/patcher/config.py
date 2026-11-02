@@ -125,6 +125,7 @@ class Repo:
             recipe.policy = g.policy
         else:  # fields the recipe sets win; the rest (e.g. the age rule) come from _global.yaml
             recipe.policy = g.policy.model_copy(update=recipe.policy.model_dump(exclude_unset=True))
+        recipe.autoMerge = g.autoMerge.model_copy(update=recipe.autoMerge.model_dump(exclude_unset=True))
         if recipe.build and (wanted := wanted_platforms()):
             recipe.build = _only(recipe.build, wanted)
         return recipe

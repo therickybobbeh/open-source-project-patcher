@@ -1,5 +1,18 @@
 {
   "$defs": {
+    "AutoMerge": {
+      "additionalProperties": false,
+      "properties": {
+        "state": {
+          "default": true,
+          "description": "The `state/` PR of a release or Copa refresh merges itself (squash) once the checks the default branch requires pass: it only records what the run published, and open-pr checks that before merging. false: it waits for a human",
+          "title": "State",
+          "type": "boolean"
+        }
+      },
+      "title": "AutoMerge",
+      "type": "object"
+    },
     "CooldownBypass": {
       "additionalProperties": false,
       "properties": {
@@ -216,6 +229,10 @@
     },
     "scan": {
       "$ref": "#/$defs/ScanConfig"
+    },
+    "autoMerge": {
+      "$ref": "#/$defs/AutoMerge",
+      "description": "Which PRs the pipeline opens merge themselves"
     }
   },
   "required": [
