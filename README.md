@@ -70,7 +70,7 @@ Component recipes (`mode: component`, never released on their own): `helm`, `kus
 | [docs/runbook.md](docs/runbook.md) | Setup, reviewing patch PRs (statuses, malicious packages, VEX suggestions), skips, VEX decisions, releases, onboarding a project, coverage, dependency hygiene, CLI reference |
 | [docs/troubleshooting.md](docs/troubleshooting.md) | Symptom → cause → fix for problems hit while bringing the pipeline up |
 | [docs/examples/](docs/examples/README.md) | Validated example recipes for Python (pip-compiled, pytest), Gradle and a vendor image with Copa library patching |
-| [wiki/](wiki/Home.md) | Curated wiki navigation and generated patch history (`wiki/history.parquet`) |
+| [wiki/](wiki/Home.md) | Curated wiki navigation. The generated patch history is on the [`wiki-history`](../../tree/wiki-history) branch |
 | [docs/roadmap.md](docs/roadmap.md) | Review findings: patterns to break out next and architecture gaps, in priority order |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Local loop; how to add a project, component, ecosystem or test framework; rules that keep the pipeline trustworthy |
 
@@ -151,7 +151,7 @@ build:
 | `patch.yml` | nightly, dispatch, push to `recipes/` `skips/` `patches/` `vex/` (not `patcher/`: dispatch with `all` to re-run every line) | `plan` → per line `patch` (no secrets, no push) → `pr` opens/updates `patch/<recipe>/<line>`, as a draft when tests fail |
 | `release.yml` | push to `generated/**` (merged PR); dispatch per line (`rebuild: false` finishes a release that failed after its builds) | one run per line: per-platform builds on native runners, without credentials (images leave as archives) → push per-arch tags → merge → Copa → cosign sign + SBOM + OpenVEX attestations → SLSA provenance → `state/` PR |
 | `rescan.yml` | daily | re-scans published images; new OS-only findings → Copa refresh, new language findings → `patch.yml`; opens issues for upstream release lines no recipe tracks and for end-of-life runtimes |
-| `wiki-history.yml` | patch/release/rescan completion, relevant pushes, dispatch | refreshes the versioned wiki history snapshot and commits `wiki/history.parquet` |
+| `wiki-history.yml` | relevant pushes to main, dispatch | rebuilds the patch history from git (`History.md`, `history.parquet`) and force-pushes it as the single commit of the `wiki-history` branch; main gets no bot commits |
 | `patcher-image.yml` | PRs, pushes to `patcher/`, weekly | unit tests, `validate`, schema/lock drift; publishes the signed multi-arch patcher image |
 | `tool-pins.yml` | Mondays 07:00 ET | updates the version+sha256 tool pins in `patcher/Dockerfile` (releases ≥ 14 days old) |
 | Dependabot | daily 07:00 ET | GitHub Actions, the patcher's Python packages and image bases (14-day cooldown) |

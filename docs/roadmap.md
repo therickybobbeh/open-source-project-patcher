@@ -65,8 +65,7 @@ easy to extend**. Items are ordered by priority within each section.
      - `patcher-image.yml` builds the published patcher image with the layer cache and then signs it. Build it
        without the cache (as `run-patcher` does with `image-cache: "false"`).
      - `setup-uv` restores its cache by default. Turn it off (`enable-cache: false`) in jobs with a write token:
-       `patch.yml`'s `pr` job, `rescan.yml`'s `new-lines` job and `wiki-history.yml` (which pushes to `main`, so this
-       one first).
+       `patch.yml`'s `pr` job, `rescan.yml`'s `new-lines` job and `wiki-history.yml`.
      - The patch jobs share toolchain caches across projects, so one project's tests could plant something in
        another's patch run. Their output is reviewed in the PR, but a per-project scope can't be enforced with the
        GitHub cache: drop the cache there too, or verify module caches (`go mod verify`) before use.

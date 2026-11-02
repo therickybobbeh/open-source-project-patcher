@@ -10,7 +10,8 @@ source-level patching pipeline for the open-source images we run.
 - [Onboarding](Onboarding.md): adding a new project or vendor image, from `patcher init` to the first release.
 - [Recipe reference](Recipes.md): ecosystems, policy, release lines and examples.
 - [Contributing](Contributing.md): the safe local development loop and extension points.
-- [Patch history](History.md): a generated overview of commits that touch patch artifacts.
+- [Patch history](../../wiki-history/History.md): a generated overview of commits that touch patch artifacts
+  (the `wiki-history` branch).
 
 The canonical documentation remains in [`docs/`](../docs/). These pages are a
 curated navigation layer so the project can be read as a wiki without
