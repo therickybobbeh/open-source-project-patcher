@@ -22,6 +22,16 @@ policy:
 # Expired skips warn; this many days after expiry they fail the run.
 skipGraceDays: 30
 
+# Release gate: what a released image may still contain, decided by the Rego policy in policy/ (OPA, through conftest)
+# on each image's final scan, after Copa. Patch PRs and releases report the verdict; with `enforce: true`, a release
+# the gate denies stops before it is signed, and its patch PR opens as a draft. Findings a VEX statement explains
+# never count. Recipes can override any field (docs/gate.md).
+gate:
+  enforce: false
+  failOn:
+    fixable: [CRITICAL]   # a CRITICAL that has a fix released but is still in the image
+    unfixed: []           # severities of findings with no fix released yet, e.g. [CRITICAL]
+
 scan:
   severities: [CRITICAL, HIGH, MEDIUM, LOW, UNKNOWN]
   maxRounds: 3

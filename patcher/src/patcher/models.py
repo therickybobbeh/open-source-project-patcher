@@ -112,6 +112,25 @@ class Policy(_Model):
         return self.ecosystems.get(eco, self.default)
 
 
+Severity = Literal["CRITICAL", "HIGH", "MEDIUM", "LOW", "UNKNOWN"]
+
+
+class GateFailOn(_Model):
+    fixable: list[Severity] = Field(default_factory=list, description="Severities of findings that have a fix released and "
+                                    "are still in the image, which fail the gate, e.g. [CRITICAL, HIGH]")
+    unfixed: list[Severity] = Field(default_factory=list, description="Severities of findings that have no fix released yet, "
+                                    "which fail the gate, e.g. [CRITICAL]")
+
+
+class Gate(_Model):
+    """What a released image may still contain, decided by the Rego policy in policy/ (OPA, through conftest) on each
+    image's final scan. Findings a VEX statement explains never count."""
+
+    enforce: bool = Field(False, description="true: a release the gate denies stops before it is signed, and its patch PR "
+                          "opens as a draft. false: the verdict is only reported")
+    failOn: GateFailOn = Field(default_factory=GateFailOn)
+
+
 # --- ecosystems -------------------------------------------------------------
 
 
@@ -416,6 +435,7 @@ class Recipe(_Model):
     source: Source | None = None
     toolchain: Toolchain = Field(default_factory=Toolchain)
     policy: Policy = Field(default_factory=Policy)
+    gate: Gate = Field(default_factory=Gate, description="The release gate; fields set here win over _global.yaml's")
     ecosystems: list[Ecosystem] = Field(default_factory=list)
     overrides: dict[str, list[Override]] = Field(default_factory=dict)
     holds: dict[str, list[Hold]] = Field(default_factory=dict)
@@ -451,6 +471,7 @@ class GlobalConfig(_Model):
     holds: dict[str, list[Hold]] = Field(default_factory=dict)
     skipGraceDays: int = Field(30, description="Expired skips warn; after this many days they fail the run")
     scan: "ScanConfig" = Field(default_factory=lambda: ScanConfig())
+    gate: Gate = Field(default_factory=Gate, description="The release gate for every recipe (policy/, docs/gate.md)")
 
 
 class ScanConfig(_Model):

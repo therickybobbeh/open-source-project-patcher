@@ -21,6 +21,60 @@
       "title": "CooldownBypass",
       "type": "object"
     },
+    "Gate": {
+      "additionalProperties": false,
+      "description": "What a released image may still contain, decided by the Rego policy in policy/ (OPA, through conftest) on each\nimage's final scan. Findings a VEX statement explains never count.",
+      "properties": {
+        "enforce": {
+          "default": false,
+          "description": "true: a release the gate denies stops before it is signed, and its patch PR opens as a draft. false: the verdict is only reported",
+          "title": "Enforce",
+          "type": "boolean"
+        },
+        "failOn": {
+          "$ref": "#/$defs/GateFailOn"
+        }
+      },
+      "title": "Gate",
+      "type": "object"
+    },
+    "GateFailOn": {
+      "additionalProperties": false,
+      "properties": {
+        "fixable": {
+          "description": "Severities of findings that have a fix released and are still in the image, which fail the gate, e.g. [CRITICAL, HIGH]",
+          "items": {
+            "enum": [
+              "CRITICAL",
+              "HIGH",
+              "MEDIUM",
+              "LOW",
+              "UNKNOWN"
+            ],
+            "type": "string"
+          },
+          "title": "Fixable",
+          "type": "array"
+        },
+        "unfixed": {
+          "description": "Severities of findings that have no fix released yet, which fail the gate, e.g. [CRITICAL]",
+          "items": {
+            "enum": [
+              "CRITICAL",
+              "HIGH",
+              "MEDIUM",
+              "LOW",
+              "UNKNOWN"
+            ],
+            "type": "string"
+          },
+          "title": "Unfixed",
+          "type": "array"
+        }
+      },
+      "title": "GateFailOn",
+      "type": "object"
+    },
     "Hold": {
       "additionalProperties": false,
       "description": "Never bump a dependency (or never past `max`).",
@@ -216,6 +270,10 @@
     },
     "scan": {
       "$ref": "#/$defs/ScanConfig"
+    },
+    "gate": {
+      "$ref": "#/$defs/Gate",
+      "description": "The release gate for every recipe (policy/, docs/gate.md)"
     }
   },
   "required": [
