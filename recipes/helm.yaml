@@ -6,9 +6,19 @@ source:
   repo: helm/helm
   lines:   # only used for standalone runs; parents pick the exact version they bundle
     - tagPattern: '^v4\.\d+\.\d+$'
+toolchain:
+  go: "1.26"  # tests and the rebuilt binary: at least this Go, whatever the tool's go.mod names (git-lfs and kustomize name the end-of-life 1.24)
 ecosystems:
   - type: gomod
     dirs: ["."]
+holds:
+  gomod:
+    # oras-go 2.6.1 reworked how its auth layer sends credentials (security fixes, e.g. GHSA-28r5-37g7-p6mp). With it,
+    # helm 3.19.4's `registry login` to a registry with basic auth fails (TestRegistryLogin: "invalid authorization
+    # credential"; every other bump passes alone). helm 4 ships oras-go 2.6.1+ and passes, so only helm 3 is held
+    - name: oras.land/oras-go/v2
+      tagPattern: '^v3\.'
+      reason: helm 3's registry login fails with oras-go 2.6.1+ (TestRegistryLogin); helm 4 is not held
 scan:
   skipDirs: [internal/test, scripts]
 tests:

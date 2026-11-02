@@ -55,6 +55,15 @@ def test_overlay_dockerfile(tmp_path):
     assert c.usable and not components.Component(c.ref, c.recipe, status="tests-failed", src=tmp_path).usable
 
 
+def test_overlay_builds_with_at_least_the_recipe_toolchain_go(tmp_path):
+    (tmp_path / "go.mod").write_text("module github.com/git-lfs/git-lfs/v3\n\ngo 1.23.0\n\ntoolchain go1.24.0\n")  # end-of-life Go
+    c = components.Component(ComponentRef(recipe="git-lfs", path="/usr/local/bin/git-lfs"), comp_recipe(toolchain={"go": "1.26"}),
+                             version="3.7.1", tag="v3.7.1", status="success", src=tmp_path)
+    assert components.overlay_dockerfile("base", [c]).splitlines()[0] == "FROM --platform=$BUILDPLATFORM golang:1.26 AS comp0"
+    c.go = "1.27"  # a bump that needs a newer Go still wins
+    assert components.overlay_dockerfile("base", [c]).splitlines()[0] == "FROM --platform=$BUILDPLATFORM golang:1.27 AS comp0"
+
+
 def test_applicable_filters_by_image():
     r = Recipe.model_validate({"name": "op", "mode": "image-only", "source": {"repo": "x", "lines": [{"tagPattern": "x"}]},
                                "components": [{"recipe": "a", "path": "/a", "images": ["op"]}, {"recipe": "b", "path": "/b"}]})
