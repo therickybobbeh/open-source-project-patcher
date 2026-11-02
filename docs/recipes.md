@@ -387,6 +387,7 @@ rule was bumped, no cutoff is set, so the fix stays installable.
 ```yaml
 build:
   platforms: [linux/amd64, linux/arm64]   # the default; each is built on its own native runner at release
+                                      # (the PATCHER_PLATFORMS variable narrows every recipe, see the runbook)
   setup: ["make build"]               # optional, before the images
   env: { BUILDX_BUILDER: default }    # optional
   images:
