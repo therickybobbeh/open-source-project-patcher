@@ -179,10 +179,12 @@ and MySQL in Argo Workflows' `workflow/sync`) exceed it on a busy Docker host.
 ## Images and Copa
 
 ### Copa fails on a distroless image: `No config file found at /usr/share/perl5/Debconf/Config.pm … dpkg: error processing package ca-certificates`
-**Cause:** Copa can't run package scripts that need debconf inside distroless Debian images.
-**Fix:** the base-image refresh (dockerfile adapter) usually resolves those findings. Set
-`copa: false` on that image to silence the attempt. The report shows `Copa failed: …` for whatever
-remains.
+**Cause:** Copa can't run package scripts that need debconf inside distroless Debian images. A release goes on
+without Copa (the report shows `Copa failed: …`). A Copa refresh that refreshes nothing because of it fails with
+`Copa could not patch <recipe> <line> (…)`, which raises a CI alert, rather than come back with every rescan.
+**Fix:** set `copa: false` on that image. Rescans then stop sending the line to Copa for it, and its OS findings
+wait for its next rebuild, whose base-image refresh (dockerfile adapter) usually resolves them. If the base image
+gets no newer digest, move to a maintained one with a patch in `patches/<recipe>/`.
 
 ### Copa library patching leaves Python or npm packages alone: `No Python update packages were specified to apply`
 **Cause:** every fix is beyond the image's `copa.level`. For example, pip 25.0.1's fixes are 25.3

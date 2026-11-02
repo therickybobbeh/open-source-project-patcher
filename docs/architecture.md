@@ -259,7 +259,8 @@ At release time, each image's fixable findings are stored in `state/` as `knownF
 already explained in the release PR (for example, CVEs inside a bundled helm binary). `rescan` acts
 only on fixable findings that are **new** and not covered by a VEX statement:
 - **new OS-package findings only:** a `refresh` run of `release.yml`, a Copa re-patch that publishes the next
-  revision, signed, attested and recorded like a release;
+  revision, signed, attested and recorded like a release. Images with `copa: false` don't count: their OS findings
+  wait for the next rebuild. A refresh in which Copa failed and nothing was refreshed fails, which raises a CI alert;
 - **any new language finding:** dispatch `patch.yml` for that line, so it is rebuilt from source.
 
 A line whose `state/` PR isn't merged yet is not scanned: `state/` on `main` still records the revision before.
