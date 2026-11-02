@@ -279,11 +279,9 @@ def test_publish_merges_the_revision_push_pushed(tmp_path, monkeypatch):
         ["-t", f"{final}-build", staging(5, "amd64"), staging(5, "arm64")],
         ["copa", f"{final}-build", "v1.2.3-patched.5", ["linux/amd64", "linux/arm64"]],
         ["-t", final, f"{final}-build"],  # Copa had nothing to patch
-        ["-t", f"{REG}:v1.2.3-patched", final],
         ["-t", f"{debug}-build", staging(5, "amd64", True)],  # amd64 only
         ["copa", f"{debug}-build", "v1.2.3-debug-patched.5", ["linux/amd64"]],
-        ["-t", debug, f"{debug}-build"],
-        ["-t", f"{REG}:v1.2.3-debug-patched", debug]]
+        ["-t", debug, f"{debug}-build"]]  # no moving tags: `promote` moves them once the images are signed
     assert [(r["tag"], r["copa"]) for r in released] == [("v1.2.3-patched.5", "disabled"), ("v1.2.3-debug-patched.5", "disabled")]
     st = repo.state("app").lines["v1"]
     assert (st.revision, st.platforms, [i.ref for i in st.images]) == (5, ["linux/amd64", "linux/arm64"], [final, debug])
@@ -298,12 +296,10 @@ def test_publish_without_a_build_finishes_the_newest_built_revision_as_it_is(tmp
     cmds = fake_publish_tools(monkeypatch)
     released = pipeline.publish(repo, repo.load_recipe("app"), "v1", None, tmp_path / "out")
     final, debug = f"{REG}:v1.2.3-patched.5", f"{REG}:v1.2.3-debug-patched.5"
-    assert cmds == [
-        ["-t", f"{REG}:v1.2.3-patched", final],  # app: kept as it is, no second merge or Copa
+    assert cmds == [  # app: kept as it is, no second merge or Copa
         ["-t", f"{debug}-build", staging(5, "amd64", True)],  # app-debug never got that far
         ["copa", f"{debug}-build", "v1.2.3-debug-patched.5", ["linux/amd64"]],
-        ["-t", debug, f"{debug}-build"],
-        ["-t", f"{REG}:v1.2.3-debug-patched", debug]]
+        ["-t", debug, f"{debug}-build"]]
     assert released[0]["copa"].startswith("unchanged") and repo.state("app").lines["v1"].revision == 5
 
 
@@ -329,10 +325,8 @@ def test_copa_refresh_takes_a_free_revision_and_each_image_s_platforms(tmp_path,
     # Copa writes to a scratch tag, never to a release's own names; the result is then tagged as the revision
     assert calls == [("v1.2.3-patched.4-refresh", ["linux/amd64", "linux/arm64"]),
                      ["-t", f"{REG}:v1.2.3-patched.4", f"{REG}:v1.2.3-patched.4-refresh"],
-                     ["-t", f"{REG}:v1.2.3-patched", f"{REG}:v1.2.3-patched.4"],
                      ("v1.2.3-debug-patched.4-refresh", ["linux/amd64"]),
-                     ["-t", f"{REG}:v1.2.3-debug-patched.4", f"{REG}:v1.2.3-debug-patched.4-refresh"],
-                     ["-t", f"{REG}:v1.2.3-debug-patched", f"{REG}:v1.2.3-debug-patched.4"]]
+                     ["-t", f"{REG}:v1.2.3-debug-patched.4", f"{REG}:v1.2.3-debug-patched.4-refresh"]]  # `promote` moves the moving tags
     assert repo.state("app").lines["v1"].revision == 4
 
     # a release takes the revision while Copa runs: the refresh stops, and nothing of the release is overwritten
@@ -354,8 +348,23 @@ def test_publish_only_keeps_an_existing_final_tag_when_finishing(tmp_path, monke
         pipeline.publish(repo, repo.load_recipe("app"), "v1", None, tmp_path / "out", revision=5)
     assert cmds == [] and repo.state("app").lines["v1"].revision == 2  # nothing published, nothing recorded
     # a re-run of the same publish job (--finish-existing) finishes what its first attempt pushed
-    pipeline.publish(repo, repo.load_recipe("app"), "v1", None, tmp_path / "out", revision=5, finish_existing=True)
-    assert cmds[0] == ["-t", f"{REG}:v1.2.3-patched", final] and repo.state("app").lines["v1"].revision == 5
+    released = pipeline.publish(repo, repo.load_recipe("app"), "v1", None, tmp_path / "out", revision=5, finish_existing=True)
+    assert released[0]["copa"].startswith("unchanged") and repo.state("app").lines["v1"].revision == 5
+
+
+def test_promote_moves_each_moving_tag_to_the_released_digest(tmp_path, monkeypatch):
+    repo = make_repo(tmp_path)
+    cmds = fake_publish_tools(monkeypatch)
+    released = [{"image": "app", "repository": REG, "tag": "v1.2.3-patched.5", "digest": DIGEST},
+                {"image": "app-debug", "repository": REG, "tag": "v1.2.3-debug-patched.5", "digest": DIGEST}]
+    moved = pipeline.promote(repo, repo.load_recipe("app"), released)
+    # by digest: exactly what was signed, whatever the final tag points at by now
+    assert cmds == [["-t", f"{REG}:v1.2.3-patched", f"{REG}@{DIGEST}"], ["-t", f"{REG}:v1.2.3-debug-patched", f"{REG}@{DIGEST}"]]
+    assert moved == [f"{REG}:v1.2.3-patched", f"{REG}:v1.2.3-debug-patched"]
+    cmds.clear()
+    with pytest.raises(ValueError, match="not an image of app"):
+        pipeline.promote(repo, repo.load_recipe("app"), [{**released[0], "repository": "ghcr.io/someone-else/app"}])
+    assert cmds == []
 
 
 def test_built_revision_asks_for_each_tag_once(tmp_path, monkeypatch):

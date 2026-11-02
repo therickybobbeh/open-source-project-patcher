@@ -124,6 +124,13 @@ jobs:
         run: |
           jq -r '.[] | .repository + "@" + .digest' "out/${{ matrix.recipe }}/${{ matrix.line }}/release.json" \
             | xargs -r -n1 scripts/retry.sh 3 cosign sign --yes
+      # only once signed: the moving tag never points at an unsigned image
+      - uses: ./.github/actions/run-patcher
+        with:
+          args: >-
+            promote ${{ matrix.recipe }} --line ${{ matrix.line }}
+            --release out/${{ matrix.recipe }}/${{ matrix.line }}/release.json
+          image-cache: "false"
       - uses: ./.github/actions/open-pr
         with:
           app-id: ${{ vars.PATCHER_APP_ID }}

@@ -198,7 +198,7 @@ def publish(
     out: Path = typer.Option(Path("out")),
     repo: Optional[Path] = RepoOpt,
 ) -> None:
-    """Release flow: merge per-arch images, Copa, push final + moving tags, update state/."""
+    """Release flow: merge per-arch images, Copa, push the final tags, update state/ (`promote` moves the moving ones)."""
     r = _repo(repo)
     _emit(pipeline.publish(r, r.load_recipe(recipe), line, _platforms(platforms), out.resolve(), tag, revision, finish_existing))
 
@@ -207,6 +207,19 @@ def publish(
 def rescan(out: Path = typer.Option(Path("out/rescan")), repo: Optional[Path] = RepoOpt) -> None:
     """Scan every published image; print {"refresh": [...], "rerun": [...]} matrices."""
     _emit(pipeline.rescan(_repo(repo), out.resolve()))
+
+
+@app.command()
+def promote(
+    recipe: str,
+    line: str = typer.Option(..., help="For the log; the images come from the release record"),
+    release: Path = typer.Option(..., help="publish's or refresh's release.json"),
+    repo: Optional[Path] = RepoOpt,
+) -> None:
+    """Move the moving tags (`<upstream tag>-patched`) to the digests in a release record. Run it after signing."""
+    r = _repo(repo)
+    moved = pipeline.promote(r, r.load_recipe(recipe), json.loads(release.read_text()))
+    log(f"{recipe} {line}: " + (", ".join(moved) if moved else "nothing to promote"))
 
 
 @app.command()
