@@ -76,7 +76,7 @@ def patch(image: str, out_tag: str, workdir: Path, *, platforms: list[str], seve
     try:
         run(args, env=env, log_file=workdir / "copa.log", capture=False)
     except CommandError as e:
-        log(f"copa failed: {e.tail[-500:]}")
+        log(f"copa failed: {first_error(e.tail)}")  # Copa's own output is in the log above
         return CopaResult(None, fixable, error=e.tail[-2000:], libraries=libraries)
     repo = image.rsplit("@", 1)[0]
     last = repo.rsplit("/", 1)[-1]
