@@ -1,6 +1,6 @@
 ## ✅ maven `3.10.0` — success
 
-Upstream: https://github.com/carlossg/docker-maven @ `8ef234bed02d` (line `maven3`)
+Upstream: https://github.com/carlossg/docker-maven @ `69a9073259ad` (line `maven3`)
 
 ### Fixable vulnerabilities (critical / high / medium / low)
 
@@ -14,9 +14,9 @@ Upstream: https://github.com/carlossg/docker-maven @ `8ef234bed02d` (line `maven
 
 | Ecosystem | File | Package | From | To | Why |
 |---|---|---|---|---|---|
-| dockerfile | `eclipse-temurin-17-noble/Dockerfile` | `eclipse-temurin` | `eclipse-temurin:17-jdk-noble` | `eclipse-temurin:17-jdk-noble@sha256:78dde986267ae7cac62fe7ef624c2a5cee2036b6822933d39fd3870618b91526` | base image refresh |
-| dockerfile | `eclipse-temurin-17-noble/Dockerfile` | `eclipse-temurin` | `eclipse-temurin:17-jdk-noble` | `eclipse-temurin:17-jdk-noble@sha256:78dde986267ae7cac62fe7ef624c2a5cee2036b6822933d39fd3870618b91526` | base image refresh |
-| dockerfile | `eclipse-temurin-21-noble/Dockerfile` | `eclipse-temurin` | `eclipse-temurin:21-jdk-noble` | `eclipse-temurin:21-jdk-noble@sha256:57424b1d8eca9c4cf8a4fe226207027911f08d6758628891bf59fcfb53777029` | base image refresh |
+| dockerfile | `eclipse-temurin-17-noble/Dockerfile` | `eclipse-temurin` | `eclipse-temurin:17-jdk-noble` | `eclipse-temurin:17-jdk-noble@sha256:53686f59c44e08ac3310d39ef9c3e3d3bb03370366d9c45802229c86fa2d8369` | base image refresh |
+| dockerfile | `eclipse-temurin-17-noble/Dockerfile` | `eclipse-temurin` | `eclipse-temurin:17-jdk-noble` | `eclipse-temurin:17-jdk-noble@sha256:53686f59c44e08ac3310d39ef9c3e3d3bb03370366d9c45802229c86fa2d8369` | base image refresh |
+| dockerfile | `eclipse-temurin-21-noble/Dockerfile` | `eclipse-temurin` | `eclipse-temurin:21-jdk-noble` | `eclipse-temurin:21-jdk-noble@sha256:114cabb73033ca4ce7ceec3deb62396bc1b716282bae051ed3c1d82e38fcab2d` | base image refresh |
 
 ### Bundled jars swapped
 
