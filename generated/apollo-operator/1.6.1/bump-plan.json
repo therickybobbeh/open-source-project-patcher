@@ -1,7 +1,7 @@
 {
   "recipe": "apollo-operator",
   "line": "v1",
-  "tag": "1.6.0",
+  "tag": "1.6.1",
   "commit": "n/a",
   "status": "success",
   "requires": {},
@@ -9,5 +9,9 @@
   "changes": [],
   "failures": [],
   "unresolved": [],
-  "skips": []
+  "skips": [],
+  "imageTags": {
+    "apollo-operator": "1.6.1",
+    "apollo-bundle-loader": "0.4.3"
+  }
 }
