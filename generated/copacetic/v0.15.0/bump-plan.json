@@ -100,14 +100,16 @@
         "target": "go.mod",
         "name": "golang.org/x/net",
         "installed": "v0.56.0",
-        "to": "v0.60.0",
+        "to": "v0.62.0",
         "level": "minor",
         "reasons": [
           "CVE-2026-78659",
           "CVE-2026-78660",
+          "CVE-2026-78661",
           "CVE-2026-78663",
           "CVE-2026-78669",
-          "CVE-2026-97032"
+          "CVE-2026-97032",
+          "CVE-2026-97045"
         ],
         "direct": false,
         "dir": "."
@@ -187,28 +189,8 @@
         "installed": "v0.54.0",
         "vuln_id": "GO-2026-5932",
         "severity": "UNKNOWN",
-        "fixed": null,
-        "why": "no fixed version"
-      },
-      {
-        "ecosystem": "gomod",
-        "target": "go.mod",
-        "name": "golang.org/x/net",
-        "installed": "v0.56.0",
-        "vuln_id": "CVE-2026-78661",
-        "severity": "UNKNOWN",
-        "fixed": "0.62.0",
-        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
-      },
-      {
-        "ecosystem": "gomod",
-        "target": "go.mod",
-        "name": "golang.org/x/net",
-        "installed": "v0.56.0",
-        "vuln_id": "CVE-2026-97045",
-        "severity": "UNKNOWN",
-        "fixed": "0.62.0",
-        "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
       }
     ],
     "toolchain": {}
@@ -220,7 +202,8 @@
       "name": "github.com/containerd/containerd/v2",
       "old": "v2.2.5",
       "new": "v2.2.9",
-      "note": "CVE-2026-53493, CVE-2026-53495, CVE-2026-95837, CVE-2026-95838"
+      "note": "CVE-2026-53493, CVE-2026-53495, CVE-2026-95837, CVE-2026-95838",
+      "level": "patch"
     },
     {
       "ecosystem": "gomod",
@@ -228,7 +211,8 @@
       "name": "google.golang.org/grpc",
       "old": "v1.83.1",
       "new": "v1.83.2",
-      "note": "CVE-2026-84445"
+      "note": "CVE-2026-84445",
+      "level": "patch"
     },
     {
       "ecosystem": "gomod",
@@ -236,7 +220,8 @@
       "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace",
       "old": "v1.44.0",
       "new": "v1.45.0",
-      "note": "CVE-2026-81870"
+      "note": "CVE-2026-81870",
+      "level": "minor"
     },
     {
       "ecosystem": "gomod",
@@ -244,7 +229,8 @@
       "name": "go.opentelemetry.io/otel/sdk",
       "old": "v1.44.0",
       "new": "v1.45.0",
-      "note": "CVE-2026-81870"
+      "note": "CVE-2026-81870",
+      "level": "minor"
     },
     {
       "ecosystem": "gomod",
@@ -252,15 +238,17 @@
       "name": "github.com/aquasecurity/trivy",
       "old": "v0.69.3",
       "new": "v0.72.0",
-      "note": "CVE-2026-54448, CVE-2026-55092, CVE-2026-63328"
+      "note": "CVE-2026-54448, CVE-2026-55092, CVE-2026-63328",
+      "level": "minor"
     },
     {
       "ecosystem": "gomod",
       "target": "go.mod",
       "name": "golang.org/x/net",
       "old": "v0.56.0",
-      "new": "v0.60.0",
-      "note": "CVE-2026-78659, CVE-2026-78660, CVE-2026-78663, CVE-2026-78669, CVE-2026-97032"
+      "new": "v0.62.0",
+      "note": "CVE-2026-78659, CVE-2026-78660, CVE-2026-78661, CVE-2026-78663, CVE-2026-78669, CVE-2026-97032, CVE-2026-97045",
+      "level": "minor"
     },
     {
       "ecosystem": "gomod",
@@ -268,7 +256,8 @@
       "name": "golang.org/x/crypto",
       "old": "v0.54.0",
       "new": "v0.56.0",
-      "note": "CVE-2026-56854, CVE-2026-56855, CVE-2026-78662"
+      "note": "CVE-2026-56854, CVE-2026-56855, CVE-2026-78662",
+      "level": "minor"
     },
     {
       "ecosystem": "gomod",
@@ -276,7 +265,8 @@
       "name": "golang.org/x/text",
       "old": "v0.40.0",
       "new": "v0.41.0",
-      "note": "CVE-2026-56851"
+      "note": "CVE-2026-56851",
+      "level": "minor"
     },
     {
       "ecosystem": "gomod",
@@ -284,7 +274,8 @@
       "name": "golang.org/x/mod",
       "old": "v0.37.0",
       "new": "v0.40.0",
-      "note": "CVE-2026-56864, CVE-2026-56865"
+      "note": "CVE-2026-56864, CVE-2026-56865",
+      "level": "minor"
     },
     {
       "ecosystem": "gomod",
@@ -292,7 +283,8 @@
       "name": "go",
       "old": "1.25.13",
       "new": "1.26.8",
-      "note": "required by a bumped dependency"
+      "note": "required by a bumped dependency",
+      "level": "minor"
     },
     {
       "ecosystem": "gomod",
@@ -300,7 +292,8 @@
       "name": "github.com/containerd/containerd/v2",
       "old": "v2.3.2",
       "new": "v2.3.6",
-      "note": "CVE-2026-53493, CVE-2026-53495, CVE-2026-95837, CVE-2026-95838"
+      "note": "CVE-2026-53493, CVE-2026-53495, CVE-2026-95837, CVE-2026-95838",
+      "level": "patch"
     },
     {
       "ecosystem": "dockerfile",
@@ -308,7 +301,8 @@
       "name": "ARG GO_VERSION",
       "old": "1.25.13",
       "new": "1.26.10",
-      "note": "golang:1.25.13-alpine3.23 -> 1.26.10-alpine3.23 (minVersions: the 1.26 line)"
+      "note": "golang:1.25.13-alpine3.23 -> 1.26.10-alpine3.23 (minVersions: the 1.26 line)",
+      "level": "minor"
     },
     {
       "ecosystem": "dockerfile",
@@ -316,7 +310,8 @@
       "name": "gcr.io/distroless/static-debian12",
       "old": "static-debian12:nonroot",
       "new": "static-debian12:nonroot@sha256:afa5c872c891853ca7fcf1f12c3edb23f7eeef36189728842dd51042ff57f7ab",
-      "note": "base image refresh"
+      "note": "base image refresh",
+      "level": "patch"
     },
     {
       "ecosystem": "dockerfile",
@@ -324,7 +319,8 @@
       "name": "debian",
       "old": "debian:13-slim",
       "new": "debian:13-slim@sha256:f6b08b09a05725f9431502d3b5714f5c4576e82c1a84fa1debe0c24a7e0c3ec4",
-      "note": "base image refresh"
+      "note": "base image refresh",
+      "level": "patch"
     }
   ],
   "failures": [],
@@ -373,32 +369,29 @@
       "ecosystem": "gomod",
       "target": "go.mod",
       "name": "golang.org/x/crypto",
-      "installed": "v0.57.0",
+      "installed": "v0.58.0",
       "vuln_id": "GO-2026-5932",
       "severity": "UNKNOWN",
-      "fixed": null,
-      "why": "no fixed version"
-    },
-    {
-      "ecosystem": "gomod",
-      "target": "go.mod",
-      "name": "golang.org/x/net",
-      "installed": "v0.60.0",
-      "vuln_id": "CVE-2026-78661",
-      "severity": "UNKNOWN",
-      "fixed": "0.62.0",
-      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
-    },
-    {
-      "ecosystem": "gomod",
-      "target": "go.mod",
-      "name": "golang.org/x/net",
-      "installed": "v0.60.0",
-      "vuln_id": "CVE-2026-97045",
-      "severity": "UNKNOWN",
-      "fixed": "0.62.0",
-      "why": "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)"
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
     }
   ],
-  "skips": []
+  "skips": [],
+  "tests": {
+    "configured": true,
+    "ran": true,
+    "passed": true
+  },
+  "gate": {
+    "copa": {
+      "passed": true,
+      "deny": [],
+      "warn": []
+    },
+    "copacetic-frontend": {
+      "passed": true,
+      "deny": [],
+      "warn": []
+    }
+  }
 }
