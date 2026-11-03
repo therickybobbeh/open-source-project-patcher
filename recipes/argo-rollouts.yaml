@@ -29,13 +29,18 @@ tests:
   timeoutMinutes: 90
 build:
   platforms: [linux/amd64, linux/arm64]
+  # Both images are gcr.io/distroless/static-debian12. Copa can't patch them: ca-certificates' and tzdata's package
+  # scripts need debconf, which distroless lacks (it failed in every refresh and patch run since 2026-10-31). Their OS
+  # findings wait for the next rebuild, whose base-image refresh (dockerfile adapter) takes a newer distroless digest.
   images:
     - name: argo-rollouts
       upstream: quay.io/argoproj/argo-rollouts
       smoke: ["--help"]
       ownBinaries: [bin/rollouts-controller]
+      copa: false
     - name: kubectl-argo-rollouts
       upstream: quay.io/argoproj/kubectl-argo-rollouts
       target: kubectl-argo-rollouts
       smoke: ["version"]
       ownBinaries: [bin/kubectl-argo-rollouts]
+      copa: false
