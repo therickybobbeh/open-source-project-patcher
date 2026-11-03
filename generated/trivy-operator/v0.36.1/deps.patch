@@ -1,0 +1,10 @@
+diff --git a/build/trivy-operator/Dockerfile b/build/trivy-operator/Dockerfile
+index b06661b..c1577d8 100644
+--- a/build/trivy-operator/Dockerfile
++++ b/build/trivy-operator/Dockerfile
+@@ -1,4 +1,4 @@
+-FROM alpine:3.24.2
++FROM alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a
+ 
+ RUN apk --no-cache upgrade
+ 
