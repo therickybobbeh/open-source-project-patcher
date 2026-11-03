@@ -6,7 +6,6 @@ import json
 import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Iterable
 
 from .ecosystems import ARTIFACT_TYPES, ECOSYSTEMS
 from .proc import CommandError, log, run
@@ -73,10 +72,6 @@ class ScanReport:
 
     def fixable(self) -> list[Finding]:
         return [f for f in self.findings if f.fixable]
-
-    def by_ecosystem(self, ecosystems: Iterable[str]) -> list[Finding]:
-        wanted = set(ecosystems)
-        return [f for f in self.findings if f.ecosystem in wanted]
 
     def to_json(self) -> dict:
         return {"artifact": self.artifact, "os": self.os, "findings": [asdict(f) for f in self.findings]}

@@ -29,7 +29,6 @@ class BuiltImage:
     spec: ImageSpec
     ref: str  # tag in the local daemon or registry
     platform: str
-    pushed: bool = False
     smoke: list[dict] = field(default_factory=list)
 
 
@@ -45,7 +44,7 @@ def _run_build(cmd, **kw) -> None:
 
 
 def build_image(src: Path, b: Build, spec: ImageSpec, ref: str, platform: str, tctx: dict[str, str], env: dict[str, str],
-                log: Path, *, push: bool) -> BuiltImage:
+                log: Path) -> BuiltImage:
     ctx = {**tctx, "image": ref, "platform": platform, "arch": arch_of(platform)}
     if spec.command:
         _run_build(render(spec.command, ctx), cwd=src, env={**env, **{k: render(v, ctx) for k, v in b.env.items()}}, log_file=log,
@@ -55,9 +54,7 @@ def build_image(src: Path, b: Build, spec: ImageSpec, ref: str, platform: str, t
             raise ValueError(f"image {spec.name}: `builtImage` is required with a custom `command`")
         if produced != ref:
             run(["docker", "tag", produced, ref], log_file=log)
-        if push:
-            run(["docker", "push", ref], log_file=log, capture=False)
-        return BuiltImage(spec, ref, platform, pushed=push)
+        return BuiltImage(spec, ref, platform)
     args = ["docker", "buildx", "build", "--platform", platform, "-t", ref, "--provenance=false"]
     if spec.dockerfile:
         args += ["-f", str(src / render(spec.dockerfile, ctx))]
@@ -66,10 +63,10 @@ def build_image(src: Path, b: Build, spec: ImageSpec, ref: str, platform: str, t
     for k, v in spec.args.items():
         args += ["--build-arg", f"{k}={render(v, ctx)}"]
     args += ["--label", f"org.opencontainers.image.revision={tctx['commit']}", "--label", f"org.opencontainers.image.version={tctx['tag']}"]
-    args += ["--push"] if push else ["--load"]
+    args.append("--load")
     args.append(str(src / render(spec.context, ctx)))
     _run_build(args, cwd=src, env=env, log_file=log, capture=False, clean=True, timeout=b.timeoutMinutes * 60)
-    return BuiltImage(spec, ref, platform, pushed=push)
+    return BuiltImage(spec, ref, platform)
 
 
 def run_container(image: str, args: list[str], *, platform: str, timeout: int, entrypoint: str | None = None,

@@ -15,7 +15,7 @@ def test_every_managed_tool_is_pinned_in_the_dockerfile():
     pinned = pins.read_pins((Path(__file__).resolve().parents[1] / "Dockerfile").read_text())
     for tool in pins.TOOLS:
         assert parse_semver(pinned[f"{tool.arg}_VERSION"])
-        for arch in pins.ARCHES:
+        for arch in tool.assets:
             assert re.fullmatch(r"[0-9a-f]{64}", pinned[f"{tool.arg}_SHA256_{arch.upper()}"]), f"{tool.arg} {arch}"
 
 

@@ -132,7 +132,7 @@ def test_release_build_saves_archives_and_pushes_nothing(tmp_path, monkeypatch):
     repo = make_repo(tmp_path)
     calls = []
     monkeypatch.setattr(pipeline, "prepare_release_source", lambda *a, **k: (tmp_path, {"tag": "v1.2.3", "commit": "c0ffee"}, {}))
-    monkeypatch.setattr(pipeline, "build_image", lambda src, b, spec, ref, platform, *a, push: calls.append(("build", ref, platform, push))
+    monkeypatch.setattr(pipeline, "build_image", lambda src, b, spec, ref, platform, *a: calls.append(("build", ref, platform))
                         or BuiltImage(spec, ref, platform))
     monkeypatch.setattr(pipeline.archive, "export", lambda ref, dest, log=None: calls.append(("save", ref, dest)))
     monkeypatch.setattr(pipeline, "_tag_exists", lambda ref: pytest.fail("the build job doesn't ask the registry"))
@@ -141,7 +141,7 @@ def test_release_build_saves_archives_and_pushes_nothing(tmp_path, monkeypatch):
     built = pipeline.release_build(repo, repo.load_recipe("app"), "v1", "linux/arm64", tmp_path / "w", out)
     images = out / "app" / "v1" / "images" / "arm64"
     # app-debug is amd64-only: not built for arm64
-    assert calls == [("build", "patcher.local/app:v1.2.3-release-arm64", "linux/arm64", False),
+    assert calls == [("build", "patcher.local/app:v1.2.3-release-arm64", "linux/arm64"),  # loaded locally: it can't push
                      ("save", "patcher.local/app:v1.2.3-release-arm64", images / "app.tar")]
     assert [b["archive"] for b in built] == ["images/arm64/app.tar"] and not stale.exists()
 
@@ -295,7 +295,7 @@ def test_publish_without_a_build_finishes_the_newest_built_revision_as_it_is(tmp
              staging(5, "amd64"), staging(5, "arm64"), staging(5, "amd64", True), f"{REG}:v1.2.3-patched.5")
     cmds = fake_publish_tools(monkeypatch)
     released = pipeline.publish(repo, repo.load_recipe("app"), "v1", None, tmp_path / "out")
-    final, debug = f"{REG}:v1.2.3-patched.5", f"{REG}:v1.2.3-debug-patched.5"
+    debug = f"{REG}:v1.2.3-debug-patched.5"
     assert cmds == [  # app: kept as it is, no second merge or Copa
         ["-t", f"{debug}-build", staging(5, "amd64", True)],  # app-debug never got that far
         ["copa", f"{debug}-build", "v1.2.3-debug-patched.5", ["linux/amd64"]],

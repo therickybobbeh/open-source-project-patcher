@@ -250,7 +250,7 @@ def test_image_build_retries_once_on_network_errors(monkeypatch, tmp_path):
     monkeypatch.setattr("patcher.proc.time.sleep", lambda s: None)
     spec = Build.model_validate({"images": [{"name": "app"}]})
     build.build_image(tmp_path, spec, spec.images[0], "local/app:1", "linux/arm64", {"commit": "c", "tag": "v1"}, {},
-                      tmp_path / "build.log", push=False)
+                      tmp_path / "build.log")
     assert len(calls) == 2
     calls.clear()
 
@@ -261,7 +261,7 @@ def test_image_build_retries_once_on_network_errors(monkeypatch, tmp_path):
     monkeypatch.setattr(build, "run", compile_error)
     with pytest.raises(CommandError):
         build.build_image(tmp_path, spec, spec.images[0], "local/app:1", "linux/arm64", {"commit": "c", "tag": "v1"}, {},
-                          tmp_path / "build.log", push=False)
+                          tmp_path / "build.log")
     assert len(calls) == 1  # real failures aren't retried
 
 
@@ -281,7 +281,7 @@ def test_hung_build_is_killed_and_retried_once(monkeypatch, tmp_path):
     monkeypatch.setattr("patcher.proc.time.sleep", lambda s: None)
     spec = Build.model_validate({"images": [{"name": "app"}]})
     build.build_image(tmp_path, spec, spec.images[0], "local/app:1", "linux/arm64", {"commit": "c", "tag": "v1"}, {},
-                      tmp_path / "build.log", push=False)
+                      tmp_path / "build.log")
     assert calls == [3600, 3600]  # default build.timeoutMinutes, then one retry
 
 
