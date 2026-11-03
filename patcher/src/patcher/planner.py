@@ -8,6 +8,8 @@ Rules (see README "How versions are chosen"):
 4. Holds remove a package from the plan (or cap it at `max`).
 5. Overrides force `min`/`version` whenever a lower version is present - even without a CVE.
 6. Go `stdlib` findings become a toolchain requirement (Go version used to build), not a go.mod bump.
+7. A Go fix that is only an untagged commit (pseudo-version) is replaced by the first tagged release after it, or
+   waits for one (unless `policy.untaggedFixes`).
 """
 
 from __future__ import annotations
@@ -17,6 +19,7 @@ import fnmatch
 import posixpath
 from dataclasses import asdict, dataclass, field
 
+from . import releases
 from .ecosystems import CVE_ECOSYSTEMS
 from .models import Hold, Level, Override, Recipe
 from .scan import Finding, Package, ScanReport
@@ -145,6 +148,12 @@ def build_plan(report: ScanReport, recipe: Recipe, ecosystems: set[str] | None =
                 subs = [s for v in split_fixed(f.fixed) if (s := gate.replacement(eco, name, v))]
                 if subs:
                     fixed = ", ".join([*split_fixed(f.fixed), *subs])
+            if eco == "gomod" and not recipe.policy.untaggedFixes:
+                fixed, untagged = _released_fixes(name, fixed, gate)
+                if not fixed:
+                    plan.unresolved.append(_unresolved(f, f"untagged: the fix ({untagged}) is a commit, not a release; the first "
+                                                          "tagged release after it is applied once there is one"))
+                    continue
             pick = pick_fix(eco, installed, fixed, cap, allow)
             if pick is None:
                 why, eligible = "needs-human: fix requires a bump beyond the `%s` policy" % cap.value, None
@@ -181,6 +190,20 @@ def build_plan(report: ScanReport, recipe: Recipe, ecosystems: set[str] | None =
     if gate is not None:
         plan.notes = sorted(gate.notes)
     return plan
+
+
+def _released_fixes(name: str, fixed: str | None, gate) -> tuple[str, str]:
+    """Go fix versions with each pseudo-version (an untagged commit) replaced by the first tagged release after it, or
+    dropped while there is none; and the dropped ones."""
+    keep, untagged = [], []
+    for v in split_fixed(fixed):
+        if not releases.is_pseudo(v):
+            keep.append(v)
+        elif tag := releases.tag_after(name, v, gate.ages if gate is not None else None):
+            keep.append(tag)
+        else:
+            untagged.append(v)
+    return ", ".join(keep), ", ".join(untagged)
 
 
 def _styled(eco: str, version: str, like: str) -> str:

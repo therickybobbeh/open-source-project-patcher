@@ -53,6 +53,45 @@ def test_all_fixes_too_new_reports_cooldown():
     assert other[0]["why"].startswith("needs-human") and "eligible" not in other[0]
 
 
+PSEUDO = "0.58.1-0.20261009181718-2f1f834330b2"
+
+
+def untagged_report():
+    """GO-2026-5932: its fix was the x/crypto commit after v0.58.0 that carved openpgp out, before any release had it."""
+    return parse_report({"Results": [{"Target": "go.mod", "Class": "lang-pkgs", "Type": "gomod", "Packages": [], "Vulnerabilities": [
+        {"VulnerabilityID": "GO-2026-5932", "PkgName": "golang.org/x/crypto", "InstalledVersion": "v0.57.0", "FixedVersion": PSEUDO,
+         "Status": "fixed", "Severity": "UNKNOWN"}]}]})
+
+
+def tagged(tags: list[str], published: dict | None = None):
+    """An age gate whose module proxy lists `tags` (the proxy's list has no pseudo-versions)."""
+    def fetch(url, method="GET"):
+        if url.endswith("/@v/list"):
+            return {}, "\n".join(tags).encode()
+        for version, when in (published or {}).items():
+            if url.endswith(f"/@v/{version}.info"):
+                return {}, json.dumps({"Version": version, "Time": when}).encode()
+        raise OSError("not found")
+
+    return releases.AgeGate(7, {"CRITICAL"}, set(), releases.ReleaseAges(fetch=fetch), now=NOW)
+
+
+def test_a_fix_that_is_only_an_untagged_commit_waits_for_a_tagged_release():
+    assert releases.is_pseudo(PSEUDO) and releases.is_pseudo("v0.0.0-20230101120000-abcdef123456")
+    assert not releases.is_pseudo("v0.58.0") and not releases.is_pseudo("v1.2.3-rc.1")
+    plan = build_plan(untagged_report(), recipe(), gate=tagged(["v0.57.0", "v0.58.0"]))
+    assert not plan.bumps and plan.unresolved[0].why.startswith(f"untagged: the fix ({PSEUDO}) is a commit, not a release")
+    # the first release tagged after the commit has the fix (not a release candidate): used like any other fix version
+    plan = build_plan(untagged_report(), recipe(), gate=tagged(["v0.58.0", "v0.59.0-rc.1", "v0.59.0", "v0.60.0"],
+                                                               {"v0.59.0": "2026-10-01T00:00:00Z"}))
+    assert [(b.to, b.reasons) for b in plan.bumps] == [("v0.59.0", ["GO-2026-5932"])]
+    plan = build_plan(untagged_report(), recipe(), gate=tagged(["v0.58.0", "v0.59.0"], {"v0.59.0": "2026-10-27T00:00:00Z"}))
+    assert plan.unresolved[0].why.startswith("cooldown: v0.59.0 released 1 day(s) ago")  # and the release-age rule
+    # a recipe can take the commit itself
+    plan = build_plan(untagged_report(), recipe(policy={"untaggedFixes": True}), gate=tagged(["v0.58.0"]))
+    assert [b.to for b in plan.bumps] == [f"v{PSEUDO}"]
+
+
 def test_critical_and_kev_bypass_the_wait():
     fresh = {"v0.33.0": "2026-10-27T00:00:00Z"}
     assert [b.to for b in build_plan(report(severity="CRITICAL", fixed="0.33.0"), recipe(), gate=gate(fresh)).bumps] == ["v0.33.0"]

@@ -108,6 +108,10 @@ class Policy(_Model):
     minReleaseAgeDays: int | None = Field(None, description="Only bump to versions published at least this many days ago "
                                           "(supply-chain cooldown); unset/0 = off")
     cooldownBypass: CooldownBypass = Field(default_factory=CooldownBypass)
+    untaggedFixes: bool = Field(False, description="Apply a fix that exists only as an untagged commit (a Go pseudo-version "
+                                "such as v0.58.1-0.20261009181718-2f1f834330b2). false: the first tagged release after that "
+                                "commit is used once there is one; until then the finding waits (`untagged:` in the PR), and "
+                                "the nightly rescan doesn't re-run its line for it")
 
     def for_ecosystem(self, eco: str) -> Level:
         return self.ecosystems.get(eco, self.default)

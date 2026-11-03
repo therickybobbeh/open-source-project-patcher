@@ -98,6 +98,7 @@ policy:
   ecosystems: { gomod: minor, cargo: patch, go-toolchain: minor }
   minReleaseAgeDays: 7      # set in _global.yaml for every recipe
   cooldownBypass: { severities: [CRITICAL], kev: true }
+  untaggedFixes: false      # default
 ```
 
 - For each finding, the planner picks the **smallest** fixed version above the installed one. It
@@ -115,6 +116,11 @@ policy:
   - `cooldownBypass`: findings of these severities, and CVEs on CISA's Known Exploited Vulnerabilities
     list (fetched once per run), are fixed immediately.
   - `patcher run --no-cooldown` turns the rule off for one local run.
+- **Untagged commits wait for a release:** a Go advisory can name a commit as its fix (a pseudo-version such as
+  `v0.58.1-0.20261009181718-2f1f834330b2`) before the module tags a release. The planner uses the first release
+  tagged after that commit instead, which by the advisory's own ordering has the fix, under the release-age rule like
+  any bump. Until there is one, the finding is reported as `untagged: …`, and the nightly rescan doesn't re-run the
+  line for it; once a release is tagged, it does. `untaggedFixes: true` applies the commit itself.
 - **Withdrawn releases are never used**, whatever the severity: a version npm marks deprecated, or
   PyPI or crates.io marks yanked, is replaced by the next release in the same major line that
   stands. For example, lodash 4.18.0 ("Bad release" on npm, it broke `lodash/template`) becomes

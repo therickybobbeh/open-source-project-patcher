@@ -177,15 +177,25 @@ def render_markdown(s: Summary) -> str:
     out += ["### Fixable vulnerabilities (critical / high / medium / low)", "", "| Artifact | Before | After | Fixed | New |", "|---|---|---|---|---|"]
     rows = [("source (`trivy fs`)", s.fs_before, s.fs_after)] + [(f"image `{i.name}`", i.before, i.after) for i in s.images]
     copa_by_label = {f"image `{i.name}`": i.copa for i in s.images}
+    still_in: list[str] = []
     for label, before, after in rows:
         b, a = _fixable_keys(before), _fixable_keys(after)
         if label.startswith("source"):  # Go stdlib is judged on the built image, not go.mod's `go` line
             b = {k: v for k, v in b.items() if v.name != "stdlib"}
             a = {k: v for k, v in a.items() if v.name != "stdlib"}
-        fixed = [b[k] for k in b.keys() - a.keys()]
+        # gone from the package but still in the same file under another one (a module carved out of the bumped one,
+        # e.g. golang.org/x/crypto/openpgp), or still there without a fix: not fixed
+        remaining = {(f.vuln_id, f.location): f for f in after.findings} if after else {}
+        fixed = [b[k] for k in b.keys() - a.keys() if (k[0], k[2]) not in remaining]
         new = [a[k] for k in a.keys() - b.keys()]
+        for k in sorted(b.keys() - a.keys()):
+            if r := remaining.get((k[0], k[2])):
+                still_in.append(f"`{k[0]}` is still in {label} (`{k[2]}`), in `{r.name}` {r.installed}"
+                                f"{f', fixed in {r.fixed}' if r.fixable else ' (no fix)'}: not counted as fixed")
         out.append(f"| {label} | {_sev_counts(b.values()) if before else 'n/a'} | {_sev_counts(a.values()) if after else 'n/a'} | {len(fixed)} | {len(new)} |")
     out.append("")
+    if still_in:
+        out += [f"- {n}" for n in still_in[:MAX_ROWS]] + [""]
 
     out += gatemod.render_markdown(s.gate, s.recipe.gate.enforce)
 

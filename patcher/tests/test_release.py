@@ -436,6 +436,45 @@ def test_rescan_reruns_a_line_once_a_fix_the_release_age_rule_held_back_is_due(t
     assert rerun("2026-12-01T00:00:00+00:00") == []
 
 
+def test_rescan_waits_for_a_release_tagged_after_an_untagged_fix(tmp_path, monkeypatch):
+    """A new finding whose only fix is an untagged commit doesn't re-run the line, which would wait for a tagged
+    release anyway (GO-2026-5932 re-ran ten lines for nothing). Once one is tagged, it does; so does a leftover the
+    release recorded as `untagged:`."""
+    from patcher.models import ReleasedImage
+    from patcher.scan import Finding
+
+    pseudo = "0.58.1-0.20261009181718-2f1f834330b2"
+
+    def finding(vuln):
+        return Finding(target="usr/bin/app", ecosystem="gobinary", trivy_type="gobinary", name="golang.org/x/crypto",
+                       installed="v0.57.0", fixed=pseudo, vuln_id=vuln, severity="UNKNOWN", status=None, pkg_path="usr/bin/app")
+
+    repo = make_repo(tmp_path)
+    (tmp_path / "generated" / "app" / "v1.2.3" / "bump-plan.json").write_text(json.dumps({
+        "recipe": "app", "line": "v1", "tag": "v1.2.3", "commit": "c0ffee", "status": "success", "unresolved": [
+            {"ecosystem": "gomod", "target": "go.mod", "name": "golang.org/x/crypto", "installed": "v0.57.0", "vuln_id": "GO-OLD",
+             "severity": "UNKNOWN", "fixed": pseudo, "why": f"untagged: the fix ({pseudo}) is a commit, not a release; ..."}]}))
+    st = repo.state("app")
+    st.lines["v1"] = st.lines["v1"].model_copy(update={"images": [ReleasedImage(
+        name="app", ref=f"{REG}:v1.2.3-patched.2", digest=DIGEST, knownFixable=["GO-OLD|golang.org/x/crypto|usr/bin/app"])]})
+    repo.save_state("app", st)
+    found, tags = [], []
+    monkeypatch.setattr(pipeline, "scan_image", lambda ref, path, **k: ScanReport(ref, found))
+    monkeypatch.setattr(pipeline.releases, "tag_after", lambda name, v, ages=None: tags[0] if tags else None)
+
+    def rerun() -> list:
+        return pipeline.rescan(repo, tmp_path / "rescan")["rerun"]
+
+    found[:] = [finding("GO-NEW")]  # new since the release, fixed only by an untagged commit
+    assert rerun() == []
+    found[:] = [finding("GO-OLD")]  # the release's own leftover
+    assert rerun() == []
+    tags[:] = ["v0.59.0"]  # a release tagged after the commit: both can be fixed now
+    assert rerun() == [{"recipe": "app", "line": "v1"}]
+    found[:] = [finding("GO-NEW")]
+    assert rerun() == [{"recipe": "app", "line": "v1"}]
+
+
 def test_one_line_that_cant_be_rescanned_doesnt_stop_the_others(tmp_path, monkeypatch):
     from patcher.models import ReleasedImage
 
