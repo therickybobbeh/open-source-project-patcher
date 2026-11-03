@@ -593,6 +593,10 @@ footer .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.
         </tbody>
       </table>
     </div>
+    <p class="muted small">Once a day, after the rescan, <code>scripts/merge-ready.sh</code> lists every open PR with what it
+      waits for, and <code>--merge --patch</code> merges what is ready: release records first, then patch PRs whose run
+      succeeded, then dependency PRs. Code and docs PRs are merged by a person
+      (<a data-doc="docs/runbook.md#the-daily-merge-round" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/runbook.md#the-daily-merge-round">the daily merge round</a>).</p>
     <p class="muted small">Day to day: the runbook covers <a data-doc="docs/runbook.md#reviewing-a-patch-pr" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/runbook.md#reviewing-a-patch-pr">reviewing a patch PR</a>,
       <a data-doc="docs/runbook.md#a-release-failed-after-the-builds" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/runbook.md#a-release-failed-after-the-builds">finishing a failed release</a> and
       <a data-doc="docs/runbook.md#recording-vex-decisions" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/runbook.md#recording-vex-decisions">recording VEX decisions</a>.
