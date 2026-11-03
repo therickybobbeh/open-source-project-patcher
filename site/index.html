@@ -537,8 +537,9 @@ footer .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.
     </div>
     <p class="status-note" id="rel-note"></p>
     <div class="cmds read" style="margin-inline:0">
-      <p class="muted small">Select a row to fill these in. They check that the image was signed by this repository's release
-        workflow, that its build provenance is attested, and apply our VEX decisions to a fresh scan.</p>
+      <p class="muted small">Select a row to fill these in. They check that the image was signed and attested by this
+        repository's release workflow as it is on <code>main</code>, and apply our VEX decisions to a fresh scan. A copy of
+        the workflow run from another branch fails them.</p>
       <div class="cmd"><div class="cmd-label">Signature <span>· cosign</span></div><pre id="cmd-sign"></pre><button class="btn copy" type="button" data-copy="cmd-sign">Copy</button></div>
       <div class="cmd"><div class="cmd-label">Build provenance <span>· SLSA, GitHub attestations</span></div><pre id="cmd-prov"></pre><button class="btn copy" type="button" data-copy="cmd-prov">Copy</button></div>
       <div class="cmd"><div class="cmd-label">VEX decisions on a fresh scan <span>· OpenVEX, Trivy</span></div><pre id="cmd-vex"></pre><button class="btn copy" type="button" data-copy="cmd-vex">Copy</button></div>
@@ -870,11 +871,10 @@ footer .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.
     const img = picked && picked.images[0];
     const ref = img ? img.ref : `ghcr.io/${owner()}/dex:v2.46.1-patched.2`;
     const moving = img ? img.moving : `ghcr.io/${owner()}/dex:v2.46.1-patched`;
-    const [own, name] = repo.split("/");
-    const rx = `${own}/${name}`.replace(/\./g, "\\.");
-    $("#cmd-sign").textContent = `IMG=${ref}\ncosign verify "$IMG" \\\n  --certificate-identity-regexp '^https://github.com/${rx}/\\.github/workflows/release\\.yml@' \\\n  --certificate-oidc-issuer https://token.actions.githubusercontent.com`;
-    $("#cmd-prov").textContent = `gh attestation verify "oci://${ref}" --owner ${own}`;
-    $("#cmd-vex").textContent = `cosign verify-attestation "${ref}" --type openvex \\\n  --certificate-identity-regexp '^https://github.com/${rx}/' \\\n  --certificate-oidc-issuer https://token.actions.githubusercontent.com \\\n  | jq -r '.payload' | base64 -d | jq '.predicate' > vex.json\ntrivy image --vex vex.json "${ref}"`;
+    const id = `https://github.com/${repo}/.github/workflows/release.yml@refs/heads/main`;
+    $("#cmd-sign").textContent = `IMG=${ref}\nID=${id}\ncosign verify "$IMG" --certificate-identity "$ID" \\\n  --certificate-oidc-issuer https://token.actions.githubusercontent.com`;
+    $("#cmd-prov").textContent = `gh attestation verify "oci://${ref}" --repo ${repo} \\\n  --cert-identity ${id}`;
+    $("#cmd-vex").textContent = `cosign verify-attestation "${ref}" --type openvex \\\n  --certificate-identity ${id} \\\n  --certificate-oidc-issuer https://token.actions.githubusercontent.com \\\n  | jq -r '.payload' | base64 -d | jq '.predicate' > vex.json\ntrivy image --vex vex.json "${ref}"`;
     const older = img && picked.revision > 1 ? ref.replace(/\.(\d+)$/, (_, n) => `.${Number(n) - 1}`) : ref;
     $("#cmd-back").textContent = `# point the moving tag at an older revision (revision numbers can skip)\ndocker buildx imagetools create -t ${moving} ${older}`;
   }
