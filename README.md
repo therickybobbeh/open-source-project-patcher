@@ -76,6 +76,7 @@ Component recipes (`mode: component`, never released on their own): `helm`, `kus
 | [docs/troubleshooting.md](docs/troubleshooting.md) | Symptom → cause → fix for problems hit while bringing the pipeline up |
 | [docs/examples/](docs/examples/README.md) | Validated example recipes for Python (pip-compiled, pytest), Gradle and a vendor image with Copa library patching |
 | [wiki/](wiki/Home.md) | Curated wiki navigation. The generated patch history is on the [`wiki-history`](../../tree/wiki-history) branch |
+| [improvements/](improvements/README.md) | Investigations and proposals that aren't built yet: image hardening |
 | [docs/roadmap.md](docs/roadmap.md) | Review findings: patterns to break out next and architecture gaps, in priority order |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Local loop; how to add a project, component, ecosystem or test framework; rules that keep the pipeline trustworthy |
 
