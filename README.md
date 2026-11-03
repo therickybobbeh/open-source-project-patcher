@@ -38,6 +38,7 @@ Beyond the rebuild:
 | Dex | `dex` | dexidp/dex | gomod (+ api/v2), Dockerfile bases; component gomplate | `go test -race ./...` via gotestsum |
 | External Secrets | `external-secrets` | external-secrets/external-secrets | gomod (root + providers/generators), Dockerfile bases | `make test` (envtest) |
 | Trivy | `trivy` | aquasecurity/trivy | gomod, Dockerfile bases | `mage test:unit` |
+| Trivy Operator | `trivy-operator` | aquasecurity/trivy-operator | gomod, Dockerfile bases | `go test -short ./...` (`mage test:unit`) |
 | Copacetic | `copacetic` | project-copacetic/copacetic | gomod, Dockerfile bases (builds a copa CLI image + frontend) | `make test` (pkg) |
 | Apollo Router | `apollo-router` | apollographql/router | cargo, Dockerfile bases | `cargo nextest` + compose services |
 | Apollo GraphOS Operator | `apollo-operator` | closed source | image-only: components docker-credential-ecr-login and -gcr rebuilt and swapped in; scan, VEX | – (components run their own tests) |
