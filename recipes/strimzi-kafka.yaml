@@ -1,0 +1,82 @@
+# yaml-language-server: $schema=../schema/recipe.schema.json
+# Only Strimzi's default Kafka version is built: 4.3.1 in Strimzi 1.3.0 (`default: true` in kafka-versions.yaml), whose
+# Strimzi add-ons are the Maven project in docker-images/artifacts/kafka-thirdparty-libs/4.3.x. When the default moves
+# (Strimzi 1.3.1 makes it 4.3.2, with add-ons in kafka-thirdparty-libs/4.3.2), the build stops at its first step:
+# replace 4.3.1 and 4.3.x below, and add the old add-ons directory to scan.skipDirs.
+name: strimzi-kafka
+description: Strimzi Kafka image (quay.io/strimzi/kafka), for Strimzi's default Kafka version only
+source:
+  repo: strimzi/strimzi-kafka-operator
+  lines:
+    - name: "1"
+      tagPattern: '^1\.\d+\.\d+$'
+toolchain:
+  java: temurin-21
+  maven: "3.9"
+ecosystems:
+  # Strimzi's add-ons for this Kafka version (OAuth, OpenTelemetry, metrics reporters, config provider), copied into
+  # /opt/kafka/libs. Cruise Control's project (kafka-thirdparty-libs/cc) is left as it is, as upstream does: they don't
+  # override its dependencies because they can't test them, and neither can a smoke test (it needs a running cluster)
+  - type: maven
+    poms: [docker-images/artifacts/kafka-thirdparty-libs/4.3.x/pom.xml]
+  - type: dockerfile
+    files: ["docker-images/base/Dockerfile"]
+    level: patch
+overrides:
+  maven:
+    # Guava's advisories name 33.7.2, but Maven Central only has 33.7.2-android and -jre: pinning 33.7.2 fails the build
+    - name: com.google.guava:guava
+      min: 33.7.2-android
+      reason: CVE-2026-102554 is fixed in 33.7.2, published as 33.7.2-android (the flavor the add-ons use)
+holds:
+  maven:
+    # its version is ${opentelemetry.version}, shared by five OpenTelemetry artifacts: versions-maven-plugin won't move
+    # it for one of them, and a <dependencyManagement> pin doesn't override a direct dependency. Bumped, the PR would
+    # list a change while the image keeps the old jar
+    - name: io.opentelemetry:opentelemetry-api
+      reason: its version is a property shared by five OpenTelemetry artifacts, which the maven adapter can't move for one
+# fill ~/.m2 for the offline scan, as in the strimzi recipe
+prepare: ["mvn -B -ntp -q dependency:resolve -f docker-images/artifacts/kafka-thirdparty-libs/4.3.x/pom.xml"]
+scan:
+  offline: true
+  # only the add-ons project above ships in this image: the operator's reactor (pom.xml, */pom.xml) builds just the two
+  # agent jars here, and the other add-on directories are for other Kafka versions and Cruise Control
+  skipFiles: [pom.xml, "*/pom.xml"]
+  skipDirs: ["docker-images/artifacts/kafka-thirdparty-libs/4.2.*", docker-images/artifacts/kafka-thirdparty-libs/cc]
+build:
+  platforms: [linux/amd64, linux/arm64]
+  env:
+    # the Kafka Dockerfile does `FROM strimzi/base:latest`, which only exists in the local image store
+    BUILDX_BUILDER: default
+  images:
+    - name: strimzi-kafka
+      upstream: quay.io/strimzi/kafka
+      upstreamTag: "{{version}}-kafka-4.3.1"
+      # stop unless 4.3.1 (add-ons 4.3.x) is still Strimzi's default; build only that version (upstream's way: the
+      # others marked unsupported); the Kafka and tracing agents (dist zips); add-ons, Cruise Control and the Kafka
+      # tarball (sha512-checked); the base; the Kafka image, with upstream's classpath-collision check on its libs
+      command: >-
+        yq -e '.[] | select(.default) | (.version == "4.3.1" and ."third-party-libs" == "4.3.x")' kafka-versions.yaml &&
+        yq -i '(.[] | select(.default | not)).supported = false' kafka-versions.yaml &&
+        mvn -B -ntp -DskipTests -pl kafka-agent,tracing-agent -am package &&
+        make -C docker-images/artifacts java_build &&
+        make -C docker-images/base docker_build DOCKER_ARCHITECTURE={{arch}} RELEASE_VERSION={{version}} &&
+        make -C docker-images/kafka-based docker_build DOCKER_ARCHITECTURE={{arch}} RELEASE_VERSION={{version}}
+      builtImage: "strimzi/kafka:latest"
+      # a Kafka tool with Strimzi's agent attached, as kafka_run.sh starts brokers: the JVM loads libs/ (log4j2 reads its
+      # YAML config through Jackson) and the agent starts its Jetty server, so the swapped Jackson, log4j and Jetty jars
+      # are used. The exporter's --version runs the rebuilt binary
+      smoke:
+        - bash -c 'touch /tmp/agent.properties && KAFKA_OPTS="-javaagent:$(ls /opt/kafka/libs/kafka-agent-*.jar)=/tmp/agent.properties" /opt/kafka/bin/kafka-storage.sh random-uuid'
+        - /opt/kafka-exporter/kafka_exporter --version
+      # Kafka's own jars come from the Apache release tarball, which no bump reaches: vulnerable ones are swapped (so is
+      # an add-on jar the POM bump couldn't fix)
+      bundledJars: { paths: [opt/kafka/libs/] }
+# kafka_exporter is downloaded prebuilt (KAFKA_EXPORTER_VERSION in the Dockerfile): rebuilt from source at that version
+components:
+  - recipe: kafka-exporter
+    path: /opt/kafka-exporter/kafka_exporter
+notes:
+  - Only Strimzi's default Kafka version is built, the one in the image tag. When Strimzi moves its default, the build stops at its first step until the recipe names the new version and its add-ons directory.
+  - No upstream tests cover this image (Strimzi tests it with system tests on a cluster); the checks are upstream's classpath-collision check in the build and the smoke tests.
+  - Cruise Control's libraries (/opt/cruise-control/libs) are not bumped, as upstream doesn't override them (it can't test Cruise Control); their findings stay in the report.

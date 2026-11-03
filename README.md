@@ -47,13 +47,14 @@ Beyond the rebuild:
 | Apollo GraphOS Operator | `apollo-operator` | closed source | image-only: components docker-credential-ecr-login and -gcr rebuilt and swapped in; scan, VEX | – (components run their own tests) |
 | Redis | `redis` | redis/docker-library-redis | Redis point release, Dockerfile bases | Redis `./runtest` |
 | Strimzi operator | `strimzi` | strimzi/strimzi-kafka-operator | maven, Dockerfile bases | `mvn -DskipITs install` |
+| Strimzi Kafka (Strimzi's default Kafka version) | `strimzi-kafka` | strimzi/strimzi-kafka-operator | maven (Strimzi's add-ons for that Kafka version), Dockerfile base (UBI); Kafka's own jars swapped from Maven Central (`bundledJars`); component kafka-exporter | none upstream; smoke `kafka-storage.sh` with Strimzi's agent, `kafka_exporter --version` |
 | Strimzi maven-builder | `strimzi-maven-builder` | strimzi/strimzi-kafka-operator | Dockerfile base (UBI) + rebuild | smoke `mvn -v` |
 | Maven (official image) | `maven` | carlossg/docker-maven (branch `main`) | Dockerfile bases (eclipse-temurin); Maven's own jars swapped from Maven Central (`bundledJars`) | upstream bats suite |
 | OpenTelemetry Collector contrib | `otelcol-contrib` | open-telemetry/opentelemetry-collector-releases | gomod of the module ocb generates from the manifest (247 components), Dockerfile bases | none of its own (generated module); smoke `components`, `validate` |
 | Splunk OpenTelemetry Collector | `splunk-otel-collector` | signalfx/splunk-otel-collector | gomod (root + the local modules in the binary) | `make test-all` |
 
 Component recipes (`mode: component`, never released on their own): `helm`, `kustomize`, `git-lfs`,
-`gomplate`, `docker-credential-ecr-login`, `docker-credential-gcr`.
+`gomplate`, `docker-credential-ecr-login`, `docker-credential-gcr`, `kafka-exporter`.
 
 | Language | Ecosystems | Test frameworks |
 |---|---|---|
@@ -181,9 +182,10 @@ Setup (GitHub App, code security settings, GHCR visibility) is in the [runbook](
   and keeps its old file name. A fix beyond that level, or in a library shaded into another jar, is
   reported, not applied. Only the image's smoke tests exercise the distribution with the new jar
   (upstream tests never run against the overlaid image).
-- **Strimzi Kafka images:** Kafka's own jars come from the Apache release tarball; those images aren't
-  built by the `strimzi` recipe. A recipe for them would swap those jars with
-  `bundledJars: {paths: [opt/kafka/libs/]}`.
+- **Strimzi Kafka image:** `strimzi-kafka` builds only Strimzi's default Kafka version, the one its image
+  tag names. When Strimzi moves its default, the build stops until the recipe names the new version. Kafka's
+  own jars come from the Apache release tarball and are swapped (`bundledJars`). Cruise Control's libraries
+  aren't bumped, as upstream doesn't override them, and no upstream tests cover the image (smoke tests only).
 - **Apollo GraphOS Operator:** closed source with no package database: the credential helpers are
   rebuilt, and the operator binary's own findings are reported.
 - **Python without lockfiles:** loose requirements are only seen in the built image (`scan.image`).

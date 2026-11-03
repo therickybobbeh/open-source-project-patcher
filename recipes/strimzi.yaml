@@ -25,7 +25,7 @@ scan:
   # visible to the offline source scan, so a second pass pins them in the root POM's dependencyManagement
   image: true
   # not in the operator image: system tests/test helpers, docs, and the third-party libs that go into the
-  # separate Kafka images (docker-images/artifacts/kafka-thirdparty-libs/*, own Maven projects)
+  # Kafka image (docker-images/artifacts/kafka-thirdparty-libs/*, own Maven projects; recipe strimzi-kafka)
   skipDirs: [systemtest, test, mockkube, development-docs, documentation, packaging, helm-charts,
              docker-images/artifacts/kafka-thirdparty-libs]
 tests:
@@ -54,5 +54,5 @@ build:
       smoke: []
       ownBinaries: [opt/strimzi/]   # the operator's jars; the rest of the image is the UBI/JDK base
 notes:
-  - Kafka broker images (quay.io/strimzi/kafka) embed the Apache Kafka binary tarball; their jars can't be bumped through the POMs. Add a separate recipe line if those images need Copa/base refreshes.
+  - The Kafka image (quay.io/strimzi/kafka, Strimzi's default Kafka version) is its own recipe (strimzi-kafka).
   - The maven-builder image is its own recipe (strimzi-maven-builder).
