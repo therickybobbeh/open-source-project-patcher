@@ -543,10 +543,11 @@ Per image, after the build (and its components) and before the smoke tests:
   A mismatch fails the release, rather than adding a second, unreviewed jar.
 - **Image planning** (`scan.image`) leaves jars under `paths` alone: they aren't built from the source.
 
-A run that only swaps jars (no source changes) still opens a PR: the image changed. For the Kafka
-broker images, the same setting would be `bundledJars: {paths: [opt/kafka/libs/]}` on each image,
-with a smoke command that runs one of Kafka's own tools (e.g. `/opt/kafka/bin/kafka-storage.sh
-random-uuid`), so the JVM starts with `libs/` on its classpath.
+A run that only swaps jars (no source changes) still opens a PR: the image changed. Strimzi's Kafka
+image ([`strimzi-kafka.yaml`](../recipes/strimzi-kafka.yaml)) sets `bundledJars: {paths: [opt/kafka/libs/]}`,
+with a smoke command that runs one of Kafka's own tools (`/opt/kafka/bin/kafka-storage.sh random-uuid`)
+with Strimzi's agent attached: the JVM starts with `libs/` on its classpath, and the agent starts its
+Jetty server.
 
 ## Global config (`recipes/_global.yaml`)
 
@@ -570,6 +571,7 @@ random-uuid`), so the JVM starts with `libs/` on its classpath.
 | [`copacetic.yaml`](../recipes/copacetic.yaml) | Extra files from `patches/copacetic/files/` (our own CLI image Dockerfile), multi-ARG `FROM` |
 | [`apollo-router.yaml`](../recipes/apollo-router.yaml) | Cargo, `repoMise` tool list, nextest skips, docker-compose `services` |
 | [`strimzi.yaml`](../recipes/strimzi.yaml) | Maven reactor, `prepare` + `scan.offline`, surefire, custom multi-step image build |
+| [`strimzi-kafka.yaml`](../recipes/strimzi-kafka.yaml) | One version of a multi-version image build, `bundledJars` on a release tarball's jars, a Go component (`kafka-exporter`) in a Java image |
 | [`redis.yaml`](../recipes/redis.yaml) | `files` edits with derived URL + sha256, Redis' own `runtest` |
 | [`maven.yaml`](../recipes/maven.yaml) | Branch-tracked line with `versionFrom`, bats tests, `scan.source: false` |
 | [`strimzi-maven-builder.yaml`](../recipes/strimzi-maven-builder.yaml) | Dockerfile-only rebuild (UBI base refresh) |

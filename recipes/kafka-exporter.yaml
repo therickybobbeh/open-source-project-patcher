@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=../schema/recipe.schema.json
+name: kafka-exporter
+description: kafka_exporter bundled in other images (component of strimzi-kafka)
+mode: component
+source:
+  repo: danielqsj/kafka_exporter
+  lines:   # only used for standalone runs; parents pick the exact version they bundle
+    - tagPattern: '^v1\.\d+\.\d+$'
+toolchain:
+  go: "1.27"  # tests and the rebuilt binary: at least this Go, whatever the tool's go.mod names
+ecosystems:
+  - type: gomod
+    dirs: ["."]
+tests:
+  framework: go
+  # upstream's `make test`; TestSmoke skips itself without a broker on localhost:9092
+  command: go test -short {{skip_args}} ./...
+  timeoutMinutes: 30
+artifact:
+  builder: "golang:{{go}}"
+  # upstream builds with promu (.promu.yml): netgo, version stamped into prometheus/common/version
+  build: >-
+    CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -tags netgo
+    -ldflags "-s -w -X github.com/prometheus/common/version.Version={{version}}" -o /out/kafka_exporter .
+  output: /out/kafka_exporter

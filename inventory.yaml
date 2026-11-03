@@ -21,6 +21,8 @@ images:
   - image: docker.io/apollograph/operator:1.6.0
   - image: docker.io/library/redis:8.10.3
   - image: quay.io/strimzi/operator:1.3.0
+  # Strimzi's default Kafka version only (recipe strimzi-kafka)
+  - image: quay.io/strimzi/kafka:1.3.0-kafka-4.3.1
   - image: quay.io/strimzi/maven-builder:1.3.0
   - image: docker.io/library/maven:3.10.0-eclipse-temurin-21-noble
   - image: docker.io/otel/opentelemetry-collector-contrib:0.153.0
