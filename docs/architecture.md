@@ -259,6 +259,10 @@ only on fixable findings that are **new** and not covered by a VEX statement:
   wait for the next rebuild. A refresh in which Copa failed and nothing was refreshed fails, which raises a CI alert;
 - **any new language finding:** dispatch `patch.yml` for that line, so it is rebuilt from source.
 
+A known leftover whose fix the release-age rule held back counts as new once that fix clears the rule: the patch set
+records when (`eligible` in `bump-plan.json`, also for components and bundled jars), and the line is rebuilt from
+source. The nightly patch run never does this, because the line's upstream tag hasn't changed.
+
 A line whose `state/` PR isn't merged yet is not scanned: `state/` on `main` still records the revision before.
 
 ## Keeping the pipeline itself current

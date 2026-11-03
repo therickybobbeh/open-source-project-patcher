@@ -147,8 +147,12 @@ class AgeGate:
         age = self.now - published
         if age >= dt.timedelta(days=self.min_days):
             return True, ""
-        eligible = published + dt.timedelta(days=self.min_days)
-        return False, f"cooldown: {version} released {age.days} day(s) ago (eligible {eligible:%Y-%m-%d})"
+        return False, f"cooldown: {version} released {age.days} day(s) ago (eligible {self.eligible(eco, name, version):%Y-%m-%d})"
+
+    def eligible(self, eco: str, name: str, version: str) -> dt.datetime | None:
+        """When `version` clears the age rule: its publish time + min_days. None if the publish time is unknown."""
+        published = self.ages.published(eco, name, version)
+        return published + dt.timedelta(days=self.min_days) if published else None
 
     def replacement(self, eco: str, name: str, version: str) -> str | None:
         """For a withdrawn fix version: the next release in the same major line that stands (lodash 4.18.0, marked

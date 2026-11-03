@@ -12,6 +12,7 @@ Rules (see README "How versions are chosen"):
 
 from __future__ import annotations
 
+import datetime as dt
 import fnmatch
 import posixpath
 from dataclasses import asdict, dataclass, field
@@ -51,6 +52,10 @@ class Unresolved:
     severity: str
     fixed: str | None
     why: str
+    eligible: str | None = None  # held back by the release-age rule: when the fix clears it (ISO 8601)
+
+    def to_json(self) -> dict:
+        return {k: v for k, v in asdict(self).items() if k != "eligible" or v}
 
 
 @dataclass
@@ -67,7 +72,7 @@ class Plan:
     def to_json(self) -> dict:
         return {
             "bumps": [asdict(b) | {"dir": b.dir} for b in self.bumps],
-            "unresolved": [asdict(u) for u in self.unresolved],
+            "unresolved": [u.to_json() for u in self.unresolved],
             "toolchain": self.toolchain,
         }
 
@@ -82,8 +87,9 @@ def _match(rules: list, name: str):
     return None
 
 
-def _unresolved(f: Finding, why: str) -> Unresolved:
-    return Unresolved(f.ecosystem, f.target, f.name, f.installed, f.vuln_id, f.severity, f.fixed, why)
+def _unresolved(f: Finding, why: str, eligible: dt.datetime | None = None) -> Unresolved:
+    return Unresolved(f.ecosystem, f.target, f.name, f.installed, f.vuln_id, f.severity, f.fixed, why,
+                      eligible.isoformat() if eligible else None)
 
 
 def build_plan(report: ScanReport, recipe: Recipe, ecosystems: set[str] | None = None, gate=None) -> Plan:
@@ -141,13 +147,16 @@ def build_plan(report: ScanReport, recipe: Recipe, ecosystems: set[str] | None =
                     fixed = ", ".join([*split_fixed(f.fixed), *subs])
             pick = pick_fix(eco, installed, fixed, cap, allow)
             if pick is None:
-                why = "needs-human: fix requires a bump beyond the `%s` policy" % cap.value
+                why, eligible = "needs-human: fix requires a bump beyond the `%s` policy" % cap.value, None
                 capped = pick_fix(eco, installed, fixed, cap)
                 if capped is not None and gate is not None:
-                    why = gate.check(eco, name, _styled(eco, capped[0].raw, installed), f.severity, f.vuln_id)[1]
+                    version = _styled(eco, capped[0].raw, installed)
+                    why = gate.check(eco, name, version, f.severity, f.vuln_id)[1]
+                    if why.startswith("cooldown:"):  # the rescan re-runs the released line once it clears
+                        eligible = gate.eligible(eco, name, version)
                 elif pick_fix(eco, installed, f.fixed, None) is None:
                     why = f"no fixed version above installed (fixed: {f.fixed})"
-                plan.unresolved.append(_unresolved(f, why))
+                plan.unresolved.append(_unresolved(f, why, eligible))
                 continue
             if hold_max and pick[0] > hold_max:
                 plan.unresolved.append(_unresolved(f, f"held at <= {hold.max}: {hold.reason}"))

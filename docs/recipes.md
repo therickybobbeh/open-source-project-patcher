@@ -109,7 +109,7 @@ policy:
 - **Release age:** a fix version must have been published at least `minReleaseAgeDays` ago, so a
   freshly hijacked release can't ride in on a bump. The next-oldest fixed version that is old enough
   is used instead. When none is, the finding is reported as `cooldown: <ver> released N day(s) ago
-  (eligible <date>)` and a later nightly run picks it up.
+  (eligible <date>)`. Once the fix clears the rule, the nightly rescan re-runs the line, after its release too.
   - Publish times come from the Go module proxy, the npm registry, PyPI, Maven Central and crates.io.
     When a publish time can't be found, the bump goes ahead with a note in the report.
   - `cooldownBypass`: findings of these severities, and CVEs on CISA's Known Exploited Vulnerabilities

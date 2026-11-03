@@ -46,6 +46,11 @@ def test_all_fixes_too_new_reports_cooldown():
     plan = build_plan(report(), recipe(), gate=g)
     assert not plan.bumps
     assert plan.unresolved[0].why == "cooldown: v0.33.0 released 2 day(s) ago (eligible 2026-11-02)"
+    # recorded in the patch set, so the rescan can re-run the line once it clears (also after the release)
+    assert plan.unresolved[0].eligible == "2026-11-02T00:00:00+00:00"
+    assert plan.to_json()["unresolved"][0]["eligible"] == "2026-11-02T00:00:00+00:00"
+    other = build_plan(report(fixed="9.0.0"), recipe(), gate=g).to_json()["unresolved"]  # beyond the policy: no date
+    assert other[0]["why"].startswith("needs-human") and "eligible" not in other[0]
 
 
 def test_critical_and_kev_bypass_the_wait():

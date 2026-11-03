@@ -298,7 +298,7 @@ def labels(swaps: list[Swap]) -> dict[str, str]:
 
 
 def to_json(swaps: list[Swap], unresolved: list[Unresolved]) -> dict:
-    return {"swaps": [asdict(s) for s in swaps], "unresolved": [asdict(u) for u in unresolved]}
+    return {"swaps": [asdict(s) for s in swaps], "unresolved": [u.to_json() for u in unresolved]}
 
 
 def from_generated(gen: Path) -> dict[str, list[Swap]]:

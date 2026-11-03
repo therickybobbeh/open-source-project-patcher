@@ -625,7 +625,7 @@ def _write_outputs(repo: Repo, s: Summary, att: Attempt | None, out: Path) -> No
         "plan": att.first_plan.to_json() if att else {},
         "changes": [asdict(c) for c in s.changes],
         "failures": [asdict(f) for f in s.failures],
-        "unresolved": [asdict(u) for u in s.unresolved],
+        "unresolved": [u.to_json() for u in s.unresolved],
         "skips": [e.model_dump(mode="json") for e in (s.tests.skipped if s.tests else [])],
         **({"imageTags": s.image_tags} if s.image_tags else {}),
     }
@@ -1262,9 +1262,39 @@ def pending_lines(paths: list[str]) -> set[tuple[str, str]]:
     return pending
 
 
-def rescan(repo: Repo, out: Path, pending: set[tuple[str, str]] = frozenset()) -> dict:
+def _cooldowns(repo: Repo, recipe: Recipe, key: str, ls: LineState) -> dict[tuple[str, str], dt.datetime]:
+    """(vulnerability, package) -> when the fix that the release-age rule held back from the released patch set (its
+    source, components and bundled jars) clears the rule. Patch sets from before `eligible` was recorded only name the
+    day, so those count from the day after."""
+    try:
+        gen, doc = find_generated(repo, recipe, key, ls.upstreamTag)
+    except LookupError:  # no patch set for the released tag in generated/
+        return {}
+    rows = list(doc.get("unresolved", []))
+    for extra in sorted(gen.glob("components/*/bump-plan.json")):
+        rows += json.loads(extra.read_text()).get("unresolved", [])
+    if (gen / "jars.json").is_file():
+        rows += json.loads((gen / "jars.json").read_text()).get("unresolved", [])
+    due: dict[tuple[str, str], dt.datetime] = {}
+    for u in rows:
+        if not u.get("why", "").startswith("cooldown:"):
+            continue
+        if u.get("eligible"):
+            when = dt.datetime.fromisoformat(u["eligible"])
+        elif m := re.search(r"\(eligible (\d{4}-\d{2}-\d{2})\)", u["why"]):
+            when = dt.datetime.fromisoformat(m.group(1)).replace(tzinfo=dt.timezone.utc) + dt.timedelta(days=1)
+        else:
+            continue
+        k = (u["vuln_id"], u["name"])
+        due[k] = min(due.get(k, when), when)
+    return due
+
+
+def rescan(repo: Repo, out: Path, pending: set[tuple[str, str]] = frozenset(), now: dt.datetime | None = None) -> dict:
     """Scan every published image; act only on fixable findings that are new since the release
-    (known leftovers, e.g. in bundled binaries, are already explained in the release PR).
+    (known leftovers, e.g. in bundled binaries, are already explained in the release PR), or whose fix the
+    release-age rule held back from the release and has cleared since: no nightly patch run picks those up, because
+    the line's upstream tag hasn't changed.
     New OS-only findings -> Copa refresh; new language findings -> source re-run. OS findings in an image with
     `copa: false` wait for its next rebuild: a refresh would leave that image alone.
 
@@ -1273,6 +1303,7 @@ def rescan(repo: Repo, out: Path, pending: set[tuple[str, str]] = frozenset()) -
     from .vex import match as vex_match
 
     g = repo.global_config()
+    now = now or dt.datetime.now(dt.timezone.utc)
     result = {"refresh": [], "rerun": [], "pending": [], "errors": []}
     out.mkdir(parents=True, exist_ok=True)
     for path in repo.recipe_paths():
@@ -1285,7 +1316,8 @@ def rescan(repo: Repo, out: Path, pending: set[tuple[str, str]] = frozenset()) -
                     result["pending"].append({"recipe": recipe.name, "line": key})
                     continue
                 with _isolated(result["errors"], recipe.name, key):  # a scan that fails skips this line only
-                    kinds = set()
+                    kinds, cleared = set(), set()
+                    due = {k for k, when in _cooldowns(repo, recipe, key, ls).items() if when <= now}
                     platform = (ls.platforms or (recipe.build.platforms if recipe.build else None) or ["linux/amd64"])[0]
                     for img in ls.images:
                         rep = scan_image(f"{img.ref.rsplit(':', 1)[0]}@{img.digest}",
@@ -1293,11 +1325,17 @@ def rescan(repo: Repo, out: Path, pending: set[tuple[str, str]] = frozenset()) -
                                          severities=g.scan.severities, platform=platform, src="remote")
                         known = set(img.knownFixable)
                         for f in rep.fixable():
-                            if "|".join(f.key) not in known and not vex_match(vexf, f):
-                                if f.ecosystem != "os":
-                                    kinds.add("lang")
-                                elif img.name in copa_on:
-                                    kinds.add("os")
+                            leftover = "|".join(f.key) in known
+                            if vex_match(vexf, f) or (leftover and (f.vuln_id, f.name) not in due):
+                                continue
+                            if leftover:
+                                cleared.add(f"{f.vuln_id} ({f.name})")
+                            if f.ecosystem != "os":
+                                kinds.add("lang")
+                            elif img.name in copa_on:
+                                kinds.add("os")
+                    if cleared:
+                        log(f"{recipe.name} {key}: the release-age rule held back fixes that are due now: {', '.join(sorted(cleared))}")
                     entry = {"recipe": recipe.name, "line": key}
                     if "lang" in kinds:
                         result["rerun"].append(entry)
