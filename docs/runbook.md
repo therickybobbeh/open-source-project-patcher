@@ -242,17 +242,19 @@ Once a day, after the rescan has run (mid-afternoon UTC, see above), one command
 waits for, and merges what is ready in the order that keeps the pipeline moving:
 
 ```bash
-scripts/merge-ready.sh                  # list only
-scripts/merge-ready.sh --merge          # merge ready release records and dependency PRs
-scripts/merge-ready.sh --merge --patch  # also merge ready patch PRs whose run succeeded: each one starts a release
+scripts/merge-ready.sh           # list only, with the merge policy's verdict on each patch PR
+scripts/merge-ready.sh --merge   # merge what is ready: release records, the patch PRs the policy allows, dependency PRs
 ```
 
 - **Ready** means not a draft, every check passed and no conflict. Each merge is pinned to the commit that was checked.
 - **Release records** (`record release of`, `copa refresh of`) go first: they hold no decision, and until one merges,
   the rescan skips its line.
-- **Patch PRs** are the release decision. Read the report, or pass `--patch` when the run's own checks (upstream tests,
-  the release gate) are enough. A patch PR whose run didn't succeed outright (`tests-preexisting`, a draft) is listed
-  for a person.
+- **Patch PRs** are the release decision, so the **merge policy** takes it: Rego in `policy/merge/`, run with conftest
+  on the patch set the PR would merge. Out of the box it holds a PR whose run didn't succeed outright (for example
+  `tests-preexisting`), whose upstream tests didn't run, that the release gate denies, or that makes a major bump, and
+  says why; a recipe without upstream tests is only a warning. Change what merges on its own by editing those rules
+  (`conftest verify --policy policy` runs their tests). Without conftest installed (`brew install conftest`), every
+  patch PR is held.
 - **Code and docs PRs** are never merged by the script. Related ones come as a stack, each based on the previous PR's
   branch: merge them bottom-up. Merged branches are deleted automatically, so the next PR in the stack moves to `main`
   by itself.

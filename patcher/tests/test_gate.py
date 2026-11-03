@@ -106,13 +106,16 @@ def test_an_enforced_gate_stops_a_release_before_anything_is_recorded(tmp_path, 
 
 @pytest.mark.parametrize("enforce", [False, True])
 def test_the_patch_pr_shows_the_verdict_and_is_a_draft_if_the_release_would_stop(tmp_path, monkeypatch, enforce):
+    from patcher.adapters.base import Change
     from patcher.report import ImageOutcome, Summary
 
     (tmp_path / "recipes").mkdir()
     (tmp_path / "recipes" / "_global.yaml").write_text("registry: ghcr.io/me\n")
     repo = Repo(tmp_path)
     s = Summary(recipe=recipe(enforce=enforce, failOn={"fixable": ["CRITICAL"]}), line="v1", tag="v1.2.3", commit="c0ffee",
-                status="success", images=[ImageOutcome("app", "patcher.local/app:v1.2.3", None, None, IMAGE)])
+                status="success", images=[ImageOutcome("app", "patcher.local/app:v1.2.3", None, None, IMAGE)],
+                changes=[Change("gomod", "go.mod", "golang.org/x/net", "v0.30.0", "v0.38.0"),
+                         Change("dockerfile", "Dockerfile", "alpine", "alpine:3.24.2", "alpine:3.24.3")])
     monkeypatch.setattr(gate, "evaluate", lambda policy, doc: gate.Verdict(deny=["CRITICAL CVE-1 in golang.org/x/net 0.30.0 "
                                                                                 "(usr/local/bin/app) is fixable: fixed in 0.38.0"]))
     out = tmp_path / "out"
@@ -122,3 +125,8 @@ def test_the_patch_pr_shows_the_verdict_and_is_a_draft_if_the_release_would_stop
     assert summary["gate"]["app"]["passed"] is False and summary["draft"] is enforce
     report = (out / "pr-body.md").read_text()
     assert "### Release gate" in report and "⛔ **denied** (1)" in report and "CVE-1" in report
+    # the patch set carries what the merge policy (policy/merge/) decides on
+    patch_set = json.loads((out / "generated" / "bump-plan.json").read_text())
+    assert patch_set["gate"]["app"]["passed"] is False
+    assert patch_set["tests"] == {"configured": False, "ran": False, "passed": False}
+    assert [c["level"] for c in patch_set["changes"]] == ["minor", "patch"]  # an image reference counts as patch
