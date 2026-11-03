@@ -6,8 +6,12 @@ Upstream: https://github.com/open-telemetry/opentelemetry-collector-releases @ `
 
 | Artifact | Before | After | Fixed | New |
 |---|---|---|---|---|
-| source (`trivy fs`) | 3 / 20 / 17 / 6 | 0 / 0 / 2 / 0 | 44 | 0 |
-| image `opentelemetry-collector-contrib` | 3 / 35 / 28 / 7 | 0 / 0 / 2 / 0 | 71 | 0 |
+| source (`trivy fs`) | 3 / 20 / 17 / 6 | 0 / 0 / 2 / 0 | 46 | 0 |
+| image `opentelemetry-collector-contrib` | 3 / 35 / 28 / 7 | 0 / 0 / 2 / 0 | 73 | 0 |
+
+### Release gate (reported only (`gate.enforce: false`))
+
+- image `opentelemetry-collector-contrib`: ✅ passes
 
 ### Changes applied
 
@@ -24,7 +28,7 @@ Upstream: https://github.com/open-telemetry/opentelemetry-collector-releases @ `
 | gomod | `distributions/otelcol-contrib/gen/go.mod` | `github.com/klauspost/compress` | `v1.18.6` | `v1.18.7` | CVE-2026-63209 |
 | gomod | `distributions/otelcol-contrib/gen/go.mod` | `github.com/rabbitmq/amqp091-go` | `v1.11.0` | `v1.14.0` | CVE-2026-107386, CVE-2026-77403, CVE-2026-77404, CVE-2026-77405, CVE-2026-77406, CVE-2026-77407, CVE-2026-77408, CVE-202 |
 | gomod | `distributions/otelcol-contrib/gen/go.mod` | `github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sentryexporter` | `v0.153.0` | `v0.154.0` | CVE-2026-47256 |
-| gomod | `distributions/otelcol-contrib/gen/go.mod` | `golang.org/x/net` | `v0.55.0` | `v0.60.0` | CVE-2026-46600, CVE-2026-78659, CVE-2026-78660, CVE-2026-78663, CVE-2026-78669, CVE-2026-97032 |
+| gomod | `distributions/otelcol-contrib/gen/go.mod` | `golang.org/x/net` | `v0.55.0` | `v0.62.0` | CVE-2026-46600, CVE-2026-78659, CVE-2026-78660, CVE-2026-78661, CVE-2026-78663, CVE-2026-78669, CVE-2026-97032, CVE-2026 |
 | gomod | `distributions/otelcol-contrib/gen/go.mod` | `golang.org/x/crypto` | `v0.52.0` | `v0.56.0` | CVE-2026-56854, CVE-2026-56855, CVE-2026-78662 |
 | gomod | `distributions/otelcol-contrib/gen/go.mod` | `golang.org/x/text` | `v0.37.0` | `v0.41.0` | CVE-2026-56851, CVE-2026-56852 |
 | gomod | `distributions/otelcol-contrib/gen/go.mod` | `golang.org/x/mod` | `v0.36.0` | `v0.40.0` | CVE-2026-56864, CVE-2026-56865 |
@@ -44,10 +48,8 @@ Upstream: https://github.com/open-telemetry/opentelemetry-collector-releases @ `
 | MEDIUM | CVE-2026-81871 | `go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc` | `v0.19.0` | `0.21.0` | image `opentelemetry-collector-contrib` | held: same lockstep as go.opentelemetry.io/otel/sdk/log |
 | MEDIUM | CVE-2026-81872 | `go.opentelemetry.io/otel/sdk/log` | `v0.19.0` | `0.21.0` | source (`trivy fs`): `distributions/otelcol-contrib/gen/go.mod` | held: moves in lockstep with the log exporters and bridges; bumped alone it breaks the build (fixed in newer collector releases) |
 | MEDIUM | CVE-2026-81872 | `go.opentelemetry.io/otel/sdk/log` | `v0.19.0` | `0.21.0` | image `opentelemetry-collector-contrib` | held: moves in lockstep with the log exporters and bridges; bumped alone it breaks the build (fixed in newer collector releases) |
-| UNKNOWN | CVE-2026-78661 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | source (`trivy fs`): `distributions/otelcol-contrib/gen/go.mod` | cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03) |
-| UNKNOWN | CVE-2026-97045 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | source (`trivy fs`): `distributions/otelcol-contrib/gen/go.mod` | cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03) |
-| UNKNOWN | CVE-2026-78661 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | image `opentelemetry-collector-contrib` | cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03) |
-| UNKNOWN | CVE-2026-97045 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | image `opentelemetry-collector-contrib` | cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03) |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | source (`trivy fs`): `distributions/otelcol-contrib/gen/go.mod` | untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `opentelemetry-collector-contrib` | untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one |
 
 ### Newer releases beyond the policy (not applied)
 
