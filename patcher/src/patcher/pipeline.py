@@ -470,7 +470,7 @@ def _build_and_scan(repo: Repo, recipe: Recipe, att: Attempt, summary: Summary, 
             gate = releases.gate_for(recipe.policy) if opts.cooldown else None
             for spec in recipe.build.images:
                 ref = f"{LOCAL_PREFIX}/{spec.name}:{render(spec.upstreamTag, tctx)}-patched.dev"
-                img = build_image(att.src, recipe.build, spec, ref, opts.platform, tctx, att.env, out / "build.log", push=False)
+                img = build_image(att.src, recipe.build, spec, ref, opts.platform, tctx, att.env, out / "build.log")
                 refs = components.applicable(recipe, spec.key)
                 usable, swaps = [], []
                 built_scan = scan_image(img.ref, out / f"scan-image-built-{spec.key}.json", severities=g.scan.severities,
@@ -1032,12 +1032,12 @@ def release_build(repo: Repo, recipe: Recipe, key: str, platform: str, workdir: 
         mine = [comps[c.recipe] for c in components.applicable(recipe, spec.key) if c.recipe in comps]
         mine_jars = swaps.get(spec.key, [])
         if mine or mine_jars:  # build, then overlay the rebuilt components and the reviewed jar swaps
-            base = build_image(src, recipe.build, spec, f"{local}-base", platform, tctx, env, out / "build.log", push=False)
+            base = build_image(src, recipe.build, spec, f"{local}-base", platform, tctx, env, out / "build.log")
             jars.restage(base.ref, [platform], mine_jars, out / f"overlay-{spec.key}")
             components.overlay(base.ref, mine, out / f"overlay-{spec.key}", platforms=[platform], tag_ref=local, push=False,
                                local_base=True, files=jars.copies(mine_jars), labels=jars.labels(mine_jars))
         else:
-            build_image(src, recipe.build, spec, local, platform, tctx, env, out / "build.log", push=False)
+            build_image(src, recipe.build, spec, local, platform, tctx, env, out / "build.log")
         path = archive.path_for(images, platform, spec.key)
         archive.export(local, path, out / "build.log")
         built.append({"image": spec.key, "platform": platform, "archive": str(path.relative_to(out)),

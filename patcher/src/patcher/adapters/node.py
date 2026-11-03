@@ -15,10 +15,6 @@ from .base import Change, Ctx, Failure, Result, expand_dirs
 LOCKFILES = {"npm": "package-lock.json", "pnpm": "pnpm-lock.yaml", "yarn": "yarn.lock"}
 
 
-def _read_json(p: Path) -> dict:
-    return json.loads(p.read_text())
-
-
 def _write_json(p: Path, data: dict, original: str) -> None:
     indent = 2
     m = re.search(r"\n( +)\"", original)

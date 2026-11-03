@@ -20,7 +20,6 @@ from pathlib import Path
 from .versions import InvalidVersion, Version, parse_semver
 
 API = "https://api.github.com"
-ARCHES = ("amd64", "arm64")
 
 
 @dataclass(frozen=True)

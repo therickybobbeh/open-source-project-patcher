@@ -156,9 +156,8 @@ class Repo:
 
     def state(self, name: str) -> State:
         """One file per release line (`state/<recipe>/<line>.yaml`): lines released together each open a state PR,
-        and those would conflict if they all edited one file. A whole-recipe `state/<recipe>.yaml` still counts."""
-        legacy = self.root / "state" / f"{name}.yaml"
-        state = load_model(legacy, State) if legacy.exists() else State()
+        and those would conflict if they all edited one file."""
+        state = State()
         for path in sorted((self.root / "state" / name).glob("*.yaml")):
             state.lines[path.stem] = load_model(path, LineState)
         return state

@@ -68,10 +68,6 @@ class Plan:
     toolchain: dict[str, str] = field(default_factory=dict)  # e.g. {"go": "1.27.5"}
     notes: list[str] = field(default_factory=list)
 
-    @property
-    def empty(self) -> bool:
-        return not self.bumps and not self.toolchain
-
     def to_json(self) -> dict:
         return {
             "bumps": [asdict(b) | {"dir": b.dir} for b in self.bumps],

@@ -218,7 +218,7 @@ def test_pr_flow_swaps_before_smoke_tests_and_copa(monkeypatch, tmp_path):
     att = pipeline.Attempt("full plan", tmp_path / "src", {}, Plan(), Result(), [], {}, None, "", None)
     summary = Summary(recipe=r, line="m", tag="3.10.0", commit="c", status="no-changes")  # only Maven's own jar is vulnerable
     calls = []
-    monkeypatch.setattr(pipeline, "build_image", lambda src, b, spec, ref, platform, *a, push: calls.append("build")
+    monkeypatch.setattr(pipeline, "build_image", lambda src, b, spec, ref, platform, *a: calls.append("build")
                         or BuiltImage(spec, ref, platform))
     monkeypatch.setattr(pipeline, "scan_image", lambda ref, path, **k: calls.append(path.name) or scan(finding()))
     monkeypatch.setattr(jars, "prepare", lambda img, platform, spec, built, recipe, gate, ctx: calls.append(f"jars {built.artifact}")
@@ -359,7 +359,7 @@ def test_release_build_overlays_the_recorded_jars(monkeypatch, tmp_path):
     (gen / "jars.json").write_text(json.dumps(jars.to_json([swap()], [])))
     calls = []
     monkeypatch.setattr(pipeline, "prepare_release_source", lambda *a, **k: (tmp_path, {"tag": "3.10.0", "commit": "c"}, {}))
-    monkeypatch.setattr(pipeline, "build_image", lambda src, b, spec, ref, platform, *a, push: calls.append(("build", ref, push))
+    monkeypatch.setattr(pipeline, "build_image", lambda src, b, spec, ref, platform, *a: calls.append(("build", ref))
                         or BuiltImage(spec, ref, platform))
     monkeypatch.setattr(jars, "restage", lambda image, platforms, swaps, ctx: calls.append(("restage", image, platforms, swaps)))
     monkeypatch.setattr(components, "overlay", lambda base, comps, out, **k: calls.append(("overlay", base, k["tag_ref"], k["files"],
@@ -370,11 +370,11 @@ def test_release_build_overlays_the_recorded_jars(monkeypatch, tmp_path):
     images = tmp_path / "out" / "maven" / "m" / "images" / "amd64"
     # the swap is overlaid locally and the result saved as an archive: nothing is pushed from the build job
     assert calls == [
-        ("build", f"{local}-base", False),
+        ("build", f"{local}-base"),
         ("restage", f"{local}-base", ["linux/amd64"], [swap()]),
         ("overlay", f"{local}-base", local, [(swap().context_file, f"/{LIB}")], False),
         ("save", local, images / "maven-21.tar"),
-        ("build", "patcher.local/maven:3.10.0-temurin-17-release-amd64", False),  # nothing recorded for it: a plain build
+        ("build", "patcher.local/maven:3.10.0-temurin-17-release-amd64"),  # nothing recorded for it: a plain build
         ("save", "patcher.local/maven:3.10.0-temurin-17-release-amd64", images / "maven-17.tar")]
     assert built[0]["jars"] == [f"/{LIB}: com.google.guava:guava 33.7.2-jre"] and built[1]["jars"] == []
     assert built[0]["archive"] == "images/amd64/maven-21.tar"
