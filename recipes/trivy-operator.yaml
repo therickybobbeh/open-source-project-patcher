@@ -1,0 +1,53 @@
+# yaml-language-server: $schema=../schema/recipe.schema.json
+name: trivy-operator
+description: Trivy Operator (docker.io/aquasec/trivy-operator; the Helm chart pulls it via mirror.gcr.io)
+source:
+  repo: aquasecurity/trivy-operator
+  # releases are tagged from main and only the newest minor gets fixes. Some tags never became a release
+  # (v0.31.0, v0.36.0: no GitHub release, no images), so a run on one has no upstream image to compare with.
+  lines:
+    - name: v0
+      tagPattern: '^v0\.\d+\.\d+$'
+toolchain:
+  go: "1.27"
+env:
+  # upstream compiles and tests with this experiment (.goreleaser.yaml `env`, magefile.go `ENV`); set here, it
+  # also covers the bumps' `go mod tidy`, govulncheck and the image build
+  GOEXPERIMENT: jsonv2
+ecosystems:
+  - type: gomod
+    dirs: ["."]
+  # the Alpine base of the image we build; Dockerfile.ubi9 and Dockerfile.fips.ubi9 belong to variants we don't
+  - type: dockerfile
+    files: [build/trivy-operator/Dockerfile]
+tests:
+  framework: go
+  # `mage test:unit` (magefile.go Test.Unit), called directly so skips can be appended. With -short the envtest
+  # (tests/envtest) and KinD (tests/itest) suites skip themselves; the rest needs no cluster and no network.
+  command: go test -v -short -timeout 60s {{skip_args}} ./...
+  env:
+    CGO_ENABLED: "0"
+  timeoutMinutes: 30
+build:
+  platforms: [linux/amd64, linux/arm64]
+  images:
+    - name: trivy-operator
+      # ghcr.io/aquasecurity/trivy-operator stopped at 0.23.1 (the GHCR lines in .goreleaser.yaml are commented
+      # out); releases go to Docker Hub and ECR Public
+      upstream: docker.io/aquasec/trivy-operator
+      upstreamTag: "{{version}}"   # upstream image tags have no `v`
+      # goreleaser builds the binary and the Dockerfile only copies it from the context root. Same flags as
+      # .goreleaser.yaml (its default ldflags), into bin/: upstream's own context (`mage build:docker`), gitignored
+      command: >-
+        CGO_ENABLED=0 GOOS=linux GOARCH={{arch}} go build -trimpath
+        -ldflags "-s -w -X main.version={{version}} -X main.commit={{commit}} -X main.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+        -o bin/trivy-operator ./cmd/trivy-operator &&
+        docker buildx build --platform {{platform}} -f build/trivy-operator/Dockerfile -t {{image}} --load bin
+      builtImage: "{{image}}"
+      # no smoke command: the binary has no flags or subcommands (no --help or version), and it can't start
+      # without a Kubernetes API server, so `docker run` exits 1 whatever the arguments
+      smoke: []
+      ownBinaries: [usr/local/bin/trivy-operator]
+notes:
+  - Only the default Alpine image is built. Upstream's `-ubi9` and `-ubi9-fips` variants (and s390x/ppc64le) are not.
+  - Scan jobs run a separate Trivy image (Helm values `trivy.image.registry`, `trivy.image.repository`, `trivy.image.tag`); point them at the patched image of the `trivy` recipe.

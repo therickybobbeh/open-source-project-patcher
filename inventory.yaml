@@ -14,6 +14,8 @@ images:
   - image: ghcr.io/dexidp/dex:v2.46.1
   - image: ghcr.io/external-secrets/external-secrets:v2.14.0
   - image: ghcr.io/aquasecurity/trivy:0.76.1
+  # not on GHCR after 0.23.1; the Helm chart pulls this image as mirror.gcr.io/aquasec/trivy-operator
+  - image: docker.io/aquasec/trivy-operator:0.36.1
   - image: ghcr.io/project-copacetic/copacetic-frontend:v0.15.0
   - image: ghcr.io/apollographql/router:v2.19.0
   - image: docker.io/apollograph/operator:1.6.0
