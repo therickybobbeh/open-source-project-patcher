@@ -17,4 +17,4 @@ Upstream: https://github.com/awslabs/amazon-ecr-credential-helper @ `7ff7d6bd7a0
 
 ### Upstream tests
 
-✅ passed in 0.4 min — `cd ecr-login && go test  ./...`
+✅ passed in 0.3 min — `cd ecr-login && go test  ./...`
