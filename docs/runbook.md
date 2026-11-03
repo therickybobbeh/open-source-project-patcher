@@ -8,7 +8,7 @@ For the people who review patch PRs and operate the pipeline. Background is in
 
 1. **GitHub App** for opening PRs. PRs opened with the default `GITHUB_TOKEN` don't trigger checks.
    - Permissions: *Contents: read & write*, *Pull requests: read & write*.
-   - Install it on this repository.
+   - Install it on this repository only. Its key then can't do more than anyone with write access here already can.
    - Add the variable `PATCHER_APP_ID` and the secret `PATCHER_APP_PRIVATE_KEY`.
    - **Until then:** the workflows fall back to `GITHUB_TOKEN` (with a warning in the run) if you
      turn on *Settings → Actions → General → Workflow permissions → Allow GitHub Actions to create
@@ -356,24 +356,34 @@ Notes:
 
 ### Verifying an image
 
+Everything below is made by this repository's `release.yml`, run from `main`. Pin exactly that identity, here and in
+admission policies. Anyone with write access can dispatch an edited copy of the workflow from a branch; whatever it
+signs names that branch, so it fails these checks. What `main` holds is decided by its protection (required review
+and the `test` check), so that is what these checks trust.
+
 ```bash
 IMG=ghcr.io/<owner>/dex:v2.46.1-patched.1
+ID=https://github.com/<owner>/<repo>/.github/workflows/release.yml@refs/heads/main
+ISSUER=https://token.actions.githubusercontent.com
 
-# signature, made by this repository's release workflow
-cosign verify "$IMG" \
-  --certificate-identity-regexp '^https://github.com/<owner>/<repo>/\.github/workflows/release\.yml@' \
-  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+# signature
+cosign verify "$IMG" --certificate-identity "$ID" --certificate-oidc-issuer "$ISSUER"
 
 # SLSA build provenance
-gh attestation verify "oci://$IMG" --owner <owner>
+gh attestation verify "oci://$IMG" --repo <owner>/<repo> --cert-identity "$ID"
+
+# SBOM (CycloneDX)
+cosign verify-attestation "$IMG" --type cyclonedx --certificate-identity "$ID" --certificate-oidc-issuer "$ISSUER" \
+  | jq -r '.payload' | base64 -d | jq '.predicate' > sbom.cdx.json
 
 # our VEX decisions, applied to a fresh scan
-cosign verify-attestation "$IMG" --type openvex \
-  --certificate-identity-regexp '^https://github.com/<owner>/<repo>/' \
-  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+cosign verify-attestation "$IMG" --type openvex --certificate-identity "$ID" --certificate-oidc-issuer "$ISSUER" \
   | jq -r '.payload' | base64 -d | jq '.predicate' > vex.json
 trivy image --vex vex.json "$IMG"
 ```
+
+A branch run can still push to GHCR: `packages: write` is the workflow's own to ask for. Verify before you deploy, or
+deploy by digest from `state/`.
 
 Copa refreshes are signed and attested by the same workflow. An image a refresh published before refreshes moved into
 `release.yml` (2026-10-31) has only a `rescan.yml` signature, with no SBOM, OpenVEX or provenance, until its line is

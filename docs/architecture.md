@@ -203,6 +203,13 @@ workflow and action files of the commit that started the run, so it only helps w
 | `rescan.yml` | no | `packages: read`, `pull-requests: read`; its refresh job only dispatches `release.yml` (`actions: write`) |
 | `tool-pins.yml` | no | GitHub App token |
 
+**The root of trust is `main`.** Consumers accept only what `release.yml` signed and attested on `main` (the
+[verification commands](runbook.md#verifying-an-image) pin `release.yml@refs/heads/main`). A copy of the workflow
+edited on another branch can be dispatched by anyone with write access, but it signs as that branch and fails
+verification. So the controls that matter are the ones on `main`: required review and the `test` check, set by the
+organization. The GitHub App is installed on this repository only, so its key adds nothing to what a writer can do,
+and no bot merges into `main` without a person.
+
 Supply-chain rules for the pipeline itself:
 - Every GitHub Action is pinned to a commit SHA.
 - Every tool download in the patcher image is pinned to a version and its sha256.

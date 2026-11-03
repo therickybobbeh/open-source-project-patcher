@@ -260,7 +260,7 @@ jobs:
         run: |
           # only what an image doesn't have yet from this workflow: finishing a revision an earlier run signed must not
           # leave a second signature, SBOM or (different) VEX document on the same digest
-          identity="^https://github\.com/${GITHUB_REPOSITORY//./\\.}/\.github/workflows/release\.yml@"
+          identity="^https://github\.com/${GITHUB_REPOSITORY//./\\.}/\.github/workflows/release\.yml@refs/heads/main$"
           has() {
             cosign "$@" --certificate-identity-regexp "$identity" \
               --certificate-oidc-issuer https://token.actions.githubusercontent.com "$ref" > /dev/null 2>&1
@@ -324,7 +324,7 @@ jobs:
           SUBJECT: oci://${{ matrix.repository }}@${{ matrix.digest }}
         run: |
           if gh attestation verify "$SUBJECT" -R "$GITHUB_REPOSITORY" \
-               --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml" > /dev/null 2>&1; then
+               --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml" --source-ref refs/heads/main > /dev/null 2>&1; then
             echo "$SUBJECT: provenance attested already"
             echo "attested=true" >> "$GITHUB_OUTPUT"
           fi

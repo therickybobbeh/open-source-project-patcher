@@ -204,3 +204,11 @@ def test_host_changing_steps_run_only_on_github_hosted_runners(path):
         for s in steps(job):
             if re.search(r"systemctl|daemon\.json|rm -rf /(usr|opt)", s.get("run", "")):
                 assert "runner.environment == 'github-hosted'" in str(s.get("if", "")), f"{path.name}/{name}: {s.get('name')}"
+
+
+def test_release_counts_only_its_own_signatures_from_main():
+    """Before signing or attesting, release.yml checks whether the image has that from this workflow already. Only its
+    identity on main counts: a signature an edited copy left from a branch must not stop the real one."""
+    text = (ROOT / ".github" / "workflows" / "release.yml").read_text()
+    assert r'release\.yml@refs/heads/main$"' in text
+    assert '--signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml" --source-ref refs/heads/main' in text
