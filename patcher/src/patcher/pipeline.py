@@ -623,10 +623,14 @@ def _write_outputs(repo: Repo, s: Summary, att: Attempt | None, out: Path) -> No
         "status": s.status,
         "requires": att.requires if att else {},
         "plan": att.first_plan.to_json() if att else {},
-        "changes": [asdict(c) for c in s.changes],
+        "changes": [{**asdict(c), "level": _level(c)} for c in s.changes],
         "failures": [asdict(f) for f in s.failures],
         "unresolved": [u.to_json() for u in s.unresolved],
         "skips": [e.model_dump(mode="json") for e in (s.tests.skipped if s.tests else [])],
+        # what the merge policy (policy/merge/) decides on: a patch set from this run carries its own test and gate results
+        "tests": {"configured": s.recipe.tests is not None, "ran": bool(s.tests and s.tests.ran),
+                  "passed": bool(s.tests and s.tests.ran and s.tests.passed)},
+        "gate": {k: v.to_json() for k, v in s.gate.items()},
         **({"imageTags": s.image_tags} if s.image_tags else {}),
     }
     (gen / "bump-plan.json").write_text(json.dumps(plan_doc, indent=2, sort_keys=False) + "\n")

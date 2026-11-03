@@ -45,6 +45,9 @@ against the settings on `main` when it runs.
 first for the recipes that already pass. A gate that stops a release also stops a *better* image: the one released
 before stays current. Fix the finding, or record a VEX decision, rather than leave a line stuck.
 
+`policy/merge/` holds a second, separate policy (package `patcher.merge`): which patch PRs the daily merge round merges
+without a person ([runbook](runbook.md#the-daily-merge-round)). It reads the patch set, including this gate's verdict.
+
 ## Rules of your own
 
 Every `.rego` file in `policy/` with `package patcher.gate` adds to the gate:
