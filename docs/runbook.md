@@ -232,6 +232,27 @@ updated in place.
 
 Two runs never patch the same line at once: the second one waits.
 
+### The daily merge round
+
+Once a day, after the rescan has run (mid-afternoon UTC, see above), one command shows every open PR and what it
+waits for, and merges what is ready in the order that keeps the pipeline moving:
+
+```bash
+scripts/merge-ready.sh                  # list only
+scripts/merge-ready.sh --merge          # merge ready release records and dependency PRs
+scripts/merge-ready.sh --merge --patch  # also merge ready patch PRs whose run succeeded: each one starts a release
+```
+
+- **Ready** means not a draft, every check passed and no conflict. Each merge is pinned to the commit that was checked.
+- **Release records** (`record release of`, `copa refresh of`) go first: they hold no decision, and until one merges,
+  the rescan skips its line.
+- **Patch PRs** are the release decision. Read the report, or pass `--patch` when the run's own checks (upstream tests,
+  the release gate) are enough. A patch PR whose run didn't succeed outright (`tests-preexisting`, a draft) is listed
+  for a person.
+- **Code and docs PRs** are never merged by the script. Related ones come as a stack, each based on the previous PR's
+  branch: merge them bottom-up. Merged branches are deleted automatically, so the next PR in the stack moves to `main`
+  by itself.
+
 ### Failure alerts
 
 `ci-alerts.yml` follows every run on `main` of patch, release, rescan, patcher-image, tool-pins
