@@ -1,0 +1,1316 @@
+diff --git a/generators/v1/acr/go.mod b/generators/v1/acr/go.mod
+index 765c1f5..5174eb8 100644
+--- a/generators/v1/acr/go.mod
++++ b/generators/v1/acr/go.mod
+@@ -99,7 +99,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/generators/v1/acr/go.sum b/generators/v1/acr/go.sum
+index ffd889a..8c77921 100644
+--- a/generators/v1/acr/go.sum
++++ b/generators/v1/acr/go.sum
+@@ -247,8 +247,8 @@ golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACk
+ golang.org/x/crypto v0.0.0-20210921155107-089bfa567519/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
+ golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa/go.mod h1:IxCIyHEi3zRg3s0A5j5BB6A9Jmi73HwBIUl50j+osU4=
+ golang.org/x/crypto v0.17.0/go.mod h1:gCAAfMLgwOJRpTjQ2zCCt2OcSfYMTeZVSRtQlPC7Nq4=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4/go.mod h1:jJ57K6gSWd91VN4djpZkiMVwK6gcyfeH4XE8wZrZaV4=
+ golang.org/x/mod v0.8.0/go.mod h1:iBbtSCu2XBx23ZKBPSOrRkjjQPZFPuis4dIYUhu/chs=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+diff --git a/generators/v1/beyondtrustworkloadcredentials/go.mod b/generators/v1/beyondtrustworkloadcredentials/go.mod
+index bcefd3a..ab73027 100644
+--- a/generators/v1/beyondtrustworkloadcredentials/go.mod
++++ b/generators/v1/beyondtrustworkloadcredentials/go.mod
+@@ -68,7 +68,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/generators/v1/beyondtrustworkloadcredentials/go.sum b/generators/v1/beyondtrustworkloadcredentials/go.sum
+index f36677d..772f768 100644
+--- a/generators/v1/beyondtrustworkloadcredentials/go.sum
++++ b/generators/v1/beyondtrustworkloadcredentials/go.sum
+@@ -162,8 +162,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/generators/v1/cloudsmith/go.mod b/generators/v1/cloudsmith/go.mod
+index 889272c..59ced56 100644
+--- a/generators/v1/cloudsmith/go.mod
++++ b/generators/v1/cloudsmith/go.mod
+@@ -65,7 +65,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/generators/v1/cloudsmith/go.sum b/generators/v1/cloudsmith/go.sum
+index f36677d..772f768 100644
+--- a/generators/v1/cloudsmith/go.sum
++++ b/generators/v1/cloudsmith/go.sum
+@@ -162,8 +162,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/generators/v1/gcr/go.mod b/generators/v1/gcr/go.mod
+index f879e90..e81ff90 100644
+--- a/generators/v1/gcr/go.mod
++++ b/generators/v1/gcr/go.mod
+@@ -89,7 +89,7 @@ require (
+ 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+ 	golang.org/x/sys v0.49.0 // indirect
+diff --git a/generators/v1/gcr/go.sum b/generators/v1/gcr/go.sum
+index 151c9ef..cc57678 100644
+--- a/generators/v1/gcr/go.sum
++++ b/generators/v1/gcr/go.sum
+@@ -225,8 +225,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/generators/v1/quay/go.mod b/generators/v1/quay/go.mod
+index a2a47a5..8e3948b 100644
+--- a/generators/v1/quay/go.mod
++++ b/generators/v1/quay/go.mod
+@@ -65,7 +65,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/generators/v1/quay/go.sum b/generators/v1/quay/go.sum
+index f36677d..772f768 100644
+--- a/generators/v1/quay/go.sum
++++ b/generators/v1/quay/go.sum
+@@ -162,8 +162,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/generators/v1/sshkey/go.mod b/generators/v1/sshkey/go.mod
+index cd6ede3..6b94a93 100644
+--- a/generators/v1/sshkey/go.mod
++++ b/generators/v1/sshkey/go.mod
+@@ -5,7 +5,7 @@ go 1.27.0
+ require (
+ 	github.com/external-secrets/external-secrets/apis v0.0.0
+ 	github.com/stretchr/testify v1.12.1
+-	golang.org/x/crypto v0.58.0
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2
+ 	k8s.io/apiextensions-apiserver v0.37.1
+ 	sigs.k8s.io/controller-runtime v0.25.2
+ 	sigs.k8s.io/yaml v1.6.0
+diff --git a/generators/v1/sshkey/go.sum b/generators/v1/sshkey/go.sum
+index b6d62e9..d091727 100644
+--- a/generators/v1/sshkey/go.sum
++++ b/generators/v1/sshkey/go.sum
+@@ -120,8 +120,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/generators/v1/vault/go.mod b/generators/v1/vault/go.mod
+index da680f1..74dcbf0 100644
+--- a/generators/v1/vault/go.mod
++++ b/generators/v1/vault/go.mod
+@@ -139,7 +139,7 @@ require (
+ 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/generators/v1/vault/go.sum b/generators/v1/vault/go.sum
+index 9216967..91bb79c 100644
+--- a/generators/v1/vault/go.sum
++++ b/generators/v1/vault/go.sum
+@@ -344,8 +344,8 @@ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+ golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.0.0-20200202094626-16171245cfb2/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
+diff --git a/generators/v1/webhook/go.mod b/generators/v1/webhook/go.mod
+index 3976a61..85c7d02 100644
+--- a/generators/v1/webhook/go.mod
++++ b/generators/v1/webhook/go.mod
+@@ -70,7 +70,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/generators/v1/webhook/go.sum b/generators/v1/webhook/go.sum
+index fbdcd07..ec48444 100644
+--- a/generators/v1/webhook/go.sum
++++ b/generators/v1/webhook/go.sum
+@@ -171,8 +171,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/go.mod b/go.mod
+index 3b7e0a0..ec22640 100644
+--- a/go.mod
++++ b/go.mod
+@@ -408,7 +408,7 @@ require (
+ 	go.uber.org/multierr v1.11.0 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/exp v0.0.0-20261014143641-f0251eb4aa3e // indirect
+ 	golang.org/x/mod v0.42.0 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+diff --git a/go.sum b/go.sum
+index 45c0907..dc8fde2 100644
+--- a/go.sum
++++ b/go.sum
+@@ -1136,8 +1136,8 @@ golang.org/x/crypto v0.0.0-20210921155107-089bfa567519/go.mod h1:GvvjBRRGRdwPK5y
+ golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa/go.mod h1:IxCIyHEi3zRg3s0A5j5BB6A9Jmi73HwBIUl50j+osU4=
+ golang.org/x/crypto v0.11.0/go.mod h1:xgJhtzW8F9jGdVFWZESrid1U1bjeNy4zgy5cRr/CIio=
+ golang.org/x/crypto v0.17.0/go.mod h1:gCAAfMLgwOJRpTjQ2zCCt2OcSfYMTeZVSRtQlPC7Nq4=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/exp v0.0.0-20180321215751-8460e604b9de/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
+ golang.org/x/exp v0.0.0-20180807140117-3d87b88a115f/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
+ golang.org/x/exp v0.0.0-20190121172915-509febef88a4/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
+diff --git a/providers/v1/akeyless/go.mod b/providers/v1/akeyless/go.mod
+index 5d42ea3..9e15ab8 100644
+--- a/providers/v1/akeyless/go.mod
++++ b/providers/v1/akeyless/go.mod
+@@ -109,7 +109,7 @@ require (
+ 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/akeyless/go.sum b/providers/v1/akeyless/go.sum
+index 2883778..21c2c82 100644
+--- a/providers/v1/akeyless/go.sum
++++ b/providers/v1/akeyless/go.sum
+@@ -266,8 +266,8 @@ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+ golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
+ golang.org/x/crypto v0.0.0-20210921155107-089bfa567519/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4/go.mod h1:jJ57K6gSWd91VN4djpZkiMVwK6gcyfeH4XE8wZrZaV4=
+ golang.org/x/mod v0.8.0/go.mod h1:iBbtSCu2XBx23ZKBPSOrRkjjQPZFPuis4dIYUhu/chs=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+diff --git a/providers/v1/aws/go.mod b/providers/v1/aws/go.mod
+index cab3f11..7389233 100644
+--- a/providers/v1/aws/go.mod
++++ b/providers/v1/aws/go.mod
+@@ -94,7 +94,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/aws/go.sum b/providers/v1/aws/go.sum
+index 014cc55..10a7136 100644
+--- a/providers/v1/aws/go.sum
++++ b/providers/v1/aws/go.sum
+@@ -215,8 +215,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/azure/go.mod b/providers/v1/azure/go.mod
+index 74673f7..054c5fa 100644
+--- a/providers/v1/azure/go.mod
++++ b/providers/v1/azure/go.mod
+@@ -99,7 +99,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/azure/go.sum b/providers/v1/azure/go.sum
+index ec1762e..6638302 100644
+--- a/providers/v1/azure/go.sum
++++ b/providers/v1/azure/go.sum
+@@ -247,8 +247,8 @@ golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACk
+ golang.org/x/crypto v0.0.0-20210921155107-089bfa567519/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
+ golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa/go.mod h1:IxCIyHEi3zRg3s0A5j5BB6A9Jmi73HwBIUl50j+osU4=
+ golang.org/x/crypto v0.17.0/go.mod h1:gCAAfMLgwOJRpTjQ2zCCt2OcSfYMTeZVSRtQlPC7Nq4=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4/go.mod h1:jJ57K6gSWd91VN4djpZkiMVwK6gcyfeH4XE8wZrZaV4=
+ golang.org/x/mod v0.8.0/go.mod h1:iBbtSCu2XBx23ZKBPSOrRkjjQPZFPuis4dIYUhu/chs=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+diff --git a/providers/v1/beyondtrust/go.mod b/providers/v1/beyondtrust/go.mod
+index 1e16ba2..1667842 100644
+--- a/providers/v1/beyondtrust/go.mod
++++ b/providers/v1/beyondtrust/go.mod
+@@ -76,7 +76,7 @@ require (
+ 	go.uber.org/multierr v1.11.0 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/beyondtrust/go.sum b/providers/v1/beyondtrust/go.sum
+index 5b7dc52..ab24eda 100644
+--- a/providers/v1/beyondtrust/go.sum
++++ b/providers/v1/beyondtrust/go.sum
+@@ -178,8 +178,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/beyondtrustworkloadcredentials/go.mod b/providers/v1/beyondtrustworkloadcredentials/go.mod
+index e631c4f..a10c859 100644
+--- a/providers/v1/beyondtrustworkloadcredentials/go.mod
++++ b/providers/v1/beyondtrustworkloadcredentials/go.mod
+@@ -65,7 +65,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/beyondtrustworkloadcredentials/go.sum b/providers/v1/beyondtrustworkloadcredentials/go.sum
+index f36677d..772f768 100644
+--- a/providers/v1/beyondtrustworkloadcredentials/go.sum
++++ b/providers/v1/beyondtrustworkloadcredentials/go.sum
+@@ -162,8 +162,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/bitwarden/go.mod b/providers/v1/bitwarden/go.mod
+index a86da65..bed6c4d 100644
+--- a/providers/v1/bitwarden/go.mod
++++ b/providers/v1/bitwarden/go.mod
+@@ -68,7 +68,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/bitwarden/go.sum b/providers/v1/bitwarden/go.sum
+index 5615e5e..439256b 100644
+--- a/providers/v1/bitwarden/go.sum
++++ b/providers/v1/bitwarden/go.sum
+@@ -162,8 +162,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/chef/go.mod b/providers/v1/chef/go.mod
+index 0d6ba05..65855c6 100644
+--- a/providers/v1/chef/go.mod
++++ b/providers/v1/chef/go.mod
+@@ -70,7 +70,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/chef/go.sum b/providers/v1/chef/go.sum
+index 39c8cd9..dbade23 100644
+--- a/providers/v1/chef/go.sum
++++ b/providers/v1/chef/go.sum
+@@ -178,8 +178,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/cloudru/go.mod b/providers/v1/cloudru/go.mod
+index 28c6b78..ecb3193 100644
+--- a/providers/v1/cloudru/go.mod
++++ b/providers/v1/cloudru/go.mod
+@@ -71,7 +71,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/cloudru/go.sum b/providers/v1/cloudru/go.sum
+index e020b2a..8606e7c 100644
+--- a/providers/v1/cloudru/go.sum
++++ b/providers/v1/cloudru/go.sum
+@@ -174,8 +174,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/conjur/go.mod b/providers/v1/conjur/go.mod
+index 7d30039..64dae9f 100644
+--- a/providers/v1/conjur/go.mod
++++ b/providers/v1/conjur/go.mod
+@@ -100,7 +100,7 @@ require (
+ 	github.com/zalando/go-keyring v0.2.8 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/conjur/go.sum b/providers/v1/conjur/go.sum
+index aa2d205..7c6ed03 100644
+--- a/providers/v1/conjur/go.sum
++++ b/providers/v1/conjur/go.sum
+@@ -230,8 +230,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/crd/go.mod b/providers/v1/crd/go.mod
+index 9b81065..6fa2f62 100644
+--- a/providers/v1/crd/go.mod
++++ b/providers/v1/crd/go.mod
+@@ -70,7 +70,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/crd/go.sum b/providers/v1/crd/go.sum
+index 6be0890..a9210f1 100644
+--- a/providers/v1/crd/go.sum
++++ b/providers/v1/crd/go.sum
+@@ -168,8 +168,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/delinea/go.mod b/providers/v1/delinea/go.mod
+index ca82c3a..2de35ad 100644
+--- a/providers/v1/delinea/go.mod
++++ b/providers/v1/delinea/go.mod
+@@ -83,7 +83,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/delinea/go.sum b/providers/v1/delinea/go.sum
+index 6617590..e7c093d 100644
+--- a/providers/v1/delinea/go.sum
++++ b/providers/v1/delinea/go.sum
+@@ -221,8 +221,8 @@ golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACk
+ golang.org/x/crypto v0.0.0-20210921155107-089bfa567519/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
+ golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa/go.mod h1:IxCIyHEi3zRg3s0A5j5BB6A9Jmi73HwBIUl50j+osU4=
+ golang.org/x/crypto v0.17.0/go.mod h1:gCAAfMLgwOJRpTjQ2zCCt2OcSfYMTeZVSRtQlPC7Nq4=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4/go.mod h1:jJ57K6gSWd91VN4djpZkiMVwK6gcyfeH4XE8wZrZaV4=
+ golang.org/x/mod v0.8.0/go.mod h1:iBbtSCu2XBx23ZKBPSOrRkjjQPZFPuis4dIYUhu/chs=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+diff --git a/providers/v1/doppler/go.mod b/providers/v1/doppler/go.mod
+index 9f65e54..c67dee1 100644
+--- a/providers/v1/doppler/go.mod
++++ b/providers/v1/doppler/go.mod
+@@ -68,7 +68,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/doppler/go.sum b/providers/v1/doppler/go.sum
+index 05cfea4..e2668bf 100644
+--- a/providers/v1/doppler/go.sum
++++ b/providers/v1/doppler/go.sum
+@@ -164,8 +164,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/dvls/go.mod b/providers/v1/dvls/go.mod
+index d5ed3e0..13658d6 100644
+--- a/providers/v1/dvls/go.mod
++++ b/providers/v1/dvls/go.mod
+@@ -68,7 +68,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/dvls/go.sum b/providers/v1/dvls/go.sum
+index f88a5e9..b337779 100644
+--- a/providers/v1/dvls/go.sum
++++ b/providers/v1/dvls/go.sum
+@@ -164,8 +164,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/fake/go.mod b/providers/v1/fake/go.mod
+index 9b4dfff..1f4a58a 100644
+--- a/providers/v1/fake/go.mod
++++ b/providers/v1/fake/go.mod
+@@ -69,7 +69,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/fake/go.sum b/providers/v1/fake/go.sum
+index 6be0890..a9210f1 100644
+--- a/providers/v1/fake/go.sum
++++ b/providers/v1/fake/go.sum
+@@ -168,8 +168,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/fortanix/go.mod b/providers/v1/fortanix/go.mod
+index be38d88..7ba4faf 100644
+--- a/providers/v1/fortanix/go.mod
++++ b/providers/v1/fortanix/go.mod
+@@ -68,7 +68,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/fortanix/go.sum b/providers/v1/fortanix/go.sum
+index 72ca5dd..d06cd34 100644
+--- a/providers/v1/fortanix/go.sum
++++ b/providers/v1/fortanix/go.sum
+@@ -164,8 +164,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/gcp/go.mod b/providers/v1/gcp/go.mod
+index 90f7cb0..c14cf4a 100644
+--- a/providers/v1/gcp/go.mod
++++ b/providers/v1/gcp/go.mod
+@@ -96,7 +96,7 @@ require (
+ 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+ 	golang.org/x/sys v0.49.0 // indirect
+diff --git a/providers/v1/gcp/go.sum b/providers/v1/gcp/go.sum
+index 151c9ef..cc57678 100644
+--- a/providers/v1/gcp/go.sum
++++ b/providers/v1/gcp/go.sum
+@@ -225,8 +225,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/github/go.mod b/providers/v1/github/go.mod
+index dc78fbc..da7ef3e 100644
+--- a/providers/v1/github/go.mod
++++ b/providers/v1/github/go.mod
+@@ -8,7 +8,7 @@ require (
+ 	github.com/external-secrets/external-secrets/runtime v0.0.0
+ 	github.com/google/go-github/v56 v56.0.0
+ 	github.com/stretchr/testify v1.12.1
+-	golang.org/x/crypto v0.58.0
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2
+ 	k8s.io/api v0.37.1
+ 	k8s.io/apimachinery v0.37.1
+ 	sigs.k8s.io/controller-runtime v0.25.2
+diff --git a/providers/v1/github/go.sum b/providers/v1/github/go.sum
+index 3e2801d..401038d 100644
+--- a/providers/v1/github/go.sum
++++ b/providers/v1/github/go.sum
+@@ -131,8 +131,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/gitlab/go.mod b/providers/v1/gitlab/go.mod
+index 75d52c1..a9ef05c 100644
+--- a/providers/v1/gitlab/go.mod
++++ b/providers/v1/gitlab/go.mod
+@@ -78,7 +78,7 @@ require (
+ 	github.com/yandex-cloud/go-genproto v0.130.0 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/gitlab/go.sum b/providers/v1/gitlab/go.sum
+index 006f170..2227689 100644
+--- a/providers/v1/gitlab/go.sum
++++ b/providers/v1/gitlab/go.sum
+@@ -195,8 +195,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/ibm/go.mod b/providers/v1/ibm/go.mod
+index c855179..a7a63ca 100644
+--- a/providers/v1/ibm/go.mod
++++ b/providers/v1/ibm/go.mod
+@@ -84,7 +84,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/ibm/go.sum b/providers/v1/ibm/go.sum
+index a64f59c..ae08f09 100644
+--- a/providers/v1/ibm/go.sum
++++ b/providers/v1/ibm/go.sum
+@@ -209,8 +209,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/infisical/go.mod b/providers/v1/infisical/go.mod
+index f413b82..a588e61 100644
+--- a/providers/v1/infisical/go.mod
++++ b/providers/v1/infisical/go.mod
+@@ -109,7 +109,7 @@ require (
+ 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/infisical/go.sum b/providers/v1/infisical/go.sum
+index a27a5f3..ba33e17 100644
+--- a/providers/v1/infisical/go.sum
++++ b/providers/v1/infisical/go.sum
+@@ -269,8 +269,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/keepersecurity/go.mod b/providers/v1/keepersecurity/go.mod
+index d59814f..3907468 100644
+--- a/providers/v1/keepersecurity/go.mod
++++ b/providers/v1/keepersecurity/go.mod
+@@ -65,7 +65,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/keepersecurity/go.sum b/providers/v1/keepersecurity/go.sum
+index 176b918..e6b3617 100644
+--- a/providers/v1/keepersecurity/go.sum
++++ b/providers/v1/keepersecurity/go.sum
+@@ -164,8 +164,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/kubernetes/go.mod b/providers/v1/kubernetes/go.mod
+index 2b17ad5..d1dd9ec 100644
+--- a/providers/v1/kubernetes/go.mod
++++ b/providers/v1/kubernetes/go.mod
+@@ -72,7 +72,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/kubernetes/go.sum b/providers/v1/kubernetes/go.sum
+index 6be0890..a9210f1 100644
+--- a/providers/v1/kubernetes/go.sum
++++ b/providers/v1/kubernetes/go.sum
+@@ -168,8 +168,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/nebius/go.mod b/providers/v1/nebius/go.mod
+index c809a19..0ca46d4 100644
+--- a/providers/v1/nebius/go.mod
++++ b/providers/v1/nebius/go.mod
+@@ -78,7 +78,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sys v0.49.0 // indirect
+ 	golang.org/x/term v0.47.0 // indirect
+diff --git a/providers/v1/nebius/go.sum b/providers/v1/nebius/go.sum
+index 38d2b3e..4f8e3d8 100644
+--- a/providers/v1/nebius/go.sum
++++ b/providers/v1/nebius/go.sum
+@@ -178,8 +178,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/onboardbase/go.mod b/providers/v1/onboardbase/go.mod
+index bdfdf06..9fefa05 100644
+--- a/providers/v1/onboardbase/go.mod
++++ b/providers/v1/onboardbase/go.mod
+@@ -70,7 +70,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/onboardbase/go.sum b/providers/v1/onboardbase/go.sum
+index 7b7201a..b29fc4c 100644
+--- a/providers/v1/onboardbase/go.sum
++++ b/providers/v1/onboardbase/go.sum
+@@ -170,8 +170,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/onepassword/go.mod b/providers/v1/onepassword/go.mod
+index b0db612..03b4df4 100644
+--- a/providers/v1/onepassword/go.mod
++++ b/providers/v1/onepassword/go.mod
+@@ -72,7 +72,7 @@ require (
+ 	go.uber.org/atomic v1.12.0 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/onepassword/go.sum b/providers/v1/onepassword/go.sum
+index 3038a6b..6b1e482 100644
+--- a/providers/v1/onepassword/go.sum
++++ b/providers/v1/onepassword/go.sum
+@@ -175,8 +175,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/onepasswordsdk/go.mod b/providers/v1/onepasswordsdk/go.mod
+index 4069a87..bde34e2 100644
+--- a/providers/v1/onepasswordsdk/go.mod
++++ b/providers/v1/onepasswordsdk/go.mod
+@@ -76,7 +76,7 @@ require (
+ 	go.opentelemetry.io/proto/otlp v1.11.1 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/onepasswordsdk/go.sum b/providers/v1/onepasswordsdk/go.sum
+index c736161..e95db28 100644
+--- a/providers/v1/onepasswordsdk/go.sum
++++ b/providers/v1/onepasswordsdk/go.sum
+@@ -182,8 +182,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/openbao/go.mod b/providers/v1/openbao/go.mod
+index 373f800..61846de 100644
+--- a/providers/v1/openbao/go.mod
++++ b/providers/v1/openbao/go.mod
+@@ -86,7 +86,7 @@ require (
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+ 	go.yaml.in/yaml/v4 v4.0.0-rc.6 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/openbao/go.sum b/providers/v1/openbao/go.sum
+index b787f3c..470489e 100644
+--- a/providers/v1/openbao/go.sum
++++ b/providers/v1/openbao/go.sum
+@@ -209,8 +209,8 @@ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+ go.yaml.in/yaml/v4 v4.0.0-rc.6 h1:1h7H1ohdUh93/FyE4YaDa1Zh64K6VVbjF4K6WUxMtH4=
+ go.yaml.in/yaml/v4 v4.0.0-rc.6/go.mod h1:aZqd9kCMsGL7AuUv/m/PvWLdg5sjJsZ4oHDEnfPPfY0=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/oracle/go.mod b/providers/v1/oracle/go.mod
+index 5968602..b58298b 100644
+--- a/providers/v1/oracle/go.mod
++++ b/providers/v1/oracle/go.mod
+@@ -75,7 +75,7 @@ require (
+ 	github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/oracle/go.sum b/providers/v1/oracle/go.sum
+index 985d684..434a95e 100644
+--- a/providers/v1/oracle/go.sum
++++ b/providers/v1/oracle/go.sum
+@@ -178,8 +178,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/ovh/go.mod b/providers/v1/ovh/go.mod
+index 0ef1dc9..bb9d6dc 100644
+--- a/providers/v1/ovh/go.mod
++++ b/providers/v1/ovh/go.mod
+@@ -76,7 +76,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/ovh/go.sum b/providers/v1/ovh/go.sum
+index 27cf65a..fc5b907 100644
+--- a/providers/v1/ovh/go.sum
++++ b/providers/v1/ovh/go.sum
+@@ -192,8 +192,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/passbolt/go.mod b/providers/v1/passbolt/go.mod
+index 05ba3f7..1b10f94 100644
+--- a/providers/v1/passbolt/go.mod
++++ b/providers/v1/passbolt/go.mod
+@@ -76,7 +76,7 @@ require (
+ 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/passbolt/go.sum b/providers/v1/passbolt/go.sum
+index c7b6b20..0059e84 100644
+--- a/providers/v1/passbolt/go.sum
++++ b/providers/v1/passbolt/go.sum
+@@ -259,8 +259,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/passworddepot/go.mod b/providers/v1/passworddepot/go.mod
+index f06ba01..81a23b6 100644
+--- a/providers/v1/passworddepot/go.mod
++++ b/providers/v1/passworddepot/go.mod
+@@ -65,7 +65,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/passworddepot/go.sum b/providers/v1/passworddepot/go.sum
+index f36677d..772f768 100644
+--- a/providers/v1/passworddepot/go.sum
++++ b/providers/v1/passworddepot/go.sum
+@@ -162,8 +162,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/pulumi/go.mod b/providers/v1/pulumi/go.mod
+index fc72227..b60f409 100644
+--- a/providers/v1/pulumi/go.mod
++++ b/providers/v1/pulumi/go.mod
+@@ -69,7 +69,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/pulumi/go.sum b/providers/v1/pulumi/go.sum
+index 461b63b..af3235b 100644
+--- a/providers/v1/pulumi/go.sum
++++ b/providers/v1/pulumi/go.sum
+@@ -166,8 +166,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/scaleway/go.mod b/providers/v1/scaleway/go.mod
+index 1dbcbce..24b9ffa 100644
+--- a/providers/v1/scaleway/go.mod
++++ b/providers/v1/scaleway/go.mod
+@@ -69,7 +69,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/scaleway/go.sum b/providers/v1/scaleway/go.sum
+index dd75a3c..1a069a6 100644
+--- a/providers/v1/scaleway/go.sum
++++ b/providers/v1/scaleway/go.sum
+@@ -170,8 +170,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/secretserver/go.mod b/providers/v1/secretserver/go.mod
+index 7fd77a3..815bc7a 100644
+--- a/providers/v1/secretserver/go.mod
++++ b/providers/v1/secretserver/go.mod
+@@ -72,7 +72,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/secretserver/go.sum b/providers/v1/secretserver/go.sum
+index 7620fb3..3b30775 100644
+--- a/providers/v1/secretserver/go.sum
++++ b/providers/v1/secretserver/go.sum
+@@ -172,8 +172,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/providers/v1/vault/go.mod b/providers/v1/vault/go.mod
+index 2cfdfb8..d407546 100644
+--- a/providers/v1/vault/go.mod
++++ b/providers/v1/vault/go.mod
+@@ -139,7 +139,7 @@ require (
+ 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+ 	golang.org/x/sys v0.49.0 // indirect
+diff --git a/providers/v1/vault/go.sum b/providers/v1/vault/go.sum
+index 9216967..91bb79c 100644
+--- a/providers/v1/vault/go.sum
++++ b/providers/v1/vault/go.sum
+@@ -344,8 +344,8 @@ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+ golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.0.0-20200202094626-16171245cfb2/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
+diff --git a/providers/v1/volcengine/go.mod b/providers/v1/volcengine/go.mod
+index 5c5b59e..c9af24c 100644
+--- a/providers/v1/volcengine/go.mod
++++ b/providers/v1/volcengine/go.mod
+@@ -72,7 +72,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/volcengine/go.sum b/providers/v1/volcengine/go.sum
+index af57a5e..f479b8e 100644
+--- a/providers/v1/volcengine/go.sum
++++ b/providers/v1/volcengine/go.sum
+@@ -582,8 +582,8 @@ golang.org/x/crypto v0.0.0-20210915214749-c084706c2272/go.mod h1:GvvjBRRGRdwPK5y
+ golang.org/x/crypto v0.0.0-20210920023735-84f357641f63/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
+ golang.org/x/crypto v0.0.0-20210921155107-089bfa567519/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
+ golang.org/x/crypto v0.11.0/go.mod h1:xgJhtzW8F9jGdVFWZESrid1U1bjeNy4zgy5cRr/CIio=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/exp v0.0.0-20180321215751-8460e604b9de/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
+ golang.org/x/exp v0.0.0-20180807140117-3d87b88a115f/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
+ golang.org/x/exp v0.0.0-20190121172915-509febef88a4/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
+diff --git a/providers/v1/webhook/go.mod b/providers/v1/webhook/go.mod
+index 385961a..0b7d201 100644
+--- a/providers/v1/webhook/go.mod
++++ b/providers/v1/webhook/go.mod
+@@ -69,7 +69,7 @@ require (
+ 	github.com/x448/float16 v0.8.4 // indirect
+ 	go.yaml.in/yaml/v2 v2.4.4 // indirect
+ 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+-	golang.org/x/crypto v0.58.0 // indirect
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 // indirect
+ 	golang.org/x/net v0.61.0 // indirect
+ 	golang.org/x/oauth2 v0.37.0 // indirect
+ 	golang.org/x/sync v0.24.0 // indirect
+diff --git a/providers/v1/webhook/go.sum b/providers/v1/webhook/go.sum
+index fbdcd07..ec48444 100644
+--- a/providers/v1/webhook/go.sum
++++ b/providers/v1/webhook/go.sum
+@@ -171,8 +171,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
+diff --git a/runtime/go.mod b/runtime/go.mod
+index 69a0f55..4f63864 100644
+--- a/runtime/go.mod
++++ b/runtime/go.mod
+@@ -19,7 +19,7 @@ require (
+ 	github.com/spf13/cast v1.10.0
+ 	github.com/spf13/pflag v1.0.10
+ 	github.com/stretchr/testify v1.12.1
+-	golang.org/x/crypto v0.58.0
++	golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2
+ 	k8s.io/api v0.37.1
+ 	k8s.io/apiextensions-apiserver v0.37.1
+ 	k8s.io/apimachinery v0.37.1
+diff --git a/runtime/go.sum b/runtime/go.sum
+index 05cfea4..e2668bf 100644
+--- a/runtime/go.sum
++++ b/runtime/go.sum
+@@ -164,8 +164,8 @@ go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
+ go.yaml.in/yaml/v2 v2.4.4/go.mod h1:gMZqIpDtDqOfM0uNfy0SkpRhvUryYH0Z6wdMYcacYXQ=
+ go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
+-golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
+-golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2 h1:zGDaB+/Mus2mScKvZ23k+W9NAUbP56sNM9SptgvWI5A=
++golang.org/x/crypto v0.58.1-0.20261009181718-2f1f834330b2/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+ golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+ golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+ golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
