@@ -1,28 +1,26 @@
 upstreamTag: v0.15.0
 commit: bce7b4305e378558f20420aa2ca48686cec850d0
-revision: 5
-releasedAt: '2026-10-30T16:28:50Z'
+revision: 6
+releasedAt: '2026-11-03T21:19:31Z'
 platforms:
 - linux/amd64
 - linux/arm64
 images:
 - name: copa
-  ref: ghcr.io/therickybobbeh/copa:v0.15.0-patched.5
-  digest: sha256:61eec1fd0c683241c050bd6abd9703a28909aacab365ce626a72ea5376eb1b87
+  ref: ghcr.io/therickybobbeh/copa:v0.15.0-patched.6
+  digest: sha256:a2b501f4d388caf1a76ea743464395df6a1718eb03a03603e2caaad45b161e93
   knownFixable:
-  - CVE-2026-78661|golang.org/x/net|usr/local/bin/copa
-  - CVE-2026-97045|golang.org/x/net|usr/local/bin/copa
+  - GO-2026-5932|golang.org/x/crypto|usr/local/bin/copa
 - name: copacetic-frontend
-  ref: ghcr.io/therickybobbeh/copacetic-frontend:v0.15.0-patched.5
-  digest: sha256:0f358e5c5ea1150f5e70a2351cb06b8d5d693392ebfa3678329917ebea02e706
+  ref: ghcr.io/therickybobbeh/copacetic-frontend:v0.15.0-patched.6
+  digest: sha256:5c5a982a025aa534c6f2bbb2575692fb8995ee0723cd30994849a86d8df2daa0
   knownFixable:
-  - CVE-2026-78661|golang.org/x/net|copa-frontend
-  - CVE-2026-97045|golang.org/x/net|copa-frontend
-  - DLA-4792-1|tzdata|ghcr.io/therickybobbeh/copacetic-frontend@sha256:0f358e5c5ea1150f5e70a2351cb06b8d5d693392ebfa3678329917ebea02e706
+  - DLA-4792-1|tzdata|ghcr.io/therickybobbeh/copacetic-frontend@sha256:5c5a982a025aa534c6f2bbb2575692fb8995ee0723cd30994849a86d8df2daa0
     (debian 12.15)
-  - DLA-4845-1|ca-certificates|ghcr.io/therickybobbeh/copacetic-frontend@sha256:0f358e5c5ea1150f5e70a2351cb06b8d5d693392ebfa3678329917ebea02e706
+  - DLA-4845-1|ca-certificates|ghcr.io/therickybobbeh/copacetic-frontend@sha256:5c5a982a025aa534c6f2bbb2575692fb8995ee0723cd30994849a86d8df2daa0
     (debian 12.15)
-  - DLA-4854-1|tzdata|ghcr.io/therickybobbeh/copacetic-frontend@sha256:0f358e5c5ea1150f5e70a2351cb06b8d5d693392ebfa3678329917ebea02e706
+  - DLA-4854-1|tzdata|ghcr.io/therickybobbeh/copacetic-frontend@sha256:5c5a982a025aa534c6f2bbb2575692fb8995ee0723cd30994849a86d8df2daa0
     (debian 12.15)
-  - DLA-4867-1|tzdata|ghcr.io/therickybobbeh/copacetic-frontend@sha256:0f358e5c5ea1150f5e70a2351cb06b8d5d693392ebfa3678329917ebea02e706
+  - DLA-4867-1|tzdata|ghcr.io/therickybobbeh/copacetic-frontend@sha256:5c5a982a025aa534c6f2bbb2575692fb8995ee0723cd30994849a86d8df2daa0
     (debian 12.15)
+  - GO-2026-5932|golang.org/x/crypto|copa-frontend
