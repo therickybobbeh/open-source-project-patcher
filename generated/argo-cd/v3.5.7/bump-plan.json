@@ -719,6 +719,13 @@
       "owner": "platform-team",
       "expires": "2027-04-30",
       "filter": null
+    },
+    {
+      "match": "^TestVerifyCommitSignature$",
+      "reason": "Fetches the whole argo-cd repository with tags from GitHub (util/git); timed out after 90s on 2026-11-03 while the unpatched baseline's fetch made it, unrelated to dependency updates",
+      "owner": "platform-team",
+      "expires": "2027-04-30",
+      "filter": null
     }
   ],
   "tests": {
