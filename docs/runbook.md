@@ -25,6 +25,10 @@ For the people who review patch PRs and operate the pipeline. Background is in
 5. **Release lines:** edit each recipe's `source.lines` to the versions you actually run.
 6. **First run:** *Actions → patch → Run workflow*, `recipe=dex`. Check the job summary (the report
    is posted there), then the PR it opens.
+7. **Onboarding site:** *Settings → Pages → Build and deployment → Source: GitHub Actions*. `pages.yml` then publishes
+   `site/` with what is released now (`state/`) on every change to them, at `https://<owner>.github.io/<repo>/`. On
+   GitHub Enterprise Cloud, a private or internal repository's site can be limited to members of the organization
+   (*Pages → Visibility*).
 
 ## Self-hosted runners
 
@@ -233,8 +237,8 @@ Two runs never patch the same line at once: the second one waits.
 
 ### Failure alerts
 
-`ci-alerts.yml` follows every run on `main` of patch, release, rescan, patcher-image, tool-pins
-and wiki history. Each failed or timed-out job opens an issue labelled `ci-failure`, titled
+`ci-alerts.yml` follows every run on `main` of patch, release, rescan, patcher-image, tool-pins,
+wiki history and pages. Each failed or timed-out job opens an issue labelled `ci-failure`, titled
 `CI failure: <workflow> / <job>`. The issue names the failed step and links the job log. Another
 failure of the same job adds a comment. The issue closes itself the next time that job passes, so the
 open `ci-failure` issues are exactly what is broken now. Watch the label, or subscribe to it, to get

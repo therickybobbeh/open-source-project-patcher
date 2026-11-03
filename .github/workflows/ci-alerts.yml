@@ -4,7 +4,7 @@ name: ci alerts
 
 on:
   workflow_run:
-    workflows: [patch, release, rescan, patcher-image, tool-pins, wiki history]
+    workflows: [patch, release, rescan, patcher-image, tool-pins, wiki history, pages]
     types: [completed]
 
 permissions:

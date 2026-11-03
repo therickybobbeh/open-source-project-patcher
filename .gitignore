@@ -10,3 +10,4 @@ __pycache__/
 .DS_Store
 # Claude Code agent worktrees (nested git checkouts)
 .claude/worktrees/
+site/releases.json   # written by pages.yml at deploy time

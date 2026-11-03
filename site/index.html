@@ -1,0 +1,943 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>support-images field guide</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="How the support-images pipeline rebuilds, releases and watches the open-source images we run.">
+<style>
+/* Layout: a field guide. One reading column under a sticky section bar; the figures (trust map, schedule,
+   release table) break out wider. Upstream code is marked warm, our own jobs cool: the trust boundary is the palette. */
+:root {
+  --bg: #f3f5f7;
+  --surface: #ffffff;
+  --sunk: #e8edf1;
+  --ink: #15212c;
+  --muted: #566676;
+  --line: #d3dbe2;
+  --accent: #0b6b72;
+  --accent-ink: #07545a;
+  --accent-soft: #d6ecee;
+  --up: #a8561a;
+  --up-soft: #f8ecdf;
+  --up-line: #e6c4a2;
+  --ours-soft: #e4f0f1;
+  --ours-line: #a7cfd3;
+  --you-soft: #ece8f4;
+  --you-line: #c4b8dc;
+  --you: #5b4a8a;
+  --crit: #b3234b;
+  --high: #c0560f;
+  --med: #8c6b00;
+  --low: #607181;
+  --ok: #1c7a3b;
+  --code-bg: #eaeff3;
+  --shadow: 0 1px 2px rgb(21 33 44 / 6%), 0 4px 14px rgb(21 33 44 / 6%);
+  --font-display: "Iowan Old Style", "Charter", "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --s-1: 0.8125rem;
+  --s0: 1rem;
+  --s1: 1.1875rem;
+  --s2: 1.5rem;
+  --s3: 2rem;
+  --s4: clamp(2.1rem, 1.4rem + 2.6vw, 3.1rem);
+  --radius: 6px;
+  --read: 44rem;
+  --wide: 70rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e151c; --surface: #141e28; --sunk: #1a2632; --ink: #e2e9ef; --muted: #97a6b4; --line: #26333f;
+    --accent: #4dc0c7; --accent-ink: #8bdbe0; --accent-soft: #11363a;
+    --up: #f0a469; --up-soft: #2a1d12; --up-line: #6a4625; --ours-soft: #102629; --ours-line: #275a5e;
+    --you-soft: #1e1a2b; --you-line: #4a3f6e; --you: #b9a8ea;
+    --crit: #ff7094; --high: #ff9b55; --med: #e2b444; --low: #9aabba; --ok: #4cc46e;
+    --code-bg: #1a2530; --shadow: 0 1px 2px rgb(0 0 0 / 35%), 0 4px 14px rgb(0 0 0 / 25%);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e151c; --surface: #141e28; --sunk: #1a2632; --ink: #e2e9ef; --muted: #97a6b4; --line: #26333f;
+  --accent: #4dc0c7; --accent-ink: #8bdbe0; --accent-soft: #11363a;
+  --up: #f0a469; --up-soft: #2a1d12; --up-line: #6a4625; --ours-soft: #102629; --ours-line: #275a5e;
+  --you-soft: #1e1a2b; --you-line: #4a3f6e; --you: #b9a8ea;
+  --crit: #ff7094; --high: #ff9b55; --med: #e2b444; --low: #9aabba; --ok: #4cc46e;
+  --code-bg: #1a2530; --shadow: 0 1px 2px rgb(0 0 0 / 35%), 0 4px 14px rgb(0 0 0 / 25%);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 4.5rem; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--s0);
+  line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+}
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface);
+}
+a { color: var(--accent-ink); text-underline-offset: 0.18em; }
+a:hover { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+code, kbd, pre, .mono { font-family: var(--font-mono); font-size: 0.875em; }
+code { background: var(--code-bg); padding: 0.08em 0.35em; border-radius: 4px; overflow-wrap: anywhere; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; line-height: 1.15; text-wrap: balance; margin: 0; }
+h2 { font-size: var(--s3); }
+h3 { font-size: var(--s1); }
+p { margin: 0; }
+ul, ol { margin: 0; padding-left: 1.2rem; }
+li + li { margin-top: 0.3rem; }
+
+.wrap { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.read { max-width: var(--read); margin-inline: auto; }
+.wide { max-width: var(--wide); margin-inline: auto; }
+.eyebrow {
+  font-family: var(--font-mono); font-size: var(--s-1); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+}
+.lede { color: var(--muted); font-size: var(--s1); line-height: 1.5; max-width: 40rem; }
+.muted { color: var(--muted); }
+.small { font-size: var(--s-1); }
+
+/* top bar */
+.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--surface); border-bottom: 1px solid var(--line);
+}
+.top-in { display: flex; align-items: center; gap: 1rem; min-height: 3.25rem; }
+.brand { font-family: var(--font-mono); font-weight: 600; font-size: 0.9375rem; color: var(--ink); text-decoration: none; white-space: nowrap; }
+.brand span { color: var(--accent); }
+.nav { display: flex; gap: 0.25rem; overflow-x: auto; scrollbar-width: none; min-width: 0; }
+.nav::-webkit-scrollbar { display: none; }
+.nav a {
+  color: var(--muted); text-decoration: none; font-size: 0.875rem; padding: 0.35rem 0.6rem; border-radius: 999px; white-space: nowrap;
+}
+.nav a:hover, .nav a[aria-current="true"] { color: var(--ink); background: var(--sunk); }
+
+main { display: flex; flex-direction: column; gap: 4.5rem; padding-block: 3rem 5rem; }
+section { display: flex; flex-direction: column; gap: 1.25rem; }
+.head { display: flex; flex-direction: column; gap: 0.5rem; }
+
+/* hero */
+.hero { display: grid; gap: 2rem; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; }
+.hero h1 { font-size: var(--s4); letter-spacing: -0.01em; }
+.hero-copy { display: flex; flex-direction: column; gap: 1.1rem; min-width: 0; }
+.paths { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.path {
+  display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 0.85rem; border: 1px solid var(--line);
+  border-radius: 999px; background: var(--surface); color: var(--ink); text-decoration: none; font-size: 0.9375rem;
+}
+.path:hover { border-color: var(--accent); color: var(--accent-ink); }
+.path b { font-weight: 600; }
+
+.exhibit { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+.tags { display: flex; flex-direction: column; gap: 0.5rem; }
+.tag {
+  position: relative; display: flex; align-items: center; gap: 0.5rem; padding: 0.55rem 0.8rem 0.55rem 1.6rem;
+  border: 1px solid var(--line); border-radius: 4px 999px 999px 4px; background: var(--sunk);
+  font-family: var(--font-mono); font-size: 0.8125rem; min-width: 0;
+}
+.tag::before { content: ""; position: absolute; left: 0.6rem; top: 50%; width: 0.45rem; height: 0.45rem; margin-top: -0.225rem; border-radius: 50%; background: var(--bg); border: 1px solid var(--line); }
+.tag .ref { overflow-wrap: anywhere; }
+.tag.ours { background: var(--accent-soft); border-color: var(--ours-line); }
+.tag.ours .ref b { color: var(--accent-ink); font-weight: 600; }
+.tag small { margin-left: auto; color: var(--muted); font-family: var(--font-body); white-space: nowrap; }
+.arrow-down { color: var(--muted); font-size: 0.8125rem; padding-left: 1.6rem; }
+.bars { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.45rem 0.75rem; align-items: center; font-size: 0.875rem; }
+.bar { display: flex; height: 0.85rem; border-radius: 3px; overflow: hidden; background: var(--sunk); }
+.bar i { display: block; height: 100%; }
+.c { background: var(--crit); } .h { background: var(--high); } .m { background: var(--med); } .l { background: var(--low); }
+.bar-row { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
+.counts { font-family: var(--font-mono); font-size: 0.8125rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.counts b { color: var(--ink); font-weight: 600; }
+.legend { display: flex; flex-wrap: wrap; gap: 0.35rem 0.9rem; font-size: var(--s-1); color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
+.legend i { width: 0.7rem; height: 0.7rem; border-radius: 2px; display: inline-block; }
+
+/* comparison */
+.table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.9375rem; }
+th, td { text-align: left; padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+thead th { font-size: var(--s-1); font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; background: var(--sunk); }
+tbody tr:last-child td { border-bottom: 0; }
+.yes { color: var(--ok); font-weight: 600; }
+.no { color: var(--muted); }
+
+/* trust map */
+.lanes-key { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; font-size: 0.875rem; }
+.key { display: inline-flex; align-items: center; gap: 0.5rem; }
+.swatch { width: 1.1rem; height: 0.8rem; border-radius: 3px; border: 1px solid; display: inline-block; }
+.swatch.up { background: var(--up-soft); border-color: var(--up-line); }
+.swatch.ours { background: var(--ours-soft); border-color: var(--ours-line); }
+.swatch.you { background: var(--you-soft); border-color: var(--you-line); }
+.map-wrap { position: relative; }
+.map { position: relative; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); grid-template-rows: auto auto auto; gap: 1.1rem 0.7rem; }
+.band { grid-column: 1 / -1; border-radius: 8px; border: 1px dashed; }
+.band.up { grid-row: 1; background: var(--up-soft); border-color: var(--up-line); }
+.band.ours { grid-row: 3; background: var(--ours-soft); border-color: var(--ours-line); }
+.node {
+  position: relative; z-index: 1; margin: 0.6rem 0.15rem; padding: 0.6rem 0.55rem; text-align: left; cursor: pointer;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: var(--radius);
+  font: inherit; font-size: 0.875rem; line-height: 1.3; display: flex; flex-direction: column; gap: 0.2rem; min-width: 0;
+}
+.node .n-title { font-weight: 600; }
+.node .n-where { font-family: var(--font-mono); font-size: 0.6875rem; color: var(--muted); overflow-wrap: anywhere; }
+.node:hover { border-color: var(--accent); }
+.node[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+.node.up { border-left: 4px solid var(--up); }
+.node.ours { border-left: 4px solid var(--accent); }
+.node.you { border-left: 4px solid var(--you); margin: 0 0.15rem; }
+.wires { position: absolute; inset: 0; pointer-events: none; overflow: visible; z-index: 0; }
+.wires path { fill: none; stroke: var(--muted); stroke-width: 1.4; }
+.wires path.loop { stroke-dasharray: 6 4; }
+.wires path.copa { stroke-dasharray: 1.5 3.5; stroke-linecap: round; }
+.loops { display: flex; flex-wrap: wrap; gap: 0.4rem 1.5rem; font-size: 0.875rem; color: var(--muted); }
+.loops span { display: inline-flex; align-items: center; gap: 0.5rem; }
+.loops svg { flex: none; }
+.loops line { stroke: var(--muted); stroke-width: 1.6; }
+.wires .head-fill { fill: var(--muted); }
+.detail {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.1rem 1.25rem;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 15rem); gap: 1rem 2rem; box-shadow: var(--shadow);
+}
+.detail h3 { font-size: var(--s2); }
+.detail .d-main { display: flex; flex-direction: column; gap: 0.6rem; min-width: 0; }
+.detail .d-side { display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.875rem; min-width: 0; }
+.detail .d-side dt { font-size: var(--s-1); color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.detail .d-side dd { margin: 0.1rem 0 0; }
+.badge { display: inline-block; font-size: var(--s-1); padding: 0.1rem 0.5rem; border-radius: 999px; border: 1px solid; width: fit-content; }
+.badge.up { color: var(--up); background: var(--up-soft); border-color: var(--up-line); }
+.badge.ours { color: var(--accent-ink); background: var(--ours-soft); border-color: var(--ours-line); }
+.badge.you { color: var(--you); background: var(--you-soft); border-color: var(--you-line); }
+
+@media (max-width: 900px) {
+  .hero { grid-template-columns: minmax(0, 1fr); }
+  .loops .curve { display: none; }
+  .map { display: flex; flex-direction: column; gap: 0.9rem; }
+  .band, .wires { display: none; }
+  .node { margin: 0; }
+  .node.up { background: var(--up-soft); }
+  .node.ours { background: var(--ours-soft); }
+  .node.you { background: var(--you-soft); margin: 0; }
+  .node:not(:last-child)::after { content: "↓"; position: absolute; left: 50%; bottom: -0.95rem; color: var(--muted); font-size: 0.75rem; line-height: 1; }
+  .detail { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* schedule */
+.sched { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.25rem 1.25rem; display: flex; flex-direction: column; gap: 0.9rem; }
+.srow { display: grid; grid-template-columns: minmax(0, 12rem) minmax(0, 1fr); gap: 0.4rem 1rem; align-items: center; }
+.srow .s-name { font-size: 0.9375rem; font-weight: 600; line-height: 1.25; }
+.srow .s-name small { display: block; font-weight: 400; color: var(--muted); font-size: var(--s-1); }
+.track { position: relative; height: 1.5rem; border-radius: 4px; background: repeating-linear-gradient(90deg, var(--sunk) 0 calc(25% - 1px), var(--line) calc(25% - 1px) 25%); }
+.track .band-obs { position: absolute; top: 0.25rem; bottom: 0.25rem; border-radius: 3px; background: var(--accent); opacity: 0.85; }
+.track .tick { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px dashed var(--muted); }
+.track .tick::after { content: attr(data-t); position: absolute; top: -1.15rem; left: -1.2rem; width: 2.4rem; text-align: center; font-family: var(--font-mono); font-size: 0.6875rem; color: var(--muted); }
+.axis { display: grid; grid-template-columns: minmax(0, 12rem) minmax(0, 1fr); gap: 1rem; }
+.axis .hours { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.6875rem; color: var(--muted); }
+.sched-key { display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; font-size: var(--s-1); color: var(--muted); }
+.sched-key i { display: inline-block; vertical-align: middle; margin-right: 0.35rem; }
+.k-tick { width: 0; height: 0.9rem; border-left: 2px dashed var(--muted); }
+.k-band { width: 1.2rem; height: 0.6rem; border-radius: 2px; background: var(--accent); opacity: 0.85; }
+.events { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 0.6rem; }
+.event { border: 1px solid var(--line); border-radius: var(--radius); padding: 0.6rem 0.8rem; background: var(--surface); font-size: 0.875rem; display: flex; flex-direction: column; gap: 0.15rem; }
+.event b { font-weight: 600; }
+@media (max-width: 640px) {
+  .srow, .axis { grid-template-columns: minmax(0, 1fr); }
+  .axis > span { display: none; }
+  .srow { gap: 1.2rem; }
+}
+
+/* stepper */
+.story { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; }
+.steps-nav { display: flex; gap: 0; overflow-x: auto; border-bottom: 1px solid var(--line); background: var(--sunk); }
+.steps-nav button {
+  flex: 1 0 auto; font: inherit; font-size: var(--s-1); padding: 0.6rem 0.8rem; background: none; border: 0; border-bottom: 2px solid transparent;
+  color: var(--muted); cursor: pointer; white-space: nowrap; font-family: var(--font-mono);
+}
+.steps-nav button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); background: var(--surface); }
+.step { padding: 1.25rem; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.25rem 2rem; }
+.step h3 { font-size: var(--s2); }
+.step .s-copy { display: flex; flex-direction: column; gap: 0.6rem; min-width: 0; }
+.artifact { background: var(--code-bg); border-radius: var(--radius); padding: 0.85rem 1rem; font-family: var(--font-mono); font-size: 0.8125rem; line-height: 1.55; overflow-x: auto; white-space: pre; min-width: 0; color: var(--ink); }
+.artifact .dim { color: var(--muted); }
+.artifact .add { color: var(--ok); }
+.artifact .hold { color: var(--high); }
+.step-controls { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 0 1.25rem 1.1rem; }
+.btn {
+  font: inherit; font-size: 0.875rem; padding: 0.45rem 0.9rem; border-radius: var(--radius); border: 1px solid var(--line);
+  background: var(--surface); color: var(--ink); cursor: pointer;
+}
+.btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent-ink); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+@media (max-width: 760px) { .step { grid-template-columns: minmax(0, 1fr); } }
+
+/* rules */
+.rules { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+.rule { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 0.9rem 1rem; display: flex; flex-direction: column; gap: 0.45rem; min-width: 0; }
+.rule h3 { font-family: var(--font-body); font-size: 1rem; font-weight: 650; }
+.rule p { font-size: 0.9375rem; color: var(--muted); }
+.rule .shows { font-family: var(--font-mono); font-size: 0.75rem; color: var(--ink); background: var(--code-bg); padding: 0.35rem 0.5rem; border-radius: 4px; overflow-wrap: anywhere; margin-top: auto; }
+@media (max-width: 700px) { .rules { grid-template-columns: minmax(0, 1fr); } }
+
+/* releases */
+.toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; justify-content: space-between; }
+.search { font: inherit; font-size: 0.9375rem; padding: 0.45rem 0.7rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); width: min(100%, 18rem); }
+.rel tbody tr { cursor: pointer; }
+.rel tbody tr:hover td { background: var(--sunk); }
+.rel tbody tr[aria-selected="true"] td { background: var(--accent-soft); }
+.rel td { font-variant-numeric: tabular-nums; }
+.pill { display: inline-block; font-family: var(--font-mono); font-size: 0.75rem; padding: 0.1rem 0.45rem; border-radius: 4px; background: var(--sunk); border: 1px solid var(--line); margin: 0.1rem 0.25rem 0.1rem 0; white-space: nowrap; }
+.rel .proj b { display: block; }
+.rel .proj span { color: var(--muted); font-size: var(--s-1); }
+.status-note { font-size: var(--s-1); color: var(--muted); }
+.cmds { display: flex; flex-direction: column; gap: 0.75rem; }
+.cmd { position: relative; }
+.cmd pre { margin: 0; background: var(--code-bg); border-radius: var(--radius); padding: 0.85rem 1rem; padding-right: 4.75rem; overflow-x: auto; font-size: 0.8125rem; line-height: 1.55; color: var(--ink); }
+.cmd .copy { position: absolute; top: 0.5rem; right: 0.5rem; font-size: 0.75rem; padding: 0.25rem 0.6rem; }
+.cmd-label { font-size: 0.875rem; font-weight: 600; margin-bottom: 0.35rem; }
+.cmd-label span { font-weight: 400; color: var(--muted); }
+
+/* onboarding */
+.howto { counter-reset: s; list-style: none; padding: 0; display: flex; flex-direction: column; gap: 0.9rem; }
+.howto > li { counter-increment: s; position: relative; padding-left: 2.6rem; margin: 0; }
+.howto > li::before {
+  content: counter(s); position: absolute; left: 0; top: 0.05rem; width: 1.8rem; height: 1.8rem; border-radius: 50%;
+  display: grid; place-items: center; font-family: var(--font-mono); font-size: 0.8125rem; background: var(--accent-soft); color: var(--accent-ink); border: 1px solid var(--ours-line);
+}
+.howto h3 { font-family: var(--font-body); font-size: 1rem; font-weight: 650; margin-bottom: 0.2rem; }
+.howto pre { margin: 0.45rem 0 0; background: var(--code-bg); border-radius: var(--radius); padding: 0.65rem 0.85rem; overflow-x: auto; font-size: 0.8125rem; }
+
+/* glossary */
+.terms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.25rem 2rem; margin: 0; }
+.terms div { padding: 0.65rem 0; border-bottom: 1px solid var(--line); min-width: 0; }
+.terms dt { font-weight: 650; }
+.terms dd { margin: 0.15rem 0 0; color: var(--muted); font-size: 0.9375rem; }
+@media (max-width: 700px) { .terms { grid-template-columns: minmax(0, 1fr); } }
+
+footer { border-top: 1px solid var(--line); padding-block: 1.5rem 2.5rem; color: var(--muted); font-size: 0.875rem; }
+footer .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.5rem; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in wrap wide">
+    <a class="brand" href="#top">support<span>-</span>images</a>
+    <nav class="nav" aria-label="Sections">
+      <a href="#what">What it does</a>
+      <a href="#flow">How it runs</a>
+      <a href="#day">A day</a>
+      <a href="#life">Life of a fix</a>
+      <a href="#rules">Bump rules</a>
+      <a href="#use">Use the images</a>
+      <a href="#onboard">Add a project</a>
+      <a href="#github">In GitHub</a>
+      <a href="#terms">Terms</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="wrap wide" aria-labelledby="hero-title">
+    <div class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Field guide</p>
+        <h1 id="hero-title">The open-source images we run, rebuilt with their vulnerable dependencies fixed.</h1>
+        <p class="lede">support-images takes each project's upstream release, bumps what is vulnerable within a policy, runs
+          the project's own tests, patches leftover OS packages with Copa, and signs what it publishes. Every rebuild
+          starts as a pull request that a person reviews and merges.</p>
+        <div class="paths" aria-label="Start here">
+          <a class="path" href="#use"><b>I deploy these images</b> →</a>
+          <a class="path" href="#onboard"><b>I'm adding a project</b> →</a>
+          <a class="path" href="#github"><b>I look after the pipeline</b> →</a>
+        </div>
+      </div>
+      <figure class="exhibit" aria-labelledby="ex-cap" style="margin:0">
+        <div class="tags">
+          <div class="tag"><span class="ref">quay.io/argoproj/argocd:v3.4.13</span><small>upstream</small></div>
+          <div class="arrow-down" aria-hidden="true">↓ rebuilt from the v3.4.13 source</div>
+          <div class="tag ours"><span class="ref"><span data-registry>ghcr.io/therickybobbeh</span>/argocd:<b>v3.4.13-patched.1</b></span><small>ours</small></div>
+        </div>
+        <div class="bars" role="img" aria-label="Fixable vulnerabilities: upstream image 4 critical, 153 high, 147 medium, 12 low; rebuilt image 0 critical, 5 high, 4 medium, 1 low">
+          <span class="small muted">Upstream</span>
+          <div class="bar-row">
+            <div class="bar" aria-hidden="true"><i class="c" style="width:1.27%"></i><i class="h" style="width:48.42%"></i><i class="m" style="width:46.52%"></i><i class="l" style="width:3.8%"></i></div>
+            <span class="counts"><b>4</b> / <b>153</b> / <b>147</b> / <b>12</b></span>
+          </div>
+          <span class="small muted">Ours</span>
+          <div class="bar-row">
+            <div class="bar" aria-hidden="true"><i class="h" style="width:1.58%"></i><i class="m" style="width:1.27%"></i><i class="l" style="width:0.32%"></i></div>
+            <span class="counts"><b>0</b> / <b>5</b> / <b>4</b> / <b>1</b></span>
+          </div>
+        </div>
+        <div class="legend" aria-hidden="true">
+          <span><i class="c"></i>critical</span><span><i class="h"></i>high</span><span><i class="m"></i>medium</span><span><i class="l"></i>low</span>
+        </div>
+        <figcaption id="ex-cap" class="small muted">From the patch PR for Argo CD v3.4.13 (Nov 3, 2026), both bars on one
+          scale. The five highs left are in bundled tools: <code>golang.org/x/text</code> in kustomize needs a bump beyond
+          the patch-level policy, and <code>oras-go</code> in helm 3 is held because helm's registry-login test fails with it.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section id="what" class="wrap read" aria-labelledby="what-title">
+    <div class="head">
+      <p class="eyebrow">What it does</p>
+      <h2 id="what-title">Most CVEs live in the code an image ships</h2>
+      <p class="lede">Copa patches OS packages in place. The Go modules, npm packages, jars and bundled tools inside an
+        image only change when it is rebuilt from source, so that is what this pipeline does, with Copa as its last step.</p>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th scope="col">Where the vulnerable code is</th><th scope="col">Copa alone</th><th scope="col">support-images</th></tr></thead>
+        <tbody>
+          <tr><td>OS packages (apt, apk, rpm)</td><td class="yes">patched</td><td class="yes">patched, by Copa after the rebuild</td></tr>
+          <tr><td>Go modules, npm, pnpm, yarn, Maven, Gradle, Python, Cargo</td><td class="no">no</td><td class="yes">bumped in the source, rebuilt</td></tr>
+          <tr><td>Go standard library</td><td class="no">no</td><td class="yes">rebuilt with a fixed Go release</td></tr>
+          <tr><td>Bundled tools (helm, kustomize, git-lfs, gomplate, credential helpers)</td><td class="no">no</td><td class="yes">rebuilt from their own source and swapped in</td></tr>
+          <tr><td>Jars inside a bundled Java distribution</td><td class="no">no</td><td class="yes">swapped for the fixed release, pinned by sha256</td></tr>
+          <tr><td>Proof the result still works</td><td class="no">none</td><td class="yes">upstream's own test suite, plus smoke tests</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="flow" class="wrap wide" aria-labelledby="flow-title">
+    <div class="head read" style="margin-inline:0">
+      <p class="eyebrow">How it runs</p>
+      <h2 id="flow-title">From an upstream release to a signed image</h2>
+      <p class="lede">Each job either runs upstream's code or holds credentials, never both. Building or testing a project
+        runs its code with root on the runner, so those jobs get nothing worth stealing. Select a step for what it does.</p>
+    </div>
+    <div class="lanes-key" aria-hidden="true">
+      <span class="key"><i class="swatch up"></i>Runs upstream code. Holds no credentials</span>
+      <span class="key"><i class="swatch ours"></i>Runs only our code. Holds what it needs</span>
+      <span class="key"><i class="swatch you"></i>A person decides</span>
+    </div>
+    <div class="map-wrap">
+      <div class="map" id="map">
+        <div class="band up" aria-hidden="true"></div>
+        <div class="band ours" aria-hidden="true"></div>
+        <svg class="wires" id="wires" aria-hidden="true"></svg>
+      </div>
+    </div>
+    <div class="loops">
+      <span><svg class="curve" width="34" height="8" aria-hidden="true"><line x1="1" y1="4" x2="33" y2="4" stroke-dasharray="6 4"></line></svg>The rescan starts a patch run: new findings in the code, or fixes a release held back that can go in now</span>
+      <span><svg class="curve" width="34" height="8" aria-hidden="true"><line x1="1" y1="4" x2="33" y2="4" stroke-dasharray="1.5 3.5" stroke-linecap="round"></line></svg>Or a Copa refresh, when only OS packages need fixes: a new revision, no rebuild</span>
+    </div>
+    <div class="detail" id="detail" aria-live="polite"></div>
+  </section>
+
+  <section id="day" class="wrap wide" aria-labelledby="day-title">
+    <div class="head read" style="margin-inline:0">
+      <p class="eyebrow">A day, in UTC</p>
+      <h2 id="day-title">What runs when</h2>
+      <p class="lede">The dashed line is each schedule's cron time. GitHub starts scheduled runs late: in this repository
+        they have started 6 to 10 hours after it, in the shaded window.</p>
+    </div>
+    <div class="sched">
+      <div class="sched-key" aria-hidden="true"><span><i class="k-tick"></i>cron time</span><span><i class="k-band"></i>when it has started</span></div>
+      <div id="schedule" style="display:flex;flex-direction:column;gap:1.3rem;padding-top:0.6rem"></div>
+      <div class="axis" aria-hidden="true"><span></span><div class="hours"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div></div>
+    </div>
+    <div class="events">
+      <div class="event"><b>On merge of a patch PR</b><span class="muted">release.yml builds, signs and publishes that line.</span></div>
+      <div class="event"><b>On a change to a recipe</b><span class="muted">patch.yml re-runs that recipe's lines (<code>recipes/</code>, <code>skips/</code>, <code>patches/</code>, <code>vex/</code>).</span></div>
+      <div class="event"><b>After every run on main</b><span class="muted">ci-alerts opens or closes a <code>ci-failure</code> issue per job.</span></div>
+      <div class="event"><b>Two runs, one line</b><span class="muted">never at once: the second waits for the first.</span></div>
+    </div>
+  </section>
+
+  <section id="life" class="wrap wide" aria-labelledby="life-title">
+    <div class="head read" style="margin-inline:0">
+      <p class="eyebrow">Life of a fix</p>
+      <h2 id="life-title">One fix, from publication to production</h2>
+      <p class="lede">A real case from Dex v2: <code>golang.org/x/net</code> v0.62.0, which fixes CVE-2026-78661 in the
+        v0.60.0 Dex ships. Days count from the fix's release.</p>
+    </div>
+    <div class="story">
+      <div class="steps-nav" role="tablist" aria-label="Steps" id="steps-nav"></div>
+      <div id="step-body"></div>
+      <div class="step-controls">
+        <button class="btn" type="button" id="prev">← Previous</button>
+        <span class="small muted" id="step-count"></span>
+        <button class="btn" type="button" id="next">Next →</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="rules" class="wrap wide" aria-labelledby="rules-title">
+    <div class="head read" style="margin-inline:0">
+      <p class="eyebrow">Bump rules</p>
+      <h2 id="rules-title">What decides a bump</h2>
+      <p class="lede">Every rule shows up in the patch PR. A finding that stays has a reason, and the reason says what to do.</p>
+    </div>
+    <div class="rules">
+      <article class="rule"><h3>The smallest fix, within policy</h3><p>The smallest fixed version above the installed one,
+        the same minor first. The default policy allows minor bumps; anything bigger waits for a person.</p>
+        <span class="shows">needs-human: fix requires a bump beyond the `minor` policy</span></article>
+      <article class="rule"><h3>Seven days old</h3><p>A fix version must have been out for 7 days, because hijacked releases
+        are usually caught within days. CRITICAL fixes and CVEs on CISA's Known Exploited list go in at once. The nightly rescan picks the fix up once it clears.</p>
+        <span class="shows">cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)</span></article>
+      <article class="rule"><h3>Releases, not commits</h3><p>When an advisory names a commit as the fix, the bump waits for the
+        first release tagged after that commit.</p>
+        <span class="shows">untagged: the fix (v0.58.1-0.2026…) is a commit, not a release</span></article>
+      <article class="rule"><h3>Never a withdrawn release</h3><p>A version npm marks deprecated, or PyPI or crates.io yanked, is
+        replaced by the next release that stands, whatever the severity.</p>
+        <span class="shows">lodash 4.18.0 was withdrawn … 4.18.1 considered instead</span></article>
+      <article class="rule"><h3>Holds and overrides</h3><p>A recipe can hold a package (never bump it, or not past a version) or
+        force a minimum version everywhere, each with a written reason.</p>
+        <span class="shows">held: helm 3's registry login fails with oras-go 2.6.1+</span></article>
+      <article class="rule"><h3>Upstream's tests decide</h3><p>Every patch set runs the project's own suite. Failures upstream
+        already had are re-run on the unpatched source and don't block; a skipped test needs a reason, an owner and an expiry.</p>
+        <span class="shows">✅ passed in 12.4 min — make test-local</span></article>
+      <article class="rule"><h3>No known-malicious versions</h3><p>Bumped versions are checked against malicious-package
+        advisories, and test setups only install releases older than the same 7-day cutoff.</p>
+        <span class="shows">⛔ Malicious-package advisories for bumped versions</span></article>
+      <article class="rule"><h3>The release gate</h3><p>Rego rules (Open Policy Agent, through conftest) judge each image's final
+        scan. They only report for now; with <code>enforce</code> on, a denied image is never signed.</p>
+        <span class="shows">Release gate (reported only (`gate.enforce: false`))</span></article>
+    </div>
+  </section>
+
+  <section id="use" class="wrap wide" aria-labelledby="use-title">
+    <div class="head read" style="margin-inline:0">
+      <p class="eyebrow">Use the images</p>
+      <h2 id="use-title">Pull, pin, verify</h2>
+      <p class="lede">Pin an immutable tag or the digest in production. The moving tag follows the newest revision, Copa
+        refreshes included, and moves only after the image is signed and attested.</p>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th scope="col">Tag</th><th scope="col">What it is</th><th scope="col">Use it for</th></tr></thead>
+        <tbody>
+          <tr><td><code>&lt;upstream tag&gt;-patched.&lt;n&gt;</code></td><td>One release. Never rewritten</td><td>Production, or the digest</td></tr>
+          <tr><td><code>&lt;upstream tag&gt;-patched</code></td><td>The newest complete revision of that upstream tag</td><td>Dev and canary</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="toolbar">
+      <h3>Released now</h3>
+      <label class="small muted" for="filter" style="display:flex;gap:0.5rem;align-items:center">Filter
+        <input class="search" id="filter" type="search" placeholder="argo, dex, maven…" autocomplete="off">
+      </label>
+    </div>
+    <div class="table-scroll">
+      <table class="rel" id="releases">
+        <thead><tr><th scope="col">Project</th><th scope="col">Upstream</th><th scope="col">Revision</th><th scope="col">Released</th><th scope="col">Moving tags</th></tr></thead>
+        <tbody><tr><td colspan="5" class="muted">Loading the release records…</td></tr></tbody>
+      </table>
+    </div>
+    <p class="status-note" id="rel-note"></p>
+    <div class="cmds read" style="margin-inline:0">
+      <p class="muted small">Select a row to fill these in. They check that the image was signed by this repository's release
+        workflow, that its build provenance is attested, and apply our VEX decisions to a fresh scan.</p>
+      <div class="cmd"><div class="cmd-label">Signature <span>· cosign</span></div><pre id="cmd-sign"></pre><button class="btn copy" type="button" data-copy="cmd-sign">Copy</button></div>
+      <div class="cmd"><div class="cmd-label">Build provenance <span>· SLSA, GitHub attestations</span></div><pre id="cmd-prov"></pre><button class="btn copy" type="button" data-copy="cmd-prov">Copy</button></div>
+      <div class="cmd"><div class="cmd-label">VEX decisions on a fresh scan <span>· OpenVEX, Trivy</span></div><pre id="cmd-vex"></pre><button class="btn copy" type="button" data-copy="cmd-vex">Copy</button></div>
+      <div class="cmd"><div class="cmd-label">Roll the moving tag back <span>· immutable tags stay as they are</span></div><pre id="cmd-back"></pre><button class="btn copy" type="button" data-copy="cmd-back">Copy</button></div>
+    </div>
+  </section>
+
+  <section id="onboard" class="wrap read" aria-labelledby="onboard-title">
+    <div class="head">
+      <p class="eyebrow">Add a project</p>
+      <h2 id="onboard-title">From an image you run to a patched one</h2>
+      <p class="lede">Allow an afternoon for a typical project, most of it spent getting upstream's tests to run. The full
+        guide is <a data-doc="docs/onboarding.md" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/onboarding.md">docs/onboarding.md</a>.</p>
+    </div>
+    <ol class="howto">
+      <li><h3>Check whether it's covered</h3><p class="muted">Add the image to <code>inventory.yaml</code> and run the coverage
+        check. It names the patched image to switch to, a missing release line, or no recipe.</p>
+        <pre>uv run --project patcher patcher coverage</pre></li>
+      <li><h3>Draft the recipe</h3><p class="muted">From the source repository, or from the image alone for a vendor image. The
+        draft detects the release line, ecosystems, toolchains, Dockerfiles and test commands.</p>
+        <pre>cd patcher && uv run patcher init owner/repo --image quay.io/org/app:1.2.3</pre></li>
+      <li><h3>Resolve the TODOs</h3><p class="muted">One line per version you run, only the ecosystems that ship, the image you
+        run today as the "before", smoke commands, and the test command upstream's CI uses. Then validate.</p>
+        <pre>uv run --project patcher patcher validate</pre></li>
+      <li><h3>Run it locally, as CI does</h3><p class="muted">Inside the patcher image, which never pushes. The report it writes
+        is the PR body you'll review.</p>
+        <pre>scripts/patcher-docker.sh run &lt;name&gt; --out out   # out/&lt;name&gt;/&lt;line&gt;/generated/report.md</pre></li>
+      <li><h3>Open the PR, then merge what follows</h3><p class="muted">The recipe, its skips and the inventory entry. Merging starts the first
+        patch run; merge its patch PR to release, then the record-release PR.</p></li>
+    </ol>
+  </section>
+
+  <section id="github" class="wrap wide" aria-labelledby="gh-title">
+    <div class="head read" style="margin-inline:0">
+      <p class="eyebrow">In GitHub</p>
+      <h2 id="gh-title">What the pipeline asks of you</h2>
+      <p class="lede">Everything it does reaches you as a pull request or an issue with a fixed title.</p>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th scope="col">You'll see</th><th scope="col">Title</th><th scope="col">What to do</th></tr></thead>
+        <tbody>
+          <tr><td>Patch PR</td><td><code>[&lt;recipe&gt;] &lt;tag&gt;: dependency updates (&lt;status&gt;)</code></td><td>Read the report and merge to release. A draft means its tests failed</td></tr>
+          <tr><td>Release record</td><td><code>[&lt;recipe&gt;] record release of &lt;line&gt;</code></td><td>Merge it: it only records what was published</td></tr>
+          <tr><td>Copa refresh record</td><td><code>[&lt;recipe&gt;] copa refresh of &lt;line&gt;</code></td><td>Merge it. Until then the rescan skips that line</td></tr>
+          <tr><td>Tool pins (Mondays)</td><td><code>deps(tools): update pinned tool downloads in patcher/Dockerfile</code></td><td>Review and merge: the patcher image's own tools, releases at least 14 days old</td></tr>
+          <tr><td>Dependabot</td><td><code>deps(actions)</code>, <code>deps(python)</code>, <code>deps(image)</code></td><td>Review and merge: the pipeline's dependencies, with a 14-day cooldown</td></tr>
+          <tr><td>Failure alert</td><td><code>CI failure: &lt;workflow&gt; / &lt;job&gt;</code></td><td>Fix the cause. The issue closes itself when the job passes again</td></tr>
+          <tr><td>New release line</td><td><code>New release line: &lt;recipe&gt; &lt;line&gt;</code></td><td>Add the line to the recipe if you run that version</td></tr>
+          <tr><td>End of life</td><td><code>End of life: &lt;recipe&gt; &lt;runtime&gt; &lt;release&gt;</code></td><td>Plan the move off that runtime</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="muted small">Day to day: the runbook covers <a data-doc="docs/runbook.md#reviewing-a-patch-pr" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/runbook.md#reviewing-a-patch-pr">reviewing a patch PR</a>,
+      <a data-doc="docs/runbook.md#a-release-failed-after-the-builds" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/runbook.md#a-release-failed-after-the-builds">finishing a failed release</a> and
+      <a data-doc="docs/runbook.md#recording-vex-decisions" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/runbook.md#recording-vex-decisions">recording VEX decisions</a>.
+      Symptoms and fixes are in <a data-doc="docs/troubleshooting.md" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/troubleshooting.md">troubleshooting</a>.</p>
+  </section>
+
+  <section id="terms" class="wrap wide" aria-labelledby="terms-title">
+    <div class="head read" style="margin-inline:0">
+      <p class="eyebrow">Terms</p>
+      <h2 id="terms-title">The words you'll meet</h2>
+    </div>
+    <dl class="terms">
+      <div><dt>Recipe</dt><dd><code>recipes/&lt;project&gt;.yaml</code>: where the source is, which lines to follow, how to build and test it.</dd></div>
+      <div><dt>Line</dt><dd>One version stream a recipe follows, such as <code>v3.4</code>: always its newest upstream tag.</dd></div>
+      <div><dt>Patch set</dt><dd>What a patch run produced for a tag, under <code>generated/&lt;project&gt;/&lt;tag&gt;/</code>: <code>deps.patch</code>, the plan and the report. Releases rebuild exactly this.</dd></div>
+      <div><dt>Revision</dt><dd>The <code>.N</code> in <code>-patched.N</code>. Each release or Copa refresh of the same upstream tag takes a new one.</dd></div>
+      <div><dt>Component</dt><dd>A third-party binary an image bundles, such as helm in Argo CD, rebuilt from its own source and swapped in.</dd></div>
+      <div><dt>Copa refresh</dt><dd>A new revision with only OS packages patched, no rebuild. The rescan starts one when only OS packages need fixes.</dd></div>
+      <div><dt>VEX</dt><dd>A recorded decision about a finding we can't or needn't fix (<code>vex/&lt;project&gt;.yaml</code>), published with each image as OpenVEX.</dd></div>
+      <div><dt>State</dt><dd><code>state/&lt;project&gt;/&lt;line&gt;.yaml</code>: what is released now, with digests and the findings known at release.</dd></div>
+      <div><dt>Release-age rule</dt><dd>The 7-day wait before a fix version is used (<code>minReleaseAgeDays</code>). PRs call it a cooldown.</dd></div>
+      <div><dt>needs-human</dt><dd>A fix the policy won't apply on its own. Raise the policy, add an override or a patch, or record a VEX decision.</dd></div>
+    </dl>
+  </section>
+
+</main>
+
+<footer class="wrap wide">
+  <div id="provenance">Built from <a data-doc="" href="https://github.com/therickybobbeh/open-source-project-patcher">the repository</a>.</div>
+  <div class="links">
+    <a data-doc="README.md" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/README.md">README</a>
+    <a data-doc="docs/architecture.md" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/architecture.md">Architecture</a>
+    <a data-doc="docs/runbook.md" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/runbook.md">Runbook</a>
+    <a data-doc="docs/onboarding.md" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/onboarding.md">Onboarding</a>
+    <a data-doc="docs/recipes.md" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/recipes.md">Recipe reference</a>
+    <a data-doc="docs/gate.md" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/gate.md">Release gate</a>
+    <a data-doc="docs/troubleshooting.md" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/troubleshooting.md">Troubleshooting</a>
+  </div>
+</footer>
+
+<script>
+(() => {
+  "use strict";
+  const DEFAULT_REPO = "therickybobbeh/open-source-project-patcher";
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const el = (tag, attrs = {}, ...kids) => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === "class") n.className = v; else if (k === "text") n.textContent = v; else n.setAttribute(k, v);
+    }
+    for (const k of kids) n.append(k);
+    return n;
+  };
+
+  // --- which repository this describes: the deploy's own record, else the Pages address, else the default
+  function repoFromLocation() {
+    const m = location.hostname.match(/^([a-z0-9-]+)\.github\.io$/i);
+    const first = location.pathname.split("/").filter(Boolean)[0];
+    return m && first ? `${m[1]}/${first}` : "";
+  }
+  let repo = repoFromLocation() || DEFAULT_REPO;
+  const owner = () => repo.split("/")[0].toLowerCase();
+  function relink() {
+    document.querySelectorAll("a[data-doc]").forEach(a => {
+      const doc = a.getAttribute("data-doc");
+      a.href = doc ? `https://github.com/${repo}/blob/main/${doc}` : `https://github.com/${repo}`;
+    });
+    document.querySelectorAll("[data-registry]").forEach(s => { s.textContent = `ghcr.io/${owner()}`; });
+  }
+
+  // --- trust map
+  const STEPS = [
+    { id: "plan", col: 1, row: 3, lane: "ours", title: "Plan", where: "patch.yml · plan",
+      head: "Find the lines that need a patch run",
+      body: ["For every recipe line, look up the newest upstream tag. A line runs when that tag isn't released yet and no PR already has its patch set.",
+             "A change to a recipe, its skips, patches or VEX re-runs that recipe's lines. One broken recipe is reported on its own; the others still run."],
+      when: "Nightly (cron 03:17 UTC), on a recipe change, or by hand", holds: "Read access only" },
+    { id: "patch", col: 2, row: 1, lane: "up", title: "Patch run", where: "patch.yml · patch, one per line",
+      head: "Rebuild the release with the fixes",
+      body: ["Check out the upstream tag, apply our patches, install the toolchains.",
+             "Scan the source, plan the bumps under the bump rules, apply them with each ecosystem's own tools, and scan again, up to three rounds.",
+             "Run upstream's tests. Build the image the upstream way, swap in rebuilt bundled tools and jars, run Copa, smoke-test it and scan it.",
+             "Write the report: before and after, every change, and a reason for each finding left."],
+      when: "For each line the plan picked", holds: "Nothing: no secrets, no registry login, nothing pushed" },
+    { id: "pr", col: 3, row: 3, lane: "ours", title: "Patch PR", where: "patch.yml · pr",
+      head: "Put the patch set up for review",
+      body: ["Copy the patch set to generated/<recipe>/<tag>/ and open or update the PR on branch patch/<recipe>/<line>, with the report as its body.",
+             "A PR whose tests failed opens as a draft."],
+      when: "After each patch run", holds: "The GitHub App token, so its PRs trigger checks" },
+    { id: "review", col: 4, row: 2, lane: "you", title: "You merge", where: "the patch PR",
+      head: "Merging is the release decision",
+      body: ["Read the before and after table, the changes, what is still fixable and why, the test results and the release gate's verdict.",
+             "Merge to release. Close it to skip this patch set; the next run makes a new one."],
+      when: "Whenever a patch PR is ready", holds: "Your judgment" },
+    { id: "build", col: 5, row: 1, lane: "up", title: "Release build", where: "release.yml · build, per platform",
+      head: "Rebuild exactly what was reviewed",
+      body: ["Apply the reviewed deps.patch to the verified upstream commit and build each image on a native runner per platform (amd64 and arm64).",
+             "The images leave the job as archives. No later job trusts anything else from it."],
+      when: "When a patch PR is merged, one run per line", holds: "Nothing: no login, no cache" },
+    { id: "publish", col: 6, row: 3, lane: "ours", title: "Push, sign, publish", where: "release.yml · push, publish, attest, promote",
+      head: "Publish a signed, attested revision",
+      body: ["Check each archive and push it as a per-platform tag of a new revision, then merge the platforms and run Copa.",
+             "Tag <tag>-patched.<n>, scan it, ask the release gate, sign it with cosign (keyless) and attach the SBOM and OpenVEX.",
+             "Attest SLSA build provenance, then move <tag>-patched to the signed digest."],
+      when: "After the builds", holds: "packages: write, id-token: write (signing), attestations: write. Runs no upstream code" },
+    { id: "state", col: 7, row: 3, lane: "ours", title: "Record", where: "release.yml · state",
+      head: "Record the release",
+      body: ["Open the record-release PR updating state/<recipe>/<line>.yaml: the tag, revision, digests and the fixable findings known at release.",
+             "It comes last, so state/ only ever records complete releases."],
+      when: "At the end of every release and Copa refresh", holds: "The GitHub App token" },
+    { id: "rescan", col: 8, row: 3, lane: "ours", title: "Rescan", where: "rescan.yml, daily",
+      head: "Watch what is released",
+      body: ["Scan every released image again. New OS-package findings start a Copa refresh: a new revision, signed and recorded like a release.",
+             "New findings in the code, and fixes a release had to hold back that can go in now, start a patch run for that line.",
+             "Open issues for upstream release lines no recipe follows yet and for runtimes near end of life."],
+      when: "Daily (cron 05:41 UTC)", holds: "Read access. It only starts other runs" },
+  ];
+  const LANE = { up: "Runs upstream code", ours: "Runs our code", you: "A person" };
+  const map = $("#map"), wires = $("#wires"), detail = $("#detail");
+  let current = "patch";
+
+  function renderMap() {
+    for (const s of STEPS) {
+      const b = el("button", { class: `node ${s.lane}`, type: "button", "data-id": s.id, "aria-pressed": String(s.id === current),
+                               style: `grid-column:${s.col};grid-row:${s.row}` },
+        el("span", { class: "n-title", text: s.title }), el("span", { class: "n-where", text: s.where }));
+      b.addEventListener("click", () => select(s.id));
+      map.append(b);
+    }
+  }
+  function select(id) {
+    current = id;
+    map.querySelectorAll(".node").forEach(n => n.setAttribute("aria-pressed", String(n.dataset.id === id)));
+    const s = STEPS.find(x => x.id === id);
+    detail.replaceChildren(
+      el("div", { class: "d-main" },
+        el("span", { class: `badge ${s.lane}`, text: LANE[s.lane] }),
+        el("h3", { text: s.head }),
+        el("ul", {}, ...s.body.map(t => el("li", { text: t })))),
+      el("dl", { class: "d-side" },
+        el("div", {}, el("dt", { text: "Where" }), el("dd", { class: "mono", text: s.where })),
+        el("div", {}, el("dt", { text: "When" }), el("dd", { text: s.when })),
+        el("div", {}, el("dt", { text: "Holds" }), el("dd", { text: s.holds }))));
+  }
+  function drawWires() {
+    if (getComputedStyle(wires).display === "none") { map.style.marginBottom = ""; return; }
+    const box = map.getBoundingClientRect();
+    const NS = "http://www.w3.org/2000/svg";
+    wires.setAttribute("viewBox", `0 0 ${box.width} ${box.height + 44}`);
+    wires.setAttribute("width", box.width);
+    wires.setAttribute("height", box.height + 44);
+    wires.replaceChildren();
+    const defs = document.createElementNS(NS, "defs");
+    const marker = document.createElementNS(NS, "marker");
+    Object.entries({ id: "ah", viewBox: "0 0 10 10", refX: "9", refY: "5", markerWidth: "7", markerHeight: "7", orient: "auto-start-reverse" })
+      .forEach(([k, v]) => marker.setAttribute(k, v));
+    const tip = document.createElementNS(NS, "path");
+    tip.setAttribute("d", "M0,0 L10,5 L0,10 z"); tip.setAttribute("class", "head-fill");
+    marker.append(tip); defs.append(marker); wires.append(defs);
+    const r = id => {
+      const n = map.querySelector(`[data-id="${id}"]`).getBoundingClientRect();
+      return { l: n.left - box.left, r: n.right - box.left, t: n.top - box.top, b: n.bottom - box.top, cx: (n.left + n.right) / 2 - box.left, cy: (n.top + n.bottom) / 2 - box.top };
+    };
+    const path = (d, cls) => { const p = document.createElementNS(NS, "path"); p.setAttribute("d", d); p.setAttribute("marker-end", "url(#ah)"); if (cls) p.setAttribute("class", cls); wires.append(p); };
+    for (let i = 0; i < STEPS.length - 1; i++) {
+      const a = r(STEPS[i].id), b = r(STEPS[i + 1].id);
+      const x1 = a.r, y1 = a.cy, x2 = b.l - 2, y2 = b.cy, mx = (x1 + x2) / 2;
+      path(`M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`);
+    }
+    // the rescan's two ways back: a patch run (through the plan) and a Copa refresh (publish, no build)
+    const rs = r("rescan"), pl = r("plan"), pub = r("publish"), base = box.height;
+    path(`M${rs.cx},${rs.b} C${rs.cx},${base + 50} ${pl.cx},${base + 50} ${pl.cx},${pl.b + 3}`, "loop");
+    path(`M${rs.cx - 14},${rs.b} C${rs.cx - 14},${base + 24} ${pub.cx},${base + 24} ${pub.cx},${pub.b + 3}`, "loop copa");
+    map.style.marginBottom = "44px";
+  }
+
+  // --- schedule
+  const SCHEDULE = [
+    { name: "Nightly patch run", note: "patch.yml", cron: 3 + 17 / 60, from: 9.5, to: 11.25, label: "03:17" },
+    { name: "Rescan", note: "rescan.yml", cron: 5 + 41 / 60, from: 11, to: 14, label: "05:41" },
+    { name: "Dependabot", note: "07:00 New York, daily", cron: 12, label: "12:00" },
+    { name: "Patcher image", note: "patcher-image.yml, Mondays", cron: 4, from: 11.8, to: 12.2, label: "04:00" },
+    { name: "Tool pins", note: "tool-pins.yml, Mondays", cron: 11, from: 20.4, to: 20.8, label: "11:00" },
+  ];
+  function renderSchedule() {
+    const box = $("#schedule");
+    for (const s of SCHEDULE) {
+      const track = el("div", { class: "track", role: "img",
+        "aria-label": `${s.name}: cron ${s.label} UTC` + (s.from ? `, has started between ${hh(s.from)} and ${hh(s.to)} UTC` : "") });
+      if (s.from) track.append(el("span", { class: "band-obs", style: `left:${s.from / 24 * 100}%;width:${(s.to - s.from) / 24 * 100}%` }));
+      track.append(el("span", { class: "tick", "data-t": s.label, style: `left:${s.cron / 24 * 100}%` }));
+      box.append(el("div", { class: "srow" }, el("div", { class: "s-name" }, s.name, el("small", { text: s.note })), track));
+    }
+  }
+  const hh = h => `${String(Math.floor(h)).padStart(2, "0")}:${String(Math.round(h % 1 * 60)).padStart(2, "0")}`;
+
+  // --- life of a fix
+  const STORY = [
+    { day: "Day 0", tab: "fix out", title: "A fix is released", text: ["golang.org/x/net v0.62.0 is published. It fixes CVE-2026-78661, and the Dex release we ship has v0.60.0."],
+      art: '<span class="dim"># the advisory</span>\nCVE-2026-78661  golang.org/x/net\ninstalled  v0.60.0\nfixed in   0.62.0' },
+    { day: "Day 1", tab: "held", title: "The patch run holds it back", text: ["The nightly run patches Dex v2.46.1. Every other fix goes in. The x/net fix is a day old, so it waits for the 7-day rule.",
+             "CRITICAL fixes and CVEs on CISA's Known Exploited list would not wait."],
+      art: '<span class="dim">### Still fixable after patching</span>\nCVE-2026-78661  golang.org/x/net  v0.60.0 → 0.62.0\n<span class="hold">cooldown: v0.62.0 released 1 day(s) ago</span>\n<span class="hold">(eligible 2026-11-03)</span>' },
+    { day: "Day 2", tab: "released", title: "You merge; it is released", text: ["release.yml rebuilds the reviewed patch set without credentials, publishes dex:v2.46.1-patched.2, signs it and attests it.",
+             "state/ records the x/net finding as a known leftover."],
+      art: '<span class="dim"># state/dex/v2.yaml</span>\nupstreamTag: v2.46.1\nrevision: 2\nknownFixable:\n- CVE-2026-78661|golang.org/x/net|usr/local/bin/dex' },
+    { day: "Day 8", tab: "due", title: "The rescan sees it can go in", text: ["The fix turned seven days old the evening before. The nightly rescan finds a fix the release held back that can be applied now, and starts a patch run for Dex v2.",
+             "A brand-new CVE in a released image starts one the same way."],
+      art: '<span class="dim"># rescan log</span>\ndex v2: fixes the release held back can be applied now:\nCVE-2026-78661 (golang.org/x/net), CVE-2026-97045 (golang.org/x/net)\n<span class="add">→ patch.yml, recipe dex, line v2</span>' },
+    { day: "Day 8", tab: "bumped", title: "Bumped, tested, proposed", text: ["The patch run bumps x/net to v0.62.0 with Go's own tooling, upstream's tests pass, and the patch PR is opened or updated with the report."],
+      art: '<span class="dim">### Changes applied</span>\n<span class="add">gomod  go.mod  golang.org/x/net  v0.60.0 → v0.62.0</span>\n<span class="dim">### Upstream tests</span>\n<span class="add">✅ passed</span>' },
+    { day: "Day 8+", tab: "signed", title: "Merged, signed, promoted", text: ["You merge. The release publishes the next revision, dex:v2.46.1-patched.3, signs and attests it, and only then moves v2.46.1-patched to it."],
+      art: '<span class="dim"># ghcr.io/&lt;owner&gt;/dex</span>\nv2.46.1-patched.3  <span class="add">signed, SBOM, OpenVEX, provenance</span>\nv2.46.1-patched    <span class="add">→ moved to patched.3</span>' },
+    { day: "After", tab: "deployed", title: "It reaches your clusters", text: ["Deployments that follow v2.46.1-patched get it on their next pull. Pinned ones, by -patched.3 or the digest, move when you bump the pin."],
+      art: '<span class="dim"># in your manifest</span>\nimage: ghcr.io/&lt;owner&gt;/dex:v2.46.1-patched.3' },
+  ];
+  let stepIdx = 0;
+  function renderStory() {
+    const nav = $("#steps-nav");
+    STORY.forEach((s, i) => {
+      const b = el("button", { type: "button", role: "tab", id: `tab-${i}`, "aria-controls": "step-body", "aria-selected": "false", text: `${s.day} · ${s.tab}` });
+      b.addEventListener("click", () => go(i));
+      nav.append(b);
+    });
+    $("#prev").addEventListener("click", () => go(stepIdx - 1));
+    $("#next").addEventListener("click", () => go(stepIdx + 1));
+    nav.addEventListener("keydown", e => {
+      if (e.key === "ArrowRight") { go(stepIdx + 1); $(`#tab-${stepIdx}`).focus(); }
+      if (e.key === "ArrowLeft") { go(stepIdx - 1); $(`#tab-${stepIdx}`).focus(); }
+    });
+    go(0);
+  }
+  function go(i) {
+    stepIdx = Math.max(0, Math.min(STORY.length - 1, i));
+    const s = STORY[stepIdx];
+    document.querySelectorAll("#steps-nav button").forEach((b, j) => { b.setAttribute("aria-selected", String(j === stepIdx)); b.tabIndex = j === stepIdx ? 0 : -1; });
+    const art = el("div", { class: "artifact" });
+    art.innerHTML = s.art;  // fixed markup from this file, never data
+    $("#step-body").replaceChildren(el("div", { class: "step", role: "tabpanel", "aria-labelledby": `tab-${stepIdx}` },
+      el("div", { class: "s-copy" }, el("p", { class: "eyebrow", text: s.day }), el("h3", { text: s.title }), ...s.text.map(t => el("p", { text: t }))),
+      art));
+    $("#prev").disabled = stepIdx === 0;
+    $("#next").disabled = stepIdx === STORY.length - 1;
+    $("#step-count").textContent = `${stepIdx + 1} of ${STORY.length}`;
+  }
+
+  // --- what is released now (releases.json, written by the Pages deploy from state/)
+  let lines = [], picked = null;
+  function fmtDate(iso) {
+    if (!iso) return "–";
+    const d = new Date(iso);
+    return isNaN(d) ? iso.slice(0, 10) : d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+  }
+  function renderReleases() {
+    const q = $("#filter").value.trim().toLowerCase();
+    const tbody = $("#releases tbody");
+    const rows = lines.filter(l => !q || `${l.recipe} ${l.description} ${l.line} ${l.upstreamTag} ${l.images.map(i => i.ref).join(" ")}`.toLowerCase().includes(q));
+    if (!rows.length) {
+      tbody.replaceChildren(el("tr", {}, el("td", { colspan: "5", class: "muted", text: lines.length ? "No release matches." : "No release records found." })));
+      return;
+    }
+    tbody.replaceChildren(...rows.map(l => {
+      const tr = el("tr", { tabindex: "0", "aria-selected": String(picked === l) },
+        el("td", { class: "proj" }, el("b", { text: `${l.recipe} ${l.line}` }), el("span", { text: l.description })),
+        el("td", {}, el("code", { text: l.upstreamTag })),
+        el("td", { text: String(l.revision) }),
+        el("td", { text: fmtDate(l.releasedAt) }),
+        el("td", {}, ...l.images.map(i => el("span", { class: "pill", text: i.moving.split("/").pop() }))));
+      const choose = () => { picked = l; renderReleases(); fillCommands(); };
+      tr.addEventListener("click", choose);
+      tr.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); choose(); } });
+      return tr;
+    }));
+  }
+  function fillCommands() {
+    const img = picked && picked.images[0];
+    const ref = img ? img.ref : `ghcr.io/${owner()}/dex:v2.46.1-patched.2`;
+    const moving = img ? img.moving : `ghcr.io/${owner()}/dex:v2.46.1-patched`;
+    const [own, name] = repo.split("/");
+    const rx = `${own}/${name}`.replace(/\./g, "\\.");
+    $("#cmd-sign").textContent = `IMG=${ref}\ncosign verify "$IMG" \\\n  --certificate-identity-regexp '^https://github.com/${rx}/\\.github/workflows/release\\.yml@' \\\n  --certificate-oidc-issuer https://token.actions.githubusercontent.com`;
+    $("#cmd-prov").textContent = `gh attestation verify "oci://${ref}" --owner ${own}`;
+    $("#cmd-vex").textContent = `cosign verify-attestation "${ref}" --type openvex \\\n  --certificate-identity-regexp '^https://github.com/${rx}/' \\\n  --certificate-oidc-issuer https://token.actions.githubusercontent.com \\\n  | jq -r '.payload' | base64 -d | jq '.predicate' > vex.json\ntrivy image --vex vex.json "${ref}"`;
+    const older = img && picked.revision > 1 ? ref.replace(/\.(\d+)$/, (_, n) => `.${Number(n) - 1}`) : ref;
+    $("#cmd-back").textContent = `# point the moving tag at an older revision (revision numbers can skip)\ndocker buildx imagetools create -t ${moving} ${older}`;
+  }
+  function useData(doc, source) {
+    if (doc.repository) repo = doc.repository;
+    relink();
+    lines = Array.isArray(doc.lines) ? doc.lines : [];
+    picked = lines.find(l => l.recipe === "dex") || lines[0] || null;
+    renderReleases(); fillCommands();
+    const when = doc.generatedAt ? fmtDate(doc.generatedAt) : "";
+    const commit = doc.commit ? doc.commit.slice(0, 10) : "";
+    $("#rel-note").textContent = source === "live"
+      ? `From state/ on main${commit ? ` at ${commit}` : ""}, updated ${when}. ${lines.length} lines released.`
+      : `A snapshot from ${when || "an earlier build"}: the published site shows the current records.`;
+    if (commit) {
+      const a = el("a", { href: `https://github.com/${repo}/commit/${doc.commit}`, text: commit });
+      $("#provenance").replaceChildren(`Built from `, el("a", { href: `https://github.com/${repo}`, text: repo }), ` at `, a, `.`);
+    }
+  }
+  async function loadReleases() {
+    try {
+      const res = await fetch("releases.json", { cache: "no-store" });
+      if (!res.ok) throw new Error(String(res.status));
+      useData(await res.json(), "live");
+    } catch (e) {
+      const snap = document.getElementById("releases-snapshot");
+      if (snap) { try { useData(JSON.parse(snap.textContent), "snapshot"); return; } catch (_) { /* fall through */ } }
+      relink(); fillCommands();
+      $("#releases tbody").replaceChildren(el("tr", {}, el("td", { colspan: "5", class: "muted",
+        text: "The release records load on the published site, from state/ in the repository." })));
+    }
+  }
+
+  // --- copy buttons
+  document.addEventListener("click", async e => {
+    const b = e.target.closest("[data-copy]");
+    if (!b) return;
+    const pre = document.getElementById(b.dataset.copy);
+    try { await navigator.clipboard.writeText(pre.textContent); b.textContent = "Copied"; }
+    catch (_) { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = "Selected"; }
+    setTimeout(() => { b.textContent = "Copy"; }, 1600);
+  });
+
+  // --- current section in the top bar
+  const links = [...document.querySelectorAll(".nav a")];
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver(entries => {
+      for (const en of entries) if (en.isIntersecting) links.forEach(a => a.setAttribute("aria-current", String(a.getAttribute("href") === `#${en.target.id}`)));
+    }, { rootMargin: "-45% 0px -50% 0px" });
+    document.querySelectorAll("main section[id]").forEach(s => io.observe(s));
+  }
+
+  relink();
+  renderMap(); select(current);
+  renderSchedule();
+  renderStory();
+  $("#filter").addEventListener("input", renderReleases);
+  fillCommands();
+  loadReleases();
+  const redraw = () => requestAnimationFrame(drawWires);
+  if ("ResizeObserver" in window) new ResizeObserver(redraw).observe(map); else addEventListener("resize", redraw);
+  redraw();
+})();
+</script>
+</body>
+</html>

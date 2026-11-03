@@ -5,6 +5,7 @@ source-level patching pipeline for the open-source images we run.
 
 ## Start here
 
+- [Field guide](https://therickybobbeh.github.io/open-source-project-patcher/): the whole pipeline on one interactive page, with what is released now.
 - [How it works](Architecture.md): the patch, test, build, Copa and release flow.
 - [Operations runbook](Runbook.md): setup, review, releases, VEX and onboarding.
 - [Onboarding](Onboarding.md): adding a new project or vendor image, from `patcher init` to the first release.
