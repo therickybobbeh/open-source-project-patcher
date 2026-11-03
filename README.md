@@ -1,5 +1,8 @@
 # support-images
 
+**New here?** The [field guide](https://therickybobbeh.github.io/open-source-project-patcher/) shows how the pipeline runs, what it asks of you and what is released now,
+on one page.
+
 Automated, source-level patching of the open-source images we run. For every upstream project:
 
 1. check out the upstream release from GitHub,
@@ -155,6 +158,7 @@ build:
 | `rescan.yml` | daily | re-scans published images; new OS-only findings → a Copa refresh (a `release.yml` run, signed and attested like a release), new language findings → `patch.yml`; opens issues for upstream release lines no recipe tracks and for end-of-life runtimes |
 | `wiki-history.yml` | relevant pushes to main, dispatch | rebuilds the patch history from git (`History.md`, `history.parquet`) and force-pushes it as the single commit of the `wiki-history` branch; main gets no bot commits |
 | `patcher-image.yml` | PRs, pushes to `patcher/`, weekly | unit tests, `validate`, schema/lock drift; publishes the signed multi-arch patcher image |
+| `pages.yml` | pushes to `site/`, `state/`, `recipes/` | publishes the [field guide](https://therickybobbeh.github.io/open-source-project-patcher/) (`site/`) with what is released now, read from `state/` |
 | `tool-pins.yml` | Mondays 07:00 ET | updates the version+sha256 tool pins in `patcher/Dockerfile` (releases ≥ 14 days old) |
 | Dependabot | daily 07:00 ET | GitHub Actions, the patcher's Python packages and image bases (14-day cooldown) |
 
