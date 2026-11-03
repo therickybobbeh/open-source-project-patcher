@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=../schema/vex.schema.json
+# Decisions about findings in the Strimzi Kafka image that we don't fix by bumping. They are published as OpenVEX with
+# each image, explain the findings in the PR report, and settle them for the release gate.
+statements:
+  # Cruise Control (/opt/cruise-control/libs) ships in the image but runs only when a Kafka resource enables it
+  # (`spec.cruiseControl`), and none of ours do (decided 2026-11-03). Its libraries stay as upstream ships them
+  # (recipes/strimzi-kafka.yaml), so this CRITICAL in its netty-handler would otherwise fail the release gate. In this
+  # image netty-handler is only under /opt/cruise-control/libs. Re-assess before enabling Cruise Control.
+  - vulnerability: CVE-2026-75595
+    status: not_affected
+    justification: vulnerable_code_not_in_execute_path
+    impact: Only in Cruise Control's libraries, and Cruise Control is not enabled in any of our Kafka clusters
+    packages: [io.netty:netty-handler]
+    expires: 2027-05-01
