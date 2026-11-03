@@ -83,7 +83,8 @@ flowchart TD
 4. **Install toolchains** with mise, then run the recipe's `prepare` commands.
 5. **Scan the source** with `trivy fs`, plan the bumps, apply them, and scan again (up to `maxRounds`).
    A fix is only planned when its release is at least `minReleaseAgeDays` old, unless the finding is
-   CRITICAL or on CISA's KEV list.
+   CRITICAL or on CISA's KEV list. A Go fix that is only an untagged commit waits for the first release tagged
+   after it (`policy.untaggedFixes`).
 6. **Refresh base images** and edit pinned versions in files. The Go builder images are raised to the
    Go version the plan requires.
 7. **Regenerate** code if the recipe says so, then **commit locally**. The upstream tag is moved to
@@ -258,6 +259,12 @@ only on fixable findings that are **new** and not covered by a VEX statement:
   revision, signed, attested and recorded like a release. Images with `copa: false` don't count: their OS findings
   wait for the next rebuild. A refresh in which Copa failed and nothing was refreshed fails, which raises a CI alert;
 - **any new language finding:** dispatch `patch.yml` for that line, so it is rebuilt from source.
+
+A known leftover whose fix the release-age rule held back counts as new once that fix clears the rule: the patch set
+records when (`eligible` in `bump-plan.json`, also for components and bundled jars), and the line is rebuilt from
+source. The nightly patch run never does this, because the line's upstream tag hasn't changed. Likewise for a fix
+that was only an untagged commit (`untagged:`): it counts once a release is tagged after that commit. Until then, a
+new finding whose only fix is an untagged commit doesn't re-run the line: the re-run would leave it as it is.
 
 A line whose `state/` PR isn't merged yet is not scanned: `state/` on `main` still records the revision before.
 

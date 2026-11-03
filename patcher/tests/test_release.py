@@ -390,6 +390,91 @@ def test_rescan_waits_for_a_line_s_state_pr(tmp_path, monkeypatch):
     assert scanned == [f"{REG}@{DIGEST}"]
 
 
+def test_rescan_reruns_a_line_once_a_fix_the_release_age_rule_held_back_is_due(tmp_path, monkeypatch):
+    """A leftover the release recorded because its fix was too new is acted on once the fix clears the rule: the nightly
+    patch run never re-runs the line, its upstream tag hasn't changed. The patch set says when (`eligible`); older ones
+    only name the day, which counts from the day after. Leftovers with any other reason stay quiet."""
+    from patcher.models import ReleasedImage
+    from patcher.scan import Finding
+
+    def finding(vuln, name, where="usr/bin/app"):
+        return Finding(target="usr/bin/app", ecosystem="gobinary", trivy_type="gobinary", name=name, installed="v0.60.0",
+                       fixed="0.62.0", vuln_id=vuln, severity="MEDIUM", status=None, pkg_path=where)
+
+    def row(vuln, name, why, **k):
+        return {"ecosystem": "gomod", "target": "go.mod", "name": name, "installed": "v0.60.0", "vuln_id": vuln,
+                "severity": "MEDIUM", "fixed": "0.62.0", "why": why, **k}
+
+    repo = make_repo(tmp_path)
+    gen = tmp_path / "generated" / "app" / "v1.2.3"
+    (gen / "bump-plan.json").write_text(json.dumps({"recipe": "app", "line": "v1", "tag": "v1.2.3", "commit": "c0ffee",
+                                                    "status": "success", "unresolved": [
+        row("CVE-1", "golang.org/x/net", "cooldown: v0.62.0 released 1 day(s) ago (eligible 2026-11-03)",
+            eligible="2026-11-03T19:00:16+00:00"),
+        row("CVE-2", "golang.org/x/text", "needs-human: fix requires a bump beyond the `minor` policy")]}))
+    (gen / "components" / "helm").mkdir(parents=True)  # a bundled tool's own patch set, from before `eligible`
+    (gen / "components" / "helm" / "bump-plan.json").write_text(json.dumps({"unresolved": [
+        row("CVE-3", "golang.org/x/crypto", "cooldown: v0.62.0 released 2 day(s) ago (eligible 2026-11-03)")]}))
+    leftovers = [finding("CVE-1", "golang.org/x/net"), finding("CVE-2", "golang.org/x/text"),
+                 finding("CVE-3", "golang.org/x/crypto", "usr/local/bin/helm")]
+    st = repo.state("app")
+    st.lines["v1"] = st.lines["v1"].model_copy(update={"images": [ReleasedImage(
+        name="app", ref=f"{REG}:v1.2.3-patched.2", digest=DIGEST, knownFixable=sorted("|".join(f.key) for f in leftovers))]})
+    repo.save_state("app", st)
+    found = list(leftovers)
+    monkeypatch.setattr(pipeline, "scan_image", lambda ref, path, **k: ScanReport(ref, found))
+
+    def rerun(now: str) -> list:
+        return pipeline.rescan(repo, tmp_path / "rescan", now=dt.datetime.fromisoformat(now))["rerun"]
+
+    assert rerun("2026-11-03T13:00:00+00:00") == []  # every leftover still explained by the release PR
+    assert rerun("2026-11-03T19:30:00+00:00") == [{"recipe": "app", "line": "v1"}]  # x/net's fix cleared at 19:00
+    found = leftovers[1:]  # x/net was fixed since; helm's x/crypto counts from the day after the one named
+    assert rerun("2026-11-03T23:00:00+00:00") == []
+    assert rerun("2026-11-04T00:30:00+00:00") == [{"recipe": "app", "line": "v1"}]
+    found = leftovers[1:2]  # only the needs-human leftover: never re-run for it
+    assert rerun("2026-12-01T00:00:00+00:00") == []
+
+
+def test_rescan_waits_for_a_release_tagged_after_an_untagged_fix(tmp_path, monkeypatch):
+    """A new finding whose only fix is an untagged commit doesn't re-run the line, which would wait for a tagged
+    release anyway (GO-2026-5932 re-ran ten lines for nothing). Once one is tagged, it does; so does a leftover the
+    release recorded as `untagged:`."""
+    from patcher.models import ReleasedImage
+    from patcher.scan import Finding
+
+    pseudo = "0.58.1-0.20261009181718-2f1f834330b2"
+
+    def finding(vuln):
+        return Finding(target="usr/bin/app", ecosystem="gobinary", trivy_type="gobinary", name="golang.org/x/crypto",
+                       installed="v0.57.0", fixed=pseudo, vuln_id=vuln, severity="UNKNOWN", status=None, pkg_path="usr/bin/app")
+
+    repo = make_repo(tmp_path)
+    (tmp_path / "generated" / "app" / "v1.2.3" / "bump-plan.json").write_text(json.dumps({
+        "recipe": "app", "line": "v1", "tag": "v1.2.3", "commit": "c0ffee", "status": "success", "unresolved": [
+            {"ecosystem": "gomod", "target": "go.mod", "name": "golang.org/x/crypto", "installed": "v0.57.0", "vuln_id": "GO-OLD",
+             "severity": "UNKNOWN", "fixed": pseudo, "why": f"untagged: the fix ({pseudo}) is a commit, not a release; ..."}]}))
+    st = repo.state("app")
+    st.lines["v1"] = st.lines["v1"].model_copy(update={"images": [ReleasedImage(
+        name="app", ref=f"{REG}:v1.2.3-patched.2", digest=DIGEST, knownFixable=["GO-OLD|golang.org/x/crypto|usr/bin/app"])]})
+    repo.save_state("app", st)
+    found, tags = [], []
+    monkeypatch.setattr(pipeline, "scan_image", lambda ref, path, **k: ScanReport(ref, found))
+    monkeypatch.setattr(pipeline.releases, "tag_after", lambda name, v, ages=None: tags[0] if tags else None)
+
+    def rerun() -> list:
+        return pipeline.rescan(repo, tmp_path / "rescan")["rerun"]
+
+    found[:] = [finding("GO-NEW")]  # new since the release, fixed only by an untagged commit
+    assert rerun() == []
+    found[:] = [finding("GO-OLD")]  # the release's own leftover
+    assert rerun() == []
+    tags[:] = ["v0.59.0"]  # a release tagged after the commit: both can be fixed now
+    assert rerun() == [{"recipe": "app", "line": "v1"}]
+    found[:] = [finding("GO-NEW")]
+    assert rerun() == [{"recipe": "app", "line": "v1"}]
+
+
 def test_one_line_that_cant_be_rescanned_doesnt_stop_the_others(tmp_path, monkeypatch):
     from patcher.models import ReleasedImage
 

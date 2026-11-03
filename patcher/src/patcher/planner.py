@@ -8,14 +8,18 @@ Rules (see README "How versions are chosen"):
 4. Holds remove a package from the plan (or cap it at `max`).
 5. Overrides force `min`/`version` whenever a lower version is present - even without a CVE.
 6. Go `stdlib` findings become a toolchain requirement (Go version used to build), not a go.mod bump.
+7. A Go fix that is only an untagged commit (pseudo-version) is replaced by the first tagged release after it, or
+   waits for one (unless `policy.untaggedFixes`).
 """
 
 from __future__ import annotations
 
+import datetime as dt
 import fnmatch
 import posixpath
 from dataclasses import asdict, dataclass, field
 
+from . import releases
 from .ecosystems import CVE_ECOSYSTEMS
 from .models import Hold, Level, Override, Recipe
 from .scan import Finding, Package, ScanReport
@@ -51,6 +55,10 @@ class Unresolved:
     severity: str
     fixed: str | None
     why: str
+    eligible: str | None = None  # held back by the release-age rule: when the fix clears it (ISO 8601)
+
+    def to_json(self) -> dict:
+        return {k: v for k, v in asdict(self).items() if k != "eligible" or v}
 
 
 @dataclass
@@ -67,7 +75,7 @@ class Plan:
     def to_json(self) -> dict:
         return {
             "bumps": [asdict(b) | {"dir": b.dir} for b in self.bumps],
-            "unresolved": [asdict(u) for u in self.unresolved],
+            "unresolved": [u.to_json() for u in self.unresolved],
             "toolchain": self.toolchain,
         }
 
@@ -82,8 +90,9 @@ def _match(rules: list, name: str):
     return None
 
 
-def _unresolved(f: Finding, why: str) -> Unresolved:
-    return Unresolved(f.ecosystem, f.target, f.name, f.installed, f.vuln_id, f.severity, f.fixed, why)
+def _unresolved(f: Finding, why: str, eligible: dt.datetime | None = None) -> Unresolved:
+    return Unresolved(f.ecosystem, f.target, f.name, f.installed, f.vuln_id, f.severity, f.fixed, why,
+                      eligible.isoformat() if eligible else None)
 
 
 def build_plan(report: ScanReport, recipe: Recipe, ecosystems: set[str] | None = None, gate=None) -> Plan:
@@ -139,15 +148,24 @@ def build_plan(report: ScanReport, recipe: Recipe, ecosystems: set[str] | None =
                 subs = [s for v in split_fixed(f.fixed) if (s := gate.replacement(eco, name, v))]
                 if subs:
                     fixed = ", ".join([*split_fixed(f.fixed), *subs])
+            if eco == "gomod" and not recipe.policy.untaggedFixes:
+                fixed, untagged = _released_fixes(name, fixed, gate)
+                if not fixed:
+                    plan.unresolved.append(_unresolved(f, f"untagged: the fix ({untagged}) is a commit, not a release; the first "
+                                                          "tagged release after it is applied once there is one"))
+                    continue
             pick = pick_fix(eco, installed, fixed, cap, allow)
             if pick is None:
-                why = "needs-human: fix requires a bump beyond the `%s` policy" % cap.value
+                why, eligible = "needs-human: fix requires a bump beyond the `%s` policy" % cap.value, None
                 capped = pick_fix(eco, installed, fixed, cap)
                 if capped is not None and gate is not None:
-                    why = gate.check(eco, name, _styled(eco, capped[0].raw, installed), f.severity, f.vuln_id)[1]
+                    version = _styled(eco, capped[0].raw, installed)
+                    why = gate.check(eco, name, version, f.severity, f.vuln_id)[1]
+                    if why.startswith("cooldown:"):  # the rescan re-runs the released line once it clears
+                        eligible = gate.eligible(eco, name, version)
                 elif pick_fix(eco, installed, f.fixed, None) is None:
                     why = f"no fixed version above installed (fixed: {f.fixed})"
-                plan.unresolved.append(_unresolved(f, why))
+                plan.unresolved.append(_unresolved(f, why, eligible))
                 continue
             if hold_max and pick[0] > hold_max:
                 plan.unresolved.append(_unresolved(f, f"held at <= {hold.max}: {hold.reason}"))
@@ -172,6 +190,20 @@ def build_plan(report: ScanReport, recipe: Recipe, ecosystems: set[str] | None =
     if gate is not None:
         plan.notes = sorted(gate.notes)
     return plan
+
+
+def _released_fixes(name: str, fixed: str | None, gate) -> tuple[str, str]:
+    """Go fix versions with each pseudo-version (an untagged commit) replaced by the first tagged release after it, or
+    dropped while there is none; and the dropped ones."""
+    keep, untagged = [], []
+    for v in split_fixed(fixed):
+        if not releases.is_pseudo(v):
+            keep.append(v)
+        elif tag := releases.tag_after(name, v, gate.ages if gate is not None else None):
+            keep.append(tag)
+        else:
+            untagged.append(v)
+    return ", ".join(keep), ", ".join(untagged)
 
 
 def _styled(eco: str, version: str, like: str) -> str:

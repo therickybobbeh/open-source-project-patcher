@@ -30,7 +30,7 @@ from .proc import CommandError, first_error, log, output, retry_on_network, run
 from .report import BASE_TOOLING, GLOBAL_NODE_PREFIX, ImageOutcome, Summary, bundled_paths, render_markdown
 from .scan import ScanReport, scan_fs, scan_image
 from .tests_runner import TestOutcome, only_preexisting, run_tests, same_setup_failure, setup_error
-from .versions import parse_semver, try_parse
+from .versions import parse_semver, split_fixed, try_parse
 from .vex import oci_purl, openvex
 
 # statuses whose patch set may be merged and released (tests-preexisting: upstream's own failures)
@@ -625,7 +625,7 @@ def _write_outputs(repo: Repo, s: Summary, att: Attempt | None, out: Path) -> No
         "plan": att.first_plan.to_json() if att else {},
         "changes": [asdict(c) for c in s.changes],
         "failures": [asdict(f) for f in s.failures],
-        "unresolved": [asdict(u) for u in s.unresolved],
+        "unresolved": [u.to_json() for u in s.unresolved],
         "skips": [e.model_dump(mode="json") for e in (s.tests.skipped if s.tests else [])],
         **({"imageTags": s.image_tags} if s.image_tags else {}),
     }
@@ -1262,9 +1262,51 @@ def pending_lines(paths: list[str]) -> set[tuple[str, str]]:
     return pending
 
 
-def rescan(repo: Repo, out: Path, pending: set[tuple[str, str]] = frozenset()) -> dict:
+def _held_back(repo: Repo, recipe: Recipe, key: str, ls: LineState, now: dt.datetime) -> set[tuple[str, str]]:
+    """(vulnerability, package) of each fix the released patch set (its source, components and bundled jars) held back
+    that can be applied now: one the release-age rule deferred, once it clears the rule, and an untagged commit, once a
+    release is tagged after it. Patch sets from before `eligible` was recorded only name the day, so those count from
+    the day after."""
+    try:
+        gen, doc = find_generated(repo, recipe, key, ls.upstreamTag)
+    except LookupError:  # no patch set for the released tag in generated/
+        return set()
+    rows = list(doc.get("unresolved", []))
+    for extra in sorted(gen.glob("components/*/bump-plan.json")):
+        rows += json.loads(extra.read_text()).get("unresolved", [])
+    if (gen / "jars.json").is_file():
+        rows += json.loads((gen / "jars.json").read_text()).get("unresolved", [])
+    ready = set()
+    for u in rows:
+        why = u.get("why", "")
+        if why.startswith("cooldown:"):
+            if u.get("eligible"):
+                when = dt.datetime.fromisoformat(u["eligible"])
+            elif m := re.search(r"\(eligible (\d{4}-\d{2}-\d{2})\)", why):
+                when = dt.datetime.fromisoformat(m.group(1)).replace(tzinfo=dt.timezone.utc) + dt.timedelta(days=1)
+            else:
+                continue
+            if when <= now:
+                ready.add((u["vuln_id"], u["name"]))
+        elif why.startswith("untagged:") and any(releases.tag_after(u["name"], v) for v in split_fixed(u.get("fixed"))
+                                                 if releases.is_pseudo(v)):
+            ready.add((u["vuln_id"], u["name"]))
+    return ready
+
+
+def _waits_for_tag(recipe: Recipe, f) -> bool:
+    """A Go finding whose only fixes are untagged commits that no release has been tagged after yet: a re-run would
+    leave it as it is (unless `policy.untaggedFixes`)."""
+    fixes = split_fixed(f.fixed)
+    return (not recipe.policy.untaggedFixes and f.ecosystem in ("gomod", "gobinary") and bool(fixes)
+            and all(releases.is_pseudo(v) and not releases.tag_after(f.name, v) for v in fixes))
+
+
+def rescan(repo: Repo, out: Path, pending: set[tuple[str, str]] = frozenset(), now: dt.datetime | None = None) -> dict:
     """Scan every published image; act only on fixable findings that are new since the release
-    (known leftovers, e.g. in bundled binaries, are already explained in the release PR).
+    (known leftovers, e.g. in bundled binaries, are already explained in the release PR), or whose fix the release
+    held back and can be applied now (`_held_back`): no nightly patch run picks those up, because the line's upstream
+    tag hasn't changed. A new finding whose only fix is an untagged commit waits for a tagged release.
     New OS-only findings -> Copa refresh; new language findings -> source re-run. OS findings in an image with
     `copa: false` wait for its next rebuild: a refresh would leave that image alone.
 
@@ -1273,6 +1315,7 @@ def rescan(repo: Repo, out: Path, pending: set[tuple[str, str]] = frozenset()) -
     from .vex import match as vex_match
 
     g = repo.global_config()
+    now = now or dt.datetime.now(dt.timezone.utc)
     result = {"refresh": [], "rerun": [], "pending": [], "errors": []}
     out.mkdir(parents=True, exist_ok=True)
     for path in repo.recipe_paths():
@@ -1285,7 +1328,8 @@ def rescan(repo: Repo, out: Path, pending: set[tuple[str, str]] = frozenset()) -
                     result["pending"].append({"recipe": recipe.name, "line": key})
                     continue
                 with _isolated(result["errors"], recipe.name, key):  # a scan that fails skips this line only
-                    kinds = set()
+                    kinds, cleared = set(), set()
+                    due = _held_back(repo, recipe, key, ls, now)
                     platform = (ls.platforms or (recipe.build.platforms if recipe.build else None) or ["linux/amd64"])[0]
                     for img in ls.images:
                         rep = scan_image(f"{img.ref.rsplit(':', 1)[0]}@{img.digest}",
@@ -1293,11 +1337,19 @@ def rescan(repo: Repo, out: Path, pending: set[tuple[str, str]] = frozenset()) -
                                          severities=g.scan.severities, platform=platform, src="remote")
                         known = set(img.knownFixable)
                         for f in rep.fixable():
-                            if "|".join(f.key) not in known and not vex_match(vexf, f):
-                                if f.ecosystem != "os":
-                                    kinds.add("lang")
-                                elif img.name in copa_on:
-                                    kinds.add("os")
+                            leftover = "|".join(f.key) in known
+                            if vex_match(vexf, f) or (leftover and (f.vuln_id, f.name) not in due):
+                                continue
+                            if not leftover and _waits_for_tag(recipe, f):
+                                continue
+                            if leftover:
+                                cleared.add(f"{f.vuln_id} ({f.name})")
+                            if f.ecosystem != "os":
+                                kinds.add("lang")
+                            elif img.name in copa_on:
+                                kinds.add("os")
+                    if cleared:
+                        log(f"{recipe.name} {key}: fixes the release held back can be applied now: {', '.join(sorted(cleared))}")
                     entry = {"recipe": recipe.name, "line": key}
                     if "lang" in kinds:
                         result["rerun"].append(entry)

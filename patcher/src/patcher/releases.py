@@ -44,6 +44,7 @@ class ReleaseAges:
     fetch: object = field(default=_get, repr=False)
     _cache: dict = field(default_factory=dict, repr=False)
     _docs: dict = field(default_factory=dict, repr=False)  # whole-package registry documents
+    _tags: dict = field(default_factory=dict, repr=False)  # Go module -> its tagged versions
 
     def _doc(self, url: str) -> dict:
         if url not in self._docs:
@@ -71,6 +72,16 @@ class ReleaseAges:
         except (urllib.error.URLError, OSError, ValueError, KeyError, json.JSONDecodeError):
             return None
         return None
+
+    def go_tags(self, name: str) -> list[str] | None:
+        """Tagged versions of Go module `name` (the proxy's list holds no pseudo-versions); None if the proxy can't say."""
+        if name not in self._tags:
+            try:
+                _, body = self.fetch(f"https://proxy.golang.org/{go_escape(name)}/@v/list")
+                self._tags[name] = body.decode().split()
+            except (urllib.error.URLError, OSError, ValueError):
+                self._tags[name] = None
+        return self._tags[name]
 
     def withdrawn(self, eco: str, name: str, version: str) -> str | None:
         rel = self.releases(eco, name)
@@ -147,8 +158,12 @@ class AgeGate:
         age = self.now - published
         if age >= dt.timedelta(days=self.min_days):
             return True, ""
-        eligible = published + dt.timedelta(days=self.min_days)
-        return False, f"cooldown: {version} released {age.days} day(s) ago (eligible {eligible:%Y-%m-%d})"
+        return False, f"cooldown: {version} released {age.days} day(s) ago (eligible {self.eligible(eco, name, version):%Y-%m-%d})"
+
+    def eligible(self, eco: str, name: str, version: str) -> dt.datetime | None:
+        """When `version` clears the age rule: its publish time + min_days. None if the publish time is unknown."""
+        published = self.ages.published(eco, name, version)
+        return published + dt.timedelta(days=self.min_days) if published else None
 
     def replacement(self, eco: str, name: str, version: str) -> str | None:
         """For a withdrawn fix version: the next release in the same major line that stands (lodash 4.18.0, marked
@@ -183,6 +198,26 @@ def install_cutoff_env(days: int, released: dt.datetime | None, now: dt.datetime
 
 def _prerelease(v: str) -> bool:
     return bool(re.search(r"-|(?:a|b|rc|alpha|beta|dev|pre)\.?\d*$", v, re.I))
+
+
+# vX.0.0-yyyymmddhhmmss-hash, vX.Y.Z-pre.0.yyyymmddhhmmss-hash or vX.Y.(Z+1)-0.yyyymmddhhmmss-hash (golang.org/x/mod)
+_PSEUDO = re.compile(r"^v?\d+\.(0\.0-|\d+\.\d+-([^+]*\.)?0\.)\d{14}-[A-Za-z0-9]+(\+[0-9A-Za-z.-]+)?$")
+
+
+def is_pseudo(version: str) -> bool:
+    """A Go pseudo-version: it names a commit, not a release."""
+    return bool(_PSEUDO.match(version))
+
+
+def tag_after(name: str, pseudo: str, ages: ReleaseAges | None = None) -> str | None:
+    """The first tagged release of Go module `name` after the commit `pseudo` names. Advisories order versions by
+    semver, so it has the fix that commit has. None while no release has been tagged since (or the proxy can't say)."""
+    from .versions import try_parse
+
+    base = try_parse("gomod", pseudo)
+    later = sorted(p for t in (ages or _ages).go_tags(name) or [] if not _prerelease(t)
+                   and (p := try_parse("gomod", t)) is not None and base is not None and p > base)
+    return later[0].raw if later else None
 
 
 _ages = ReleaseAges()

@@ -16,7 +16,7 @@
           "type": "string"
         },
         "knownFixable": {
-          "description": "`vuln|package|location` of fixable findings at release; rescan only acts on findings not in this list",
+          "description": "`vuln|package|location` of fixable findings at release; rescan acts on findings not in this list, and on those whose fix the release-age rule held back once it clears",
           "items": {
             "type": "string"
           },
