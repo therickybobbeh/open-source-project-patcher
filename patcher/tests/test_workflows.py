@@ -86,6 +86,11 @@ def test_jobs_that_publish_or_hold_the_app_key_run_in_the_release_environment(pa
     for name, job, perms in jobs(path):
         privileged = {k for k, v in perms.items() if v == "write"} & {"packages", "id-token", "attestations"}
         env = job.get("environment")
+        if perms.get("pages") == "write" and privileged == {"id-token"} and "secrets." not in yaml.safe_dump(job):
+            # a GitHub Pages deployment (pages.yml): deploy-pages proves where it comes from with an OIDC token, in the
+            # github-pages environment. A signature that token could make names pages.yml, which no verification accepts
+            assert (env or {}).get("name") == "github-pages", f"{path.name}/{name}: environment github-pages"
+            continue
         if privileged or "secrets.PATCHER_" in yaml.safe_dump(job):
             assert env == {"name": "release", "deployment": False}, f"{path.name}/{name}: environment release"
         if any(a.startswith(UPSTREAM_CODE) for a in patcher_args(job)):
