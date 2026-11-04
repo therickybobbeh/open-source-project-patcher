@@ -13,6 +13,7 @@ Real recipes are the best examples. See [Worked examples](#worked-examples) at t
 |---|---|---|---|
 | `name` | string | required | Recipe id, `^[a-z0-9][a-z0-9-]*$`; must match the file name |
 | `description` | string | | Free text |
+| `vars` | map name → string | `{}` | A value the recipe needs in several places, written once: `{{name}}` anywhere in the recipe is `vars.name`. strimzi-kafka keeps Strimzi's default Kafka version there, so a new default is one edit. The names the pipeline fills at run time (`version`, `tag`, `arch`, …) can't be used |
 | `mode` | `source` \| `image-only` \| `component` | `source` | `image-only`: no source rebuild (closed source); scan, Copa and mirror the upstream image. `component`: patched and tested like a source recipe, but only shipped inside other images ([Components](#components)) |
 | `publish` | bool | `true` | `false`: patch, test, scan and report as usual, but never push images. The release workflow and Copa refresh skip the recipe, and `patcher coverage` shows it as *scanned only*. For images you may not redistribute, e.g. a closed-source vendor image (`apollo-operator`) |
 | `source` | [Source](#source-and-release-lines) | required for `source` | Where upstream lives and which release lines we track |
@@ -334,7 +335,7 @@ holds:       # never bump (or never past `max`)
 |---|---|---|
 | `source` | `true` | `false` skips `trivy fs` for Dockerfile-only projects (only the images are judged) |
 | `offline` | `false` | `trivy fs --offline-scan`: resolve Maven POMs from the local `~/.m2`. Avoids Maven Central's per-IP rate limiting (HTTP 429) |
-| `skipDirs`, `skipFiles` | `[]` | Unshipped trees: test fixtures, examples, release tooling. Added to `_global.yaml`'s `scan.skipDirs` |
+| `skipDirs`, `skipFiles` | `[]` | Unshipped trees: test fixtures, examples, release tooling. Added to `_global.yaml`'s `scan.skipDirs`. A `!glob` entry keeps a directory an earlier glob skips: `[libs/*, "!libs/4.3.2"]` scans only libs/4.3.2 |
 | `image` | on for `gradle`/`python`, else off | Also plan from fixable findings in the built image's **own** artifacts (jars, Python packages, node_modules) that the source scan couldn't see; costs one extra build. Bundled third-party binaries and base-image tooling (pip, the global npm) are excluded |
 | `reachability` | `true` | Go recipes: run `govulncheck` on the patched source and draft VEX suggestions for remaining findings whose vulnerable code is never called. See the [runbook](runbook.md#vex-suggestions-from-reachability) |
 

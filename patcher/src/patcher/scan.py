@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import fnmatch
 import json
 import time
 from dataclasses import asdict, dataclass, field
@@ -162,12 +163,26 @@ def _common(severities: list[str], extra: list[str] | None = None) -> list[str]:
     return args + (extra or [])
 
 
+def skip_dirs_for(root: Path, patterns: list[str]) -> list[str]:
+    """`--skip-dirs` globs, where `!glob` keeps what an earlier glob skips: `libs/*` and `!libs/4.3.2` skip every directory
+    under libs/ but 4.3.2. Trivy has no exceptions, so a glob one applies to is expanded here."""
+    keep = [p[1:] for p in patterns if p.startswith("!")]
+    out = []
+    for p in (p for p in patterns if not p.startswith("!")):
+        dirs = [d.relative_to(root).as_posix() for d in sorted(root.glob(p)) if d.is_dir()] if keep else []
+        if any(fnmatch.fnmatch(d, k) for d in dirs for k in keep):
+            out += [d for d in dirs if not any(fnmatch.fnmatch(d, k) for k in keep)]
+        else:
+            out.append(p)
+    return out
+
+
 def scan_fs(path: Path, out: Path, *, severities: list[str], skip_dirs: list[str] = (), skip_files: list[str] = (), vex: Path | None = None,
             offline: bool = False) -> ScanReport:
     args = ["trivy", "fs", *_common(severities), "--output", str(out)]
     if offline:
         args.append("--offline-scan")
-    for d in skip_dirs:
+    for d in skip_dirs_for(path, list(skip_dirs)):
         args += ["--skip-dirs", d]
     for f in skip_files:
         args += ["--skip-files", f]

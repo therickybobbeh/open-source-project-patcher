@@ -335,3 +335,30 @@ qs@6.15.2:
     assert "--no-default-rc" in cmd
     rc = Path(cmd[cmd.index("--use-yarnrc") + 1]).read_text()
     assert "frozen-lockfile" not in rc and "registry.example" in rc
+
+
+def test_a_value_the_recipe_repeats_is_written_once_in_vars():
+    from patcher.config import Repo
+
+    r = Recipe.model_validate({"name": "kafka", "vars": {"kafka": "4.3.2", "libs": "4.3.x"},
+                               "source": {"repo": "o/r", "lines": [{"tagPattern": "x"}]},
+                               "ecosystems": [{"type": "maven", "poms": ["libs/{{libs}}/pom.xml"]}],
+                               "prepare": ["mvn -f libs/{{ libs }}/pom.xml"],
+                               "build": {"images": [{"name": "kafka", "upstreamTag": "{{version}}-kafka-{{kafka}}"}]}})
+    assert r.ecosystems[0].poms == ["libs/4.3.x/pom.xml"] and r.prepare == ["mvn -f libs/4.3.x/pom.xml"]
+    assert r.build.images[0].upstreamTag == "{{version}}-kafka-4.3.2"  # run-time placeholders stay for the pipeline
+    with pytest.raises(ValueError, match="can't be named version"):
+        Recipe.model_validate({"name": "x", "vars": {"version": "1"}, "source": {"repo": "o/r", "lines": [{"tagPattern": "x"}]}})
+    # strimzi-kafka names Strimzi's default Kafka version once
+    k = Repo(Path(__file__).resolve().parents[2]).load_recipe("strimzi-kafka")
+    assert k.build.images[0].upstreamTag == f"{{{{version}}}}-kafka-{k.vars['kafka']}"
+    assert k.ecosystems[0].poms == [f"docker-images/artifacts/kafka-thirdparty-libs/{k.vars['kafkaLibs']}/pom.xml"]
+
+
+def test_skip_dirs_can_keep_one_directory_a_glob_skips(tmp_path):
+    from patcher.scan import skip_dirs_for
+
+    for d in ("libs/4.2.0", "libs/4.3.2", "libs/4.3.x", "libs/cc", "a/testdata"):
+        (tmp_path / d).mkdir(parents=True)
+    assert skip_dirs_for(tmp_path, ["**/testdata", "libs/*", "!libs/4.3.2"]) == ["**/testdata", "libs/4.2.0", "libs/4.3.x", "libs/cc"]
+    assert skip_dirs_for(tmp_path, ["**/testdata", "libs/4.2.*"]) == ["**/testdata", "libs/4.2.*"]  # no exception: as written
