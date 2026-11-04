@@ -1,0 +1,138 @@
+{
+  "recipe": "helm",
+  "line": "helm-4.3.1",
+  "tag": "v4.3.1",
+  "commit": "c0d08d0d6d9424d4a14febb5e8a3e51b0dd00dff",
+  "status": "success",
+  "requires": {},
+  "plan": {
+    "bumps": [
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/distribution/distribution/v3",
+        "installed": "v3.1.1",
+        "to": "v3.1.2",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-85747"
+        ],
+        "direct": true,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/go-jose/go-jose/v4",
+        "installed": "v4.1.4",
+        "to": "v4.1.6",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-116585",
+          "CVE-2026-116586",
+          "CVE-2026-116587"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.60.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "google.golang.org/grpc",
+        "installed": "v1.83.1",
+        "to": "v1.83.2",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-84445"
+        ],
+        "direct": false,
+        "dir": "."
+      }
+    ],
+    "unresolved": [
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      }
+    ],
+    "toolchain": {}
+  },
+  "changes": [
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/go-jose/go-jose/v4",
+      "old": "v4.1.4",
+      "new": "v4.1.6",
+      "note": "CVE-2026-116585, CVE-2026-116586, CVE-2026-116587",
+      "level": "patch"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/distribution/distribution/v3",
+      "old": "v3.1.1",
+      "new": "v3.1.2",
+      "note": "CVE-2026-85747",
+      "level": "patch"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "google.golang.org/grpc",
+      "old": "v1.83.1",
+      "new": "v1.83.2",
+      "note": "CVE-2026-84445",
+      "level": "patch"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.60.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    }
+  ],
+  "failures": [],
+  "unresolved": [
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    }
+  ],
+  "skips": [],
+  "tests": {
+    "configured": true,
+    "ran": true,
+    "passed": true
+  },
+  "gate": {}
+}

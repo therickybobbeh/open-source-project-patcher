@@ -1,0 +1,23 @@
+{
+  "recipe": "kustomize",
+  "line": "kustomize-5.8.3",
+  "tag": "kustomize/v5.8.3",
+  "commit": "6e4452f7b136fb9a261afe60830867a875183a71",
+  "status": "no-changes",
+  "requires": {},
+  "plan": {
+    "bumps": [],
+    "unresolved": [],
+    "toolchain": {}
+  },
+  "changes": [],
+  "failures": [],
+  "unresolved": [],
+  "skips": [],
+  "tests": {
+    "configured": true,
+    "ran": true,
+    "passed": true
+  },
+  "gate": {}
+}
