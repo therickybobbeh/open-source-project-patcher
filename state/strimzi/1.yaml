@@ -1,12 +1,12 @@
-upstreamTag: 1.3.0
-commit: 0d138c48b936d07cfb4715a27fda2948cdee0fe5
-revision: 5
-releasedAt: '2026-11-02T13:59:01Z'
+upstreamTag: 1.3.1
+commit: 555c3e0f07c203911bc3cb7d13ac085bfaa81b50
+revision: 1
+releasedAt: '2026-11-04T17:45:22Z'
 platforms:
 - linux/amd64
 - linux/arm64
 images:
 - name: strimzi-operator
-  ref: ghcr.io/therickybobbeh/strimzi-operator:1.3.0-patched.5
-  digest: sha256:b40c037e5e507cc55453afec2e8cb15468e9ca7090f7cb98feaa8a174f4e05e3
+  ref: ghcr.io/therickybobbeh/strimzi-operator:1.3.1-patched.1
+  digest: sha256:6f5a79b0a90f897aab893e8ea42fea0e33f36694cb31d10dbfcf2952b4ca84c1
   knownFixable: []
