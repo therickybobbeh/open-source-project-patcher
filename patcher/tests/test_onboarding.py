@@ -159,3 +159,33 @@ def test_new_upstream_release_lines_are_reported(tmp_path):
         assert [(x.line, x.tag) for x in found] == [("v3", newest[-1])]
     assert inventory._shape(r"^release\-2\.0\.\d+$").pattern == r"^release\-\d+\.\d+\.\d+$"
     assert inventory._shape(r"^v1\.\d{2}$").pattern == r"^v\d+\.\d{2}$"  # quantifiers stay
+
+
+def test_new_lines_for_image_only_recipes_come_from_the_registry(tmp_path):
+    recipes = {"apollo-operator": {
+        "mode": "image-only",
+        "source": {"repo": "https://hub.docker.com/r/apollograph/operator",
+                   "lines": [{"name": "v1", "tagPattern": r"^1\.\d+\.\d+$"}]},
+        "build": {"images": [
+            {"name": "apollo-operator", "upstream": "docker.io/apollograph/operator"},
+            {"name": "apollo-bundle-loader", "upstream": "docker.io/apollograph/bundle-loader",
+             "tagPattern": r"^0\.\d+\.\d+$"}]}}}
+    registry_tags = {
+        "docker.io/apollograph/operator": ["1.5.0", "1.6.2", "2.0.0-rc1", "2.0.1"],  # 2.x escapes the v1 line
+        "docker.io/apollograph/bundle-loader": ["0.4.0", "1.0.0"],  # 1.x escapes the image's own pattern
+    }
+    repo = _repo(tmp_path, recipes, [], {})
+
+    def no_git(url):
+        raise AssertionError(f"image-only recipes never list git tags ({url})")
+
+    found = inventory.new_lines(repo, list_tags=no_git, list_image_tags=lambda img: registry_tags[img])
+    assert [(x.recipe, x.line, x.tag, x.tracked, x.image, x.upstream) for x in found] == [
+        ("apollo-operator", "2", "2.0.1", ["v1"], None, "docker.io/apollograph/operator"),
+        ("apollo-operator", "1", "1.0.0", [r"^0\.\d+\.\d+$"], "apollo-bundle-loader", "docker.io/apollograph/bundle-loader"),
+    ]
+
+    # inside the tracked lines: nothing to report
+    registry_tags["docker.io/apollograph/operator"] = ["1.5.0", "1.6.2"]
+    registry_tags["docker.io/apollograph/bundle-loader"] = ["0.4.0", "0.5.0"]
+    assert inventory.new_lines(repo, list_tags=no_git, list_image_tags=lambda img: registry_tags[img]) == []

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # line-issues.sh <new-lines.json>: one issue per upstream release line that no recipe tracks
-# (`patcher new-lines --json`), e.g. "New release line: argo-cd v3.6".
+# (`patcher new-lines --json`), e.g. "New release line: argo-cd v3.6". An image of an image-only recipe that
+# versions separately from the line gets its own: "New release line: apollo-operator apollo-bundle-loader 1".
 #   - a newly reported line opens an issue, once: closing it means "not tracking that line", and it stays
 #     closed (a later major or minor is a new line, with a new issue);
 #   - an open issue whose line is no longer reported (now tracked, or a newer line superseded it) closes.
@@ -18,16 +19,27 @@ if [ -z "${DRY_RUN:-}" ]; then
     --description "Upstream shipped a release line no recipe tracks" >/dev/null 2>&1 || true
 fi
 issues=$(gh issue list -R "$repo" --label "$label" --state all --limit 500 --json number,title,state)
-reported=$(jq -r '.[] | "New release line: \(.recipe) \(.line)"' "$file")
+reported=$(jq -r '.[] | "New release line: \(.recipe)\(if .image then " " + .image else "" end) \(.line)"' "$file")
 
 jq -c '.[]' "$file" | while IFS= read -r x; do
   recipe=$(jq -r .recipe <<<"$x")
   line=$(jq -r .line <<<"$x")
-  title="New release line: $recipe $line"
+  image=$(jq -r '.image // empty' <<<"$x")
+  title="New release line: $recipe${image:+ $image} $line"
   if jq -e --arg t "$title" 'any(.[]; .title == $t)' <<<"$issues" >/dev/null; then
     continue  # open, or closed on purpose
   fi
-  body="Upstream released **$(jq -r .tag <<<"$x")**. \`recipes/$recipe.yaml\` tracks: $(jq -r '.tracked | join(", ")' <<<"$x").
+  if [ -n "$image" ]; then
+    # an image of an image-only recipe that versions separately from the line: the move is its tagPattern
+    body="The registry $(jq -r '.upstream // "upstream"' <<<"$x") published **$(jq -r .tag <<<"$x")**. The \`$image\`
+image follows \`$(jq -r '.tracked[0]' <<<"$x")\`.
+
+To follow it, update \`tagPattern\` on the \`$image\` image in \`recipes/$recipe.yaml\` and merge. The push starts the
+recipe's patch run.
+
+If you won't track this line, close the issue; it isn't reopened."
+  else
+    body="Upstream released **$(jq -r .tag <<<"$x")**. \`recipes/$recipe.yaml\` tracks: $(jq -r '.tracked | join(", ")' <<<"$x").
 
 To follow it, add the line to \`source.lines\` in \`recipes/$recipe.yaml\` (or put it in place of a line you no longer
 run) and merge:
@@ -40,6 +52,7 @@ The push starts its patch run (see [Adding a release line](https://github.com/$r
 A new line can need other recipe changes (toolchain, Dockerfile targets, tests): its first patch PR shows them.
 
 If you won't track this line, close the issue; it isn't reopened."
+  fi
   act gh issue create -R "$repo" --title "$title" --label "$label" --body "$body"
 done
 

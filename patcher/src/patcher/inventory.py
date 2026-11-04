@@ -127,6 +127,8 @@ class NewLine:
     line: str  # the line to add, as its tags spell it: v3.6, or v3 for a recipe whose lines take every minor
     tag: str
     tracked: list[str]
+    image: str | None = None  # image-only: the image whose own `tagPattern` the tag escapes, when it versions separately
+    upstream: str | None = None  # image-only: the registry repository the tag was published to
 
 
 def _shape(pattern: str) -> re.Pattern[str]:
@@ -146,38 +148,63 @@ def _takes_minors(pattern: str, tags) -> bool:
     return False
 
 
-def new_lines(repo: Repo, list_tags=None) -> list[NewLine]:
-    """The newest upstream release of each source recipe, when none of its tracked lines covers it: the
-    recipe follows v3.5 and v3.4, upstream shipped v3.6.0. Only tags shaped like the tracked lines' count
-    (not Go submodule tags such as apis/v0.1.0), and no prereleases. Tracking a new line can need recipe
-    changes, so this only reports it. A recipe whose lines take every minor of a major (external-secrets: v2) is
-    told about the next major as one line (v3), not about each of its minors."""
+def _newest_untracked(patterns: list[str], excluded: list[re.Pattern[str]], tags: list[str]) -> tuple[str, str] | None:
+    """(line, tag) of the newest release shaped like the tracked patterns but matched by none of them, or None.
+    Only tags shaped like the tracked lines' count (not Go submodule tags such as apis/v0.1.0), and no prereleases."""
+    shapes = [_shape(p) for p in patterns]
+    best = None
+    for tag in tags:
+        if not any(s.search(tag) for s in shapes) or any(e.search(tag) for e in excluded):
+            continue
+        v = upstream.tag_version(tag)
+        if v is None or v.key[1] != (1,):  # not a version, or a prerelease
+            continue
+        if best is None or v > best[0]:
+            best = (v, tag)
+    if best is None or any(re.search(p, best[1]) for p in patterns):
+        return None
+    v, tag = best
+    m = re.search(r"v?\d+(?:\.\d+)*(?:-[0-9A-Za-z.\-]+)?$", tag)
+    prefix = tag[: m.start()] + ("v" if m.group(0).startswith("v") else "")
+    line = f"{prefix}{v.major}" if any(_takes_minors(p, tags) for p in patterns) else f"{prefix}{v.major}.{v.minor}"
+    return line, tag
+
+
+def new_lines(repo: Repo, list_tags=None, list_image_tags=None) -> list[NewLine]:
+    """The newest upstream release of each recipe, when none of its tracked lines covers it: the recipe
+    follows v3.5 and v3.4, upstream shipped v3.6.0. Source recipes are read from their git tags; image-only
+    (vendor) recipes from each image's registry tags, against the image's own `tagPattern` when it versions
+    separately from the line. Tracking a new line can need recipe changes, so this only reports it. A recipe
+    whose lines take every minor of a major (external-secrets: v2) is told about the next major as one line
+    (v3), not about each of its minors."""
     list_tags = list_tags or upstream.list_tags
+    list_image_tags = list_image_tags or registry.list_tags
     found = []
     for path in repo.recipe_paths():
         r = repo.load_recipe(path.stem)
         lines = [l for l in (r.source.lines if r.source else []) if not l.branch]
-        if r.mode != "source" or not lines:
+        if r.mode not in ("source", "image-only") or not lines:
             continue
         patterns = [l.tagPattern or f"^{re.escape(l.tag or '')}$" for l in lines]
-        shapes = [_shape(p) for p in patterns]
         excluded = [re.compile(e) for e in r.source.exclude]
-        best = None
-        tags = list(list_tags(r.source.url))
-        for tag in tags:
-            if not any(s.search(tag) for s in shapes) or any(e.search(tag) for e in excluded):
-                continue
-            v = upstream.tag_version(tag)
-            if v is None or v.key[1] != (1,):  # not a version, or a prerelease
-                continue
-            if best is None or v > best[0]:
-                best = (v, tag)
-        if best is None or any(re.search(p, best[1]) for p in patterns):
+        tracked = [line_key(l) for l in lines]
+        if r.mode == "source":
+            hit = _newest_untracked(patterns, excluded, list(list_tags(r.source.url)))
+            if hit:
+                found.append(NewLine(r.name, hit[0], hit[1], tracked))
             continue
-        v, tag = best
-        m = re.search(r"v?\d+(?:\.\d+)*(?:-[0-9A-Za-z.\-]+)?$", tag)
-        prefix = tag[: m.start()] + ("v" if m.group(0).startswith("v") else "")
-        line = f"{prefix}{v.major}" if any(_takes_minors(p, tags) for p in patterns) else f"{prefix}{v.major}.{v.minor}"
-        found.append(NewLine(r.name, line, tag, [line_key(l) for l in lines]))
+        lined = False  # the line's patterns are shared by every image without its own; report them once
+        for spec in r.build.images if r.build else []:
+            if not spec.upstream or (lined and not spec.tagPattern):
+                continue
+            hit = _newest_untracked([spec.tagPattern] if spec.tagPattern else patterns, excluded,
+                                    list(list_image_tags(spec.upstream)))
+            if spec.tagPattern:
+                if hit:
+                    found.append(NewLine(r.name, hit[0], hit[1], [spec.tagPattern], image=spec.name, upstream=spec.upstream))
+            else:
+                lined = True
+                if hit:
+                    found.append(NewLine(r.name, hit[0], hit[1], tracked, upstream=spec.upstream))
     return found
 
