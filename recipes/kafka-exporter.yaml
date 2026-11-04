@@ -5,7 +5,7 @@ mode: component
 source:
   repo: danielqsj/kafka_exporter
   lines:   # only used for standalone runs; parents pick the exact version they bundle
-    - tagPattern: '^v1\.\d+\.\d+$'
+    - name: v1
 toolchain:
   go: "1.27"  # tests and the rebuilt binary: at least this Go, whatever the tool's go.mod names
 ecosystems:

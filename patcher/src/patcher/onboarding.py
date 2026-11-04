@@ -11,6 +11,7 @@ import tomllib
 from pathlib import Path
 
 from . import detect
+from .models import line_pattern
 
 NON_FINAL_STAGE = re.compile(r"(?i)^(build|builder|base|deps|dev|debug|test|tools?|download(er)?|stager|.*-(build|builder|base|dev|debug|deps))$")
 CI_TEST_LINE = re.compile(r"(make\s+test\S*|go test\b.*|npm (run )?test\b.*|pnpm (run )?test\b.*|yarn (run )?test\b.*|pytest\b.*|"
@@ -27,6 +28,16 @@ def tag_pattern(tag: str) -> str:
 
 def _yaml_str(s: str) -> str:
     return json.dumps(s)  # JSON strings are valid YAML scalars
+
+
+def line_entry(tag: str) -> str:
+    """The `source.lines` entry for the line of `tag`: `- name: "v4.1"` (every v4.1.x tag), or a `tagPattern` for tags
+    a version prefix can't name."""
+    m = re.match(r"^(?P<prefix>.*?)(?P<major>\d+)\.(?P<minor>\d+)\.\d+$", tag)
+    name = f"{m.group('prefix')}{m.group('major')}.{m.group('minor')}" if m else ""
+    if name and line_pattern(name) == tag_pattern(tag):
+        return f"- name: {_yaml_str(name)}"
+    return f"- tagPattern: '{tag_pattern(tag)}'"
 
 
 # workflow lines that can't hold a command: comments, step names, bare mapping keys (`pytest:`)
@@ -159,7 +170,7 @@ def draft(src: Path, name: str, repo: str, tag: str, image: str | None = None) -
          "source:",
          f"  repo: {repo}",
          "  lines:   # TODO: one line per release line you run",
-         f"    - tagPattern: '{tag_pattern(tag)}'"]
+         f"    {line_entry(tag)}"]
     if tc:
         y.append("toolchain:   # detected from the checkout; recipe values win over detection at run time anyway")
         y += [f"  {k}: {_yaml_str(v)}" for k, v in tc.items()]
@@ -214,7 +225,7 @@ def draft_image_only(name: str, image_repo: str, tag: str, platforms: list[str])
         "source:",
         f"  repo: {image_repo}",
         "  lines:",
-        f"    - tagPattern: '{tag_pattern(tag)}'",
+        f"    {line_entry(tag)}",
         "build:",
         f"  platforms: {json.dumps(platforms)}",
         "  images:",

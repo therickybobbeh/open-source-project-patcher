@@ -22,15 +22,22 @@ reported=$(jq -r '.[] | "New release line: \(.recipe) \(.line)"' "$file")
 
 jq -c '.[]' "$file" | while IFS= read -r x; do
   recipe=$(jq -r .recipe <<<"$x")
-  title="New release line: $recipe $(jq -r .line <<<"$x")"
+  line=$(jq -r .line <<<"$x")
+  title="New release line: $recipe $line"
   if jq -e --arg t "$title" 'any(.[]; .title == $t)' <<<"$issues" >/dev/null; then
     continue  # open, or closed on purpose
   fi
   body="Upstream released **$(jq -r .tag <<<"$x")**. \`recipes/$recipe.yaml\` tracks: $(jq -r '.tracked | join(", ")' <<<"$x").
 
-To follow it, add a release line to \`source.lines\` and merge: the push starts the patch run for it
-(see [Adding a release line](https://github.com/$repo/blob/HEAD/docs/runbook.md#adding-a-release-line-or-a-project)). A new
-major can need recipe changes (toolchain, Dockerfile targets, tests).
+To follow it, add the line to \`source.lines\` in \`recipes/$recipe.yaml\` (or put it in place of a line you no longer
+run) and merge:
+
+\`\`\`yaml
+    - name: \"$line\"
+\`\`\`
+
+The push starts its patch run (see [Adding a release line](https://github.com/$repo/blob/HEAD/docs/runbook.md#adding-a-release-line-or-a-project)).
+A new line can need other recipe changes (toolchain, Dockerfile targets, tests): its first patch PR shows them.
 
 If you won't track this line, close the issue; it isn't reopened."
   act gh issue create -R "$repo" --title "$title" --label "$label" --body "$body"
