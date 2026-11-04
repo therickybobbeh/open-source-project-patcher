@@ -6,6 +6,8 @@ For the people who review patch PRs and operate the pipeline. Background is in
 
 ## One-time setup
 
+Moving an existing setup to a GitHub Enterprise Cloud organization instead: [moving-to-an-org.md](moving-to-an-org.md).
+
 1. **GitHub App** for opening PRs. PRs opened with the default `GITHUB_TOKEN` don't trigger checks.
    - Permissions: *Contents: read & write*, *Pull requests: read & write*.
    - Install it on this repository only. Its key then can't do more than anyone with write access here already can.
