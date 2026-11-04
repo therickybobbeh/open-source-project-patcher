@@ -1,0 +1,72 @@
+{
+  "recipe": "kafka-exporter",
+  "line": "kafka-exporter-1.11.0",
+  "tag": "v1.11.0",
+  "commit": "c08240632142c807ef860d56e8a5c2ce0407b58a",
+  "status": "success",
+  "requires": {
+    "go": "1.27.2"
+  },
+  "plan": {
+    "bumps": [
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.60.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "."
+      }
+    ],
+    "unresolved": [
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.57.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      }
+    ],
+    "toolchain": {}
+  },
+  "changes": [
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.60.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    }
+  ],
+  "failures": [],
+  "unresolved": [
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    }
+  ],
+  "skips": [],
+  "tests": {
+    "configured": true,
+    "ran": true,
+    "passed": true
+  },
+  "gate": {}
+}

@@ -1,0 +1,98 @@
+{
+  "recipe": "strimzi-kafka",
+  "line": "1",
+  "tag": "1.3.1",
+  "commit": "555c3e0f07c203911bc3cb7d13ac085bfaa81b50",
+  "status": "success",
+  "requires": {},
+  "plan": {
+    "bumps": [
+      {
+        "ecosystem": "maven",
+        "target": "docker-images/artifacts/kafka-thirdparty-libs/4.3.2/pom.xml",
+        "name": "com.google.guava:guava",
+        "installed": "33.5.0-android",
+        "to": "33.7.2-android",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-102554",
+          "override: CVE-2026-102554 is fixed in 33.7.2, published as 33.7.2-android (the flavor the add-ons use)"
+        ],
+        "direct": false,
+        "dir": "docker-images/artifacts/kafka-thirdparty-libs/4.3.2"
+      }
+    ],
+    "unresolved": [
+      {
+        "ecosystem": "maven",
+        "target": "docker-images/artifacts/kafka-thirdparty-libs/4.3.2/pom.xml",
+        "name": "io.opentelemetry:opentelemetry-api",
+        "installed": "1.63.0",
+        "vuln_id": "CVE-2026-118259",
+        "severity": "MEDIUM",
+        "fixed": "1.67.0",
+        "why": "held: its version is a property shared by five OpenTelemetry artifacts, which the maven adapter can't move for one"
+      }
+    ],
+    "toolchain": {}
+  },
+  "changes": [
+    {
+      "ecosystem": "maven",
+      "target": "docker-images/artifacts/kafka-thirdparty-libs/4.3.2/pom.xml",
+      "name": "com.google.guava:guava",
+      "old": "33.5.0-android",
+      "new": "33.7.2-android",
+      "note": "CVE-2026-102554, override: CVE-2026-102554 is fixed in 33.7.2, published as 33.7.2-android (the flavor the add-ons use)",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "docker-images/base/Dockerfile",
+      "name": "registry.access.redhat.com/ubi9/ubi-minimal",
+      "old": "ubi-minimal:latest",
+      "new": "ubi-minimal:latest@sha256:dfa0eb04abc59221544e74862432496add1f491f915c9b531880f91affc0e12c",
+      "note": "base image refresh",
+      "level": "patch"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "docker-images/base/Dockerfile",
+      "name": "registry.access.redhat.com/ubi9/ubi-minimal",
+      "old": "ubi-minimal:latest",
+      "new": "ubi-minimal:latest@sha256:dfa0eb04abc59221544e74862432496add1f491f915c9b531880f91affc0e12c",
+      "note": "base image refresh",
+      "level": "patch"
+    }
+  ],
+  "failures": [],
+  "unresolved": [
+    {
+      "ecosystem": "maven",
+      "target": "docker-images/artifacts/kafka-thirdparty-libs/4.3.2/pom.xml",
+      "name": "io.opentelemetry:opentelemetry-api",
+      "installed": "1.63.0",
+      "vuln_id": "CVE-2026-118259",
+      "severity": "MEDIUM",
+      "fixed": "1.67.0",
+      "why": "held: its version is a property shared by five OpenTelemetry artifacts, which the maven adapter can't move for one"
+    }
+  ],
+  "skips": [],
+  "tests": {
+    "configured": false,
+    "ran": false,
+    "passed": false
+  },
+  "gate": {
+    "strimzi-kafka": {
+      "passed": true,
+      "deny": [],
+      "warn": []
+    }
+  },
+  "upstream": {
+    "released": null,
+    "level": "new"
+  }
+}
