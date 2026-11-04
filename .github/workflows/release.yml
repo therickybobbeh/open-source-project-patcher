@@ -95,8 +95,10 @@ jobs:
           if [ "$EVENT" = workflow_dispatch ]; then
             plan=$(uv run --project patcher --frozen patcher release-plan --recipe "$RECIPE" --line "$LINE")
           else
-            # the patch sets (generated/<recipe>/<tag>/bump-plan.json) this push added or changed; deletions are ignored
-            git diff --name-only --diff-filter=AM "$BEFORE" HEAD > "$RUNNER_TEMP/changed"
+            # the patch sets (generated/<recipe>/<tag>/bump-plan.json) this push added or changed; deletions are ignored.
+            # --no-renames: a new tag's patch set replaces the line's older one, and git would call the two a rename
+            # (argo-cd v3.5.6 -> v3.5.7, 77% alike, on 2026-11-03), which --diff-filter=AM drops: nothing was released
+            git diff --name-only --no-renames --diff-filter=AM "$BEFORE" HEAD > "$RUNNER_TEMP/changed"
             plan=$(uv run --project patcher --frozen patcher release-plan --changed-files "$RUNNER_TEMP/changed")
           fi
           jq . <<<"$plan"

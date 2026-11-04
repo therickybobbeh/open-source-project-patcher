@@ -212,3 +212,13 @@ def test_release_counts_only_its_own_signatures_from_main():
     text = (ROOT / ".github" / "workflows" / "release.yml").read_text()
     assert r'release\.yml@refs/heads/main$"' in text
     assert '--signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml" --source-ref refs/heads/main' in text
+
+
+def test_a_push_that_replaces_a_patch_set_is_released():
+    """A new upstream tag's patch set replaces the line's older one in the same push. git calls that a rename when the
+    two are alike, and a rename is neither A nor M: release.yml must list changed files without rename detection, or
+    the push releases nothing (argo-cd v3.5.7, 2026-11-03)."""
+    plan = {name: job for name, job, _ in jobs(ROOT / ".github" / "workflows" / "release.yml")}["plan"]
+    diffs = [line for s in steps(plan) for line in s.get("run", "").splitlines() if "git diff" in line]
+    assert diffs and all("--no-renames" in line for line in diffs if "--diff-filter" in line), diffs
+
