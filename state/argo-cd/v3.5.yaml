@@ -1,14 +1,14 @@
 upstreamTag: v3.5.7
 commit: 6d732962f61a99c2a0f221fd26b9aac7c83bcf18
-revision: 2
-releasedAt: '2026-11-04T19:50:23Z'
+revision: 3
+releasedAt: '2026-11-04T20:37:32Z'
 platforms:
 - linux/amd64
 - linux/arm64
 images:
 - name: argocd
-  ref: ghcr.io/therickybobbeh/argocd:v3.5.7-patched.2
-  digest: sha256:6c20658e470e3a3351dacbb7e9dcdd9855b4350b139e8ec8c177c1440aebc2dc
+  ref: ghcr.io/therickybobbeh/argocd:v3.5.7-patched.3
+  digest: sha256:8fe113e448182e70a305f7845f459f8634665f8a90d2b93cde09d165a02521f9
   knownFixable:
   - CVE-2026-56851|golang.org/x/text|usr/local/bin/kustomize
   - CVE-2026-56852|golang.org/x/text|usr/local/bin/kustomize
