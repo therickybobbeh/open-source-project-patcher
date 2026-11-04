@@ -557,6 +557,7 @@ footer .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.
           <tr><td>Skip or quarantine an upstream test</td><td><code>skips/&lt;recipe&gt;.yaml</code>: a reason, an owner and <code>expires</code></td><td>an expired entry warns; <code>skipGraceDays</code> (30) later the run fails</td></tr>
           <tr><td>Accept a finding, with the reason on record</td><td><code>vex/&lt;recipe&gt;.yaml</code></td><td><code>not_affected</code> or <code>fixed</code> settles it: the gate skips it, the rescan ignores it, and it ships as OpenVEX on every release</td></tr>
           <tr><td>What a release may still contain</td><td><code>gate</code> in <code>recipes/_global.yaml</code>, rules in <code>policy/*.rego</code></td><td>report only (<code>enforce: false</code>); it would deny a fixable CRITICAL</td></tr>
+          <tr><td>The user an image runs as</td><td><code>user</code> on the recipe's image (a number, not root); the gate's warning is in <code>policy/gate.rego</code></td><td>upstream's own user. The gate warns on root or a user name, which a cluster that enforces non-root can't start</td></tr>
           <tr><td>Which patch PRs merge without a person</td><td><code>policy/merge/*.rego</code>, read by the daily round</td><td>holds a run that didn't end <code>success</code>, tests that didn't run, a gate denial, a major bump, an upstream
             upgrade past a patch release, or a line's first release</td></tr>
         </tbody>
@@ -578,6 +579,7 @@ footer .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.
           <tr><td><code>in bundled artifact</code></td><td>The vulnerable code is in a binary the source doesn't build</td><td>Add a <code>components</code> entry (rebuilt from its own source), or <code>bundledJars</code> for a Java distribution</td></tr>
           <tr><td>an expired skip</td><td>A skipped test's <code>expires</code> has passed</td><td>Re-check the test, then renew or remove the entry. Thirty days after expiry the run fails until someone does</td></tr>
           <tr><td>Release gate: denied</td><td>The final image still holds something <code>gate.failOn</code> names, unexplained</td><td>Fix the finding or record a VEX decision. With <code>enforce: false</code> the verdict is only reported; with it on, a denied image is never signed</td></tr>
+          <tr><td><code>… runs as root</code>, or <code>… runs as user dex:dex, a name</code></td><td>The image's config starts it as root, or as a name that <code>runAsNonRoot</code> can't check</td><td>Set <code>user</code> on the recipe's image to the same user as a number, or <code>runAsUser</code> in the chart (<a href="#nonroot">Run them as non-root</a>). Tools that need root, such as argoexec's root variant, stay as they are</td></tr>
           <tr><td>The daily round holds a patch PR</td><td>The merge policy wants a person to take the release decision</td><td>Read the report and merge by hand — or, if the rule is too strict, change it in <code>policy/merge/</code> (its tests run with <code>conftest verify --policy policy</code>)</td></tr>
         </tbody>
       </table>
@@ -644,6 +646,27 @@ footer .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.
       <div class="cmd"><div class="cmd-label">VEX decisions on a fresh scan <span>· OpenVEX, Trivy</span></div><pre id="cmd-vex"></pre><button class="btn copy" type="button" data-copy="cmd-vex">Copy</button></div>
       <div class="cmd"><div class="cmd-label">Roll the moving tag back <span>· immutable tags stay as they are</span></div><pre id="cmd-back"></pre><button class="btn copy" type="button" data-copy="cmd-back">Copy</button></div>
     </div>
+    <div class="head read" id="nonroot" style="margin-inline:0">
+      <h3 style="font-size:var(--s2)">Run them as non-root</h3>
+      <p class="lede">Non-root is enforced where the pods run, with Kubernetes' built-in Pod Security Admission. The
+        images only change where one would stand in the way, and every report says how each image runs. The steps and
+        the chart values per project are in
+        <a data-doc="docs/running-non-root.md" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/running-non-root.md">docs/running-non-root.md</a>.</p>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th scope="col">Layer</th><th scope="col">What it does</th><th scope="col">Where</th></tr></thead>
+        <tbody>
+          <tr><td>The cluster</td><td>The <code>restricted</code> profile on each namespace: non-root, no privilege escalation, capabilities dropped, seccomp. Warn and audit first, then enforce. Agents that mount host paths (log collectors) get a <code>privileged</code> namespace of their own</td><td>Namespace labels, and each chart's <code>securityContext</code></td></tr>
+          <tr><td>The images</td><td>Each one starts as a numeric, non-root user. dex (<code>1001</code>), router (<code>1000</code>) and splunk-otel-collector (<code>999</code>) name their user upstream, which <code>runAsNonRoot</code> can't check, so ours set the same user as a number. Argo Workflows also ships upstream's non-root executor, <code>argoexec:&lt;tag&gt;-nonroot-patched</code> (<code>8737</code>)</td><td><code>user</code> on the recipe's image</td></tr>
+          <tr><td>The report and the gate</td><td>Each patch PR's Images table has a <em>Runs as</em> column, and the release gate warns on root or a user name</td><td><code>policy/gate.rego</code></td></tr>
+          <tr><td>Signatures (optional)</td><td>Admit only images that <code>release.yml</code> on <code>main</code> signed, with the identity the commands above check</td><td>Sigstore policy-controller, or Kyverno <code>verifyImages</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="muted small read" style="margin-inline:0">Still root by default, on purpose: argoexec's original variant,
+      the trivy and copa CLIs (trivy's chart runs it as <code>65534</code>), the maven build images, and redis, whose
+      entrypoint drops to the <code>redis</code> user itself.</p>
   </section>
 
   <section id="onboard" class="wrap read" aria-labelledby="onboard-title">
@@ -771,6 +794,7 @@ footer .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.
       <div><dt>VEX</dt><dd>A recorded decision about a finding we can't or needn't fix (<code>vex/&lt;project&gt;.yaml</code>), published with each image as OpenVEX.</dd></div>
       <div><dt>State</dt><dd><code>state/&lt;project&gt;/&lt;line&gt;.yaml</code>: what is released now, with digests and the findings known at release.</dd></div>
       <div><dt>Release-age rule</dt><dd>The 7-day wait before a fix version is used (<code>minReleaseAgeDays</code>). PRs call it a cooldown.</dd></div>
+      <div><dt>Pod Security <code>restricted</code></dt><dd>Kubernetes' built-in admission profile: non-root, no privilege escalation, every capability dropped, seccomp. A namespace label turns it on.</dd></div>
       <div><dt>needs-human</dt><dd>A fix the policy won't apply on its own. Raise the policy, add an override or a patch, or record a VEX decision.</dd></div>
     </dl>
   </section>
@@ -1026,9 +1050,10 @@ footer .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.
       title: "Upstream's own suite, on the patched source",
       body: ["Pass or fail, the command, and every skipped test with its owner and expiry.",
              "On a failure the same tests re-run on the unpatched source: failures on both sides are upstream's or the environment's, not the bumps'. An Attempts line shows when a retry with patch-level bumps alone was needed — then a minor bump broke something, and the PR carries the patch-level result."] },
-    { h: "### Images · components", x: "dex  ✅ smoke `dex version`  Copa: 2 OS packages patched\nhelm (argo-cd)  3.19.1  success — rebuilt, tests passed, swapped in",
+    { h: "### Images · components", x: "dex  runs as 1001:1001  ✅ smoke `dex version`  Copa: 2 OS packages patched\nhelm (argo-cd)  3.19.1  success — rebuilt, tests passed, swapped in",
       title: "The image starts, and what was swapped in",
-      body: ["Smoke commands prove each image runs; the Copa column says which OS packages changed after the rebuild.",
+      body: ["Smoke commands prove each image runs, as the user it runs as in production; the Copa column says which OS packages changed after the rebuild.",
+             "Runs as is the user the image starts with. Root, or a user name, gets a gate warning: a cluster that enforces non-root won't start it (Use the images → Run them as non-root).",
              "When an image bundles third-party binaries (helm in Argo CD, kafka-exporter in Strimzi), each component shows the version found, its own rebuild and tests, and that it was swapped in. Its full report sits under components/ in the patch set."] },
     { h: "### deps.patch", x: "generated/dex/v2.46.1/deps.patch  (+214 −198)",
       title: "What a merge releases, bit for bit",
