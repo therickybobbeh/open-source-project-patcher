@@ -10,12 +10,15 @@ Upstream: https://github.com/argoproj/argo-workflows @ `43021573c5a3` (line `v4.
 | image `workflow-controller` | 0 / 1 / 2 / 0 | 0 / 0 / 0 / 0 | 5 | 0 |
 | image `argocli` | 0 / 1 / 2 / 0 | 0 / 0 / 0 / 0 | 5 | 0 |
 | image `argoexec` | 0 / 1 / 2 / 0 | 0 / 0 / 0 / 0 | 5 | 0 |
+| image `argoexec-nonroot` | 0 / 1 / 2 / 0 | 0 / 0 / 0 / 0 | 5 | 0 |
 
 ### Release gate (reported only (`gate.enforce: false`))
 
 - image `workflow-controller`: ✅ passes
 - image `argocli`: ✅ passes
 - image `argoexec`: ✅ passes
+  - ⚠️ argoexec runs as root: give it a numeric non-root user (`user` on the recipe's image), or run it with runAsUser
+- image `argoexec-nonroot`: ✅ passes
 
 ### Changes applied
 
@@ -45,6 +48,7 @@ Upstream: https://github.com/argoproj/argo-workflows @ `43021573c5a3` (line `v4.
 | UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `workflow-controller` | in bundled artifact `usr/bin/workflow-controller` (not built from this source) |
 | UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `argocli` | in bundled artifact `usr/bin/argo` (not built from this source) |
 | UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `argoexec` | in bundled artifact `usr/bin/argoexec` (not built from this source) |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `argoexec-nonroot` | in bundled artifact `usr/bin/argoexec` (not built from this source) |
 
 ### Bumps that could not be applied
 
@@ -58,7 +62,7 @@ Upstream: https://github.com/argoproj/argo-workflows @ `43021573c5a3` (line `v4.
 
 ### Upstream tests
 
-✅ passed in 11.2 min — `make ui/dist/app/index.html STATIC_FILES=false && go mod vendor && go build -mod=vendor ./... && env KUBECONFIG=/dev/null go run gotest.tools/gotestsum@v1.12.3 --junitfile junit.xml --format testname --rerun-fails=2 --rerun-fails-run-root-test --packages ./... -- -p 20 -timeout 30m -skip='^TestArtif`
+✅ passed in 12.3 min — `make ui/dist/app/index.html STATIC_FILES=false && go mod vendor && go build -mod=vendor ./... && env KUBECONFIG=/dev/null go run gotest.tools/gotestsum@v1.12.3 --junitfile junit.xml --format testname --rerun-fails=2 --rerun-fails-run-root-test --packages ./... -- -p 20 -timeout 30m -skip='^TestArtif`
 
 Skipped tests (from `skips/argo-workflows.yaml`):
 
@@ -68,11 +72,12 @@ Skipped tests (from `skips/argo-workflows.yaml`):
 
 ### Images
 
-| Image | Ref | Smoke | Copa |
-|---|---|---|---|
-| workflow-controller | `patcher.local/workflow-controller:v4.1.6-patched.dev` | ✅ `--help` | no fixable OS packages |
-| argocli | `patcher.local/argocli:v4.1.6-patched.dev` | ✅ `version` | no fixable OS packages |
-| argoexec | `patcher.local/argoexec:v4.1.6-patched.dev` | ✅ `--help` | no fixable OS packages |
+| Image | Ref | Runs as | Smoke | Copa |
+|---|---|---|---|---|
+| workflow-controller | `patcher.local/workflow-controller:v4.1.6-patched.dev` | `8737` | ✅ `--help` | no fixable OS packages |
+| argocli | `patcher.local/argocli:v4.1.6-patched.dev` | `8737` | ✅ `version` | no fixable OS packages |
+| argoexec | `patcher.local/argoexec:v4.1.6-patched.dev` | `0` (root) | ✅ `--help` | no fixable OS packages |
+| argoexec-nonroot | `patcher.local/argoexec:v4.1.6-nonroot-patched.dev` | `8737` | ✅ `--help` | no fixable OS packages |
 
 ### VEX suggestions (govulncheck reachability)
 
