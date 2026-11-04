@@ -739,5 +739,9 @@
       "deny": [],
       "warn": []
     }
+  },
+  "upstream": {
+    "released": "v3.5.7",
+    "level": "same"
   }
 }
