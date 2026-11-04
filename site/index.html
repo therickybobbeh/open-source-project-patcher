@@ -285,6 +285,31 @@ tbody tr:last-child td { border-bottom: 0; }
 .rule .shows { font-family: var(--font-mono); font-size: 0.75rem; color: var(--ink); background: var(--code-bg); padding: 0.35rem 0.5rem; border-radius: 4px; overflow-wrap: anywhere; margin-top: auto; }
 @media (max-width: 700px) { .rules { grid-template-columns: minmax(0, 1fr); } }
 
+/* reading a patch PR */
+.review { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 1.25rem 2rem; align-items: start; }
+.rsecs { display: flex; flex-direction: column; gap: 0.4rem; min-width: 0; }
+.rsec {
+  font: inherit; text-align: left; cursor: pointer; background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 0.55rem 0.8rem; display: flex; flex-direction: column; gap: 0.2rem; min-width: 0;
+}
+.rsec:hover { border-color: var(--accent); }
+.rsec[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+.rsec .r-h { font-family: var(--font-mono); font-size: 0.8125rem; font-weight: 600; overflow-wrap: anywhere; }
+.rsec .r-x { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
+.rdetail {
+  position: sticky; top: 4.5rem; background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  box-shadow: var(--shadow); padding: 1.1rem 1.25rem; display: flex; flex-direction: column; gap: 0.6rem; min-width: 0;
+}
+.rdetail h3 { font-size: var(--s2); }
+.r-flag { color: var(--high); font-size: 0.9375rem; }
+@media (max-width: 860px) { .review { grid-template-columns: minmax(0, 1fr); } .rdetail { position: static; } }
+
+/* repository map */
+.who { display: inline-block; font-size: var(--s-1); padding: 0.1rem 0.5rem; border-radius: 999px; border: 1px solid; white-space: nowrap; }
+.who.you { color: var(--you); background: var(--you-soft); border-color: var(--you-line); }
+.who.ours { color: var(--accent-ink); background: var(--ours-soft); border-color: var(--ours-line); }
+.who.rare { color: var(--muted); background: var(--sunk); border-color: var(--line); }
+
 /* releases */
 .toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; justify-content: space-between; }
 .search { font: inherit; font-size: 0.9375rem; padding: 0.45rem 0.7rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); width: min(100%, 18rem); }
@@ -336,9 +361,11 @@ footer .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.
       <a href="#life">Life of a fix</a>
       <a href="#rules">Bump rules</a>
       <a href="#policy">Policies</a>
+      <a href="#report">Read a PR</a>
       <a href="#use">Use the images</a>
       <a href="#onboard">Add a project</a>
       <a href="#github">In GitHub</a>
+      <a href="#repo">The repo</a>
       <a href="#terms">Terms</a>
     </nav>
   </div>
@@ -359,6 +386,7 @@ footer .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.
           <a class="path" href="#onboard"><b>I'm adding a project</b> →</a>
           <a class="path" href="#github"><b>I look after the pipeline</b> →</a>
         </div>
+        <p class="small muted">New here? The page reads top to bottom as a tour; the chips jump by role.</p>
       </div>
       <figure class="exhibit" aria-labelledby="ex-cap" style="margin:0">
         <div class="tags">
@@ -563,6 +591,21 @@ footer .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.
       <a data-doc="docs/runbook.md#the-daily-merge-round" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/runbook.md#the-daily-merge-round">the merge round</a>.</p>
   </section>
 
+  <section id="report" class="wrap wide" aria-labelledby="report-title">
+    <div class="head read" style="margin-inline:0">
+      <p class="eyebrow">Reading a patch PR</p>
+      <h2 id="report-title">The report is the review</h2>
+      <p class="lede">Merging a patch PR is the release decision, so everything you need is in its body: the generated
+        report, also kept in <code>generated/&lt;recipe&gt;/&lt;tag&gt;/</code>. A condensed one, section by section —
+        select each for what to check. The full checklist is
+        <a data-doc="docs/runbook.md#reviewing-a-patch-pr" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/runbook.md#reviewing-a-patch-pr">in the runbook</a>.</p>
+    </div>
+    <div class="review">
+      <div class="rsecs" id="rsecs" role="list" aria-label="Report sections"></div>
+      <div class="rdetail" id="rdetail" aria-live="polite"></div>
+    </div>
+  </section>
+
   <section id="use" class="wrap wide" aria-labelledby="use-title">
     <div class="head read" style="margin-inline:0">
       <p class="eyebrow">Use the images</p>
@@ -678,6 +721,39 @@ footer .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.
       <a data-doc="docs/runbook.md#a-release-failed-after-the-builds" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/runbook.md#a-release-failed-after-the-builds">finishing a failed release</a> and
       <a data-doc="docs/runbook.md#recording-vex-decisions" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/runbook.md#recording-vex-decisions">recording VEX decisions</a>.
       Symptoms and fixes are in <a data-doc="docs/troubleshooting.md" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/troubleshooting.md">troubleshooting</a>.</p>
+  </section>
+
+  <section id="repo" class="wrap wide" aria-labelledby="repo-title">
+    <div class="head read" style="margin-inline:0">
+      <p class="eyebrow">The repository</p>
+      <h2 id="repo-title">Where things live, and who writes them</h2>
+      <p class="lede">The repository is the whole system: every decision is a file in it, and everything the pipeline
+        produces comes back into it as a pull request. Three kinds of files, told apart by who writes them.</p>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th scope="col">Path</th><th scope="col">What it holds</th><th scope="col">Written by</th></tr></thead>
+        <tbody>
+          <tr><td><code>inventory.yaml</code></td><td>Every image you actually run, with its owner. What <code>patcher coverage</code> checks against</td><td><span class="who you">you</span></td></tr>
+          <tr><td><code>recipes/</code></td><td>One per project: where the source is, the lines to follow, how to build and test. <code>_global.yaml</code> holds the org-wide defaults</td><td><span class="who you">you</span></td></tr>
+          <tr><td><code>skips/</code></td><td>Upstream tests skipped or quarantined, each with a reason, an owner and an expiry</td><td><span class="who you">you</span></td></tr>
+          <tr><td><code>vex/</code></td><td>Accepted findings with their justification, shipped as OpenVEX on every release</td><td><span class="who you">you</span></td></tr>
+          <tr><td><code>patches/</code></td><td>Hand-written source patches a recipe applies before bumping</td><td><span class="who you">you</span></td></tr>
+          <tr><td><code>policy/</code></td><td>The release gate, and under <code>merge/</code> the merge policy (Rego, with tests)</td><td><span class="who you">you</span></td></tr>
+          <tr><td><code>generated/</code></td><td>The reviewed patch sets, one per upstream tag: <code>deps.patch</code>, the plan and the report. Merging a patch PR releases exactly this</td><td><span class="who ours">the pipeline, as patch PRs</span></td></tr>
+          <tr><td><code>state/</code></td><td>What is released now, per line: tag, revision, digests and the findings known at release. The rescan and <code>patcher coverage</code> read it</td><td><span class="who ours">the pipeline, as record PRs</span></td></tr>
+          <tr><td><code>.github/workflows/</code></td><td>The pipeline itself: <code>patch</code>, <code>release</code>, <code>rescan</code>, <code>ci-alerts</code>, <code>tool-pins</code>, <code>patcher-image</code>, <code>pages</code></td><td><span class="who rare">maintainers, rarely</span></td></tr>
+          <tr><td><code>patcher/</code></td><td>The tool (Python, run as its own pinned container image)</td><td><span class="who rare">maintainers, rarely</span></td></tr>
+          <tr><td><code>scripts/</code></td><td>The helpers: <code>merge-ready.sh</code>, <code>patcher-docker.sh</code>, the issue openers</td><td><span class="who rare">maintainers, rarely</span></td></tr>
+          <tr><td><code>schema/</code></td><td>JSON Schemas for recipes, skips and VEX: your editor autocompletes and checks them</td><td><span class="who rare">maintainers, rarely</span></td></tr>
+          <tr><td><code>docs/</code> · <code>site/</code></td><td>The deep guides (onboarding, runbook, recipe reference, gate, troubleshooting) — and this page</td><td><span class="who you">you</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="muted small read" style="margin-inline:0">A useful habit: <code>generated/</code> and <code>state/</code> are
+      never edited by hand — they are what the pipeline said and what a person approved, in that order. If they look
+      wrong, the fix is in <code>recipes/</code>, <code>skips/</code>, <code>vex/</code> or <code>policy/</code>, and the
+      next run rewrites them.</p>
   </section>
 
   <section id="terms" class="wrap wide" aria-labelledby="terms-title">
@@ -920,6 +996,63 @@ footer .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.
     $("#step-count").textContent = `${stepIdx + 1} of ${STORY.length}`;
   }
 
+  // --- reading a patch PR (a condensed report; excerpts are illustrative, not one verbatim PR)
+  const REPORT = [
+    { h: "## ✅ dex `v2.46.1` — success", x: "Upstream: dexidp/dex @ 3f2a91c (line v2)",
+      title: "The title carries the run's outcome",
+      body: ["success: bumps applied, tests passed, images built. tests-preexisting: the failing tests also fail on the unpatched source — reviewable, the failures are upstream's.",
+             "tests-failed, build-failed, smoke-failed and malicious-dependency open as drafts. A draft can't be released by accident: release.yml refuses every status but success, no-changes and tests-preexisting.",
+             "A line's first release is called out here, and the daily merge round leaves it for a person."] },
+    { h: "### Fixable vulnerabilities", x: "source (trivy fs)   0 / 3 / 2 / 0  →  0 / 0 / 1 / 0\nimage dex           1 / 9 / 6 / 1  →  0 / 1 / 2 / 0",
+      title: "Before and after, on one scale",
+      body: ["Counts for the source tree and for each image (critical / high / medium / low), upstream's build against this patch set's.",
+             "The 'after' is what you'd release. Everything still in it is explained row by row further down."],
+      flag: "⚠ A New column above 0 means a bump pulled in something vulnerable. Read those rows first." },
+    { h: "### Release gate", x: "image dex: ✅ passes   (reported only (`gate.enforce: false`))",
+      title: "The verdict the release would get",
+      body: ["The Rego gate judges the image's final scan: after the rebuild, the swaps and Copa. Findings a VEX statement settles don't count.",
+             "Report-only today. With enforce on, a denied image is never signed — and its patch PR opens as a draft, so you'd see it here first."] },
+    { h: "### Changes applied", x: "gomod  go.mod  golang.org/x/net  v0.60.0 → v0.62.0  CVE-2026-78661\ndockerfile  Dockerfile  alpine  3.24 → 3.24@sha256:…  base image refresh",
+      title: "Every change, with its reason",
+      body: ["Each bump names the CVEs it fixes. A move beyond the policy cap only appears when you added an override — the pipeline never takes one alone.",
+             "Bundled jar swaps list coordinates, from → to and the sha256 pin; the jar keeps its old file name, so check the smoke tests actually load it."],
+      flag: "⚠ A change you can't trace to a CVE, an override or a base-image refresh doesn't belong here." },
+    { h: "### Still fixable after patching", x: "HIGH  CVE-2026-97045  golang.org/x/net  cooldown: eligible 2026-11-03\nHIGH  CVE-2026-31456  oras-go  held: helm 3's registry login fails with 2.6.1+",
+      title: "Nothing stays without a reason",
+      body: ["Each row's reason is the instruction, and the Policies section above maps every one to its file: cooldown and untagged clear themselves through the rescan; needs-human, held and in-bundled-artifact ask for a decision.",
+             "Accepting a row means recording it: a VEX statement with a justification and an expiry, not a mental note."],
+      flag: "⚠ The review is exactly this: is every reason one you accept?" },
+    { h: "### Upstream tests", x: "✅ passed in 12.4 min — make testall\nskipped: TestLiveIndex (owner: platform, expires 2027-04-30)",
+      title: "Upstream's own suite, on the patched source",
+      body: ["Pass or fail, the command, and every skipped test with its owner and expiry.",
+             "On a failure the same tests re-run on the unpatched source: failures on both sides are upstream's or the environment's, not the bumps'. An Attempts line shows when a retry with patch-level bumps alone was needed — then a minor bump broke something, and the PR carries the patch-level result."] },
+    { h: "### Images · components", x: "dex  ✅ smoke `dex version`  Copa: 2 OS packages patched\nhelm (argo-cd)  3.19.1  success — rebuilt, tests passed, swapped in",
+      title: "The image starts, and what was swapped in",
+      body: ["Smoke commands prove each image runs; the Copa column says which OS packages changed after the rebuild.",
+             "When an image bundles third-party binaries (helm in Argo CD, kafka-exporter in Strimzi), each component shows the version found, its own rebuild and tests, and that it was swapped in. Its full report sits under components/ in the patch set."] },
+    { h: "### deps.patch", x: "generated/dex/v2.46.1/deps.patch  (+214 −198)",
+      title: "What a merge releases, bit for bit",
+      body: ["Skim it last: lockfile churn is expected, unexpected source changes are not.",
+             "The release doesn't rebuild 'the latest' — it applies exactly this reviewed patch to the verified upstream commit, on runners without credentials, and signs what comes out."] },
+  ];
+  const rsecs = $("#rsecs"), rdetail = $("#rdetail");
+  function renderReport() {
+    REPORT.forEach((s, i) => {
+      const b = el("button", { class: "rsec", type: "button", role: "listitem", "aria-pressed": "false" },
+        el("span", { class: "r-h", text: s.h }), el("span", { class: "r-x", text: s.x }));
+      b.addEventListener("click", () => rselect(i));
+      rsecs.append(b);
+    });
+    rselect(0);
+  }
+  function rselect(i) {
+    rsecs.querySelectorAll(".rsec").forEach((n, j) => n.setAttribute("aria-pressed", String(j === i)));
+    const s = REPORT[i];
+    const kids = [el("h3", { text: s.title }), el("ul", {}, ...s.body.map(t => el("li", { text: t })))];
+    if (s.flag) kids.push(el("p", { class: "r-flag", text: s.flag }));
+    rdetail.replaceChildren(...kids);
+  }
+
   // --- what is released now (releases.json, written by the Pages deploy from state/)
   let lines = [], picked = null;
   function fmtDate(iso) {
@@ -1012,6 +1145,7 @@ footer .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.
   renderMap(); select(current);
   renderSchedule();
   renderStory();
+  renderReport();
   $("#filter").addEventListener("input", renderReleases);
   fillCommands();
   loadReleases();
