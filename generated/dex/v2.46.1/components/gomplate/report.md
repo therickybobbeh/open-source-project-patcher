@@ -28,7 +28,7 @@ Upstream: https://github.com/hairyhenderson/gomplate @ `117c916d306b` (line `gom
 
 ### Upstream tests
 
-✅ passed in 1.8 min — `go test  $(go list ./... | grep -v /internal/tests/integration)`
+✅ passed in 2.6 min — `go test  $(go list ./... | grep -v /internal/tests/integration)`
 
 ### VEX suggestions (govulncheck reachability)
 

@@ -46,14 +46,14 @@ Upstream: https://github.com/dexidp/dex @ `75eb19238e10` (line `v2`)
 
 ### Upstream tests
 
-✅ passed in 1.7 min — `go run gotest.tools/gotestsum@v1.13.0 --format pkgname-and-test-fails --junitfile junit.xml -- -race  ./...`
+✅ passed in 2.4 min — `go run gotest.tools/gotestsum@v1.13.0 --format pkgname-and-test-fails --junitfile junit.xml -- -race  ./...`
 
 ### Images
 
-| Image | Ref | Smoke | Copa |
-|---|---|---|---|
-| dex | `patcher.local/dex:v2.46.1-patched.dev` | ✅ `dex version` | no fixable OS packages |
-| dex-distroless | `patcher.local/dex:v2.46.1-distroless-patched.dev` | ✅ `dex version` | no fixable OS packages |
+| Image | Ref | Runs as | Smoke | Copa |
+|---|---|---|---|---|
+| dex | `patcher.local/dex:v2.46.1-patched.dev` | `1001:1001` | ✅ `dex version` | no fixable OS packages |
+| dex-distroless | `patcher.local/dex:v2.46.1-distroless-patched.dev` | `1001:1001` | ✅ `dex version` | no fixable OS packages |
 
 ### VEX suggestions (govulncheck reachability)
 
