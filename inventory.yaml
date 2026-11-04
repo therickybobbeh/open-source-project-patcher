@@ -10,6 +10,7 @@ images:
   - image: quay.io/argoproj/workflow-controller:v4.1.6
   - image: quay.io/argoproj/argocli:v4.1.6
   - image: quay.io/argoproj/argoexec:v4.1.6
+  - image: quay.io/argoproj/argoexec:v4.1.6-nonroot   # the executor for non-root workflow pods
   - image: quay.io/argoproj/argo-rollouts:v1.10.1
   - image: quay.io/argoproj/kubectl-argo-rollouts:v1.10.1
   - image: ghcr.io/dexidp/dex:v2.46.1
