@@ -22,3 +22,14 @@ def test_a_vulnerability_still_in_the_file_under_another_module_is_not_counted_a
     assert "| image `app` | 0 / 2 / 0 / 0 | 0 / 0 / 0 / 0 | 1 | 0 |" in md  # x/net's fix only
     assert ("- `GO-2026-5932` is still in image `app` (`usr/local/bin/app`), in `golang.org/x/crypto/openpgp` "
             "v0.1.0-deprecated (no fix): not counted as fixed") in md
+
+
+def test_the_report_says_what_each_image_runs_as():
+    from patcher.report import runs_as
+    from patcher.scan import ScanReport, parse_report
+
+    image = lambda user: parse_report({"ArtifactName": "img", "Metadata": {"ImageConfig": {"config": {"User": user}}}})
+    assert image("999").user == "999" and parse_report({"Metadata": {"ImageConfig": {"config": {}}}}).user == ""
+    assert parse_report({"ArtifactName": ".", "Metadata": {}}).user is None  # a source scan: no image, no user
+    assert [runs_as(image(u)) for u in ("999", "", "0", "dex:dex")] == ["`999`", "root (no `USER`)", "`0` (root)", "`dex:dex` (a name)"]
+    assert runs_as(None) == runs_as(ScanReport("src")) == "-"

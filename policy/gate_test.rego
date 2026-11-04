@@ -40,3 +40,23 @@ test_an_affected_statement_doesnt_settle_a_finding if {
 test_nothing_fails_with_no_severities_listed if {
 	count(gate.deny) == 0 with input as image({"fixable": [], "unfixed": []}, [finding("CVE-1", "CRITICAL", "0.38.0", null)])
 }
+
+runs_as(user) := object.union(image({"fixable": [], "unfixed": []}, []), {"user": user})
+
+test_an_image_that_runs_as_root_is_a_warning if {
+	every user in ["", "0", "0:0", "root", "root:root"] {
+		gate.warn["app runs as root: give it a numeric non-root user (`user` on the recipe's image), or run it with runAsUser"] with input as runs_as(user)
+	}
+	count(gate.deny) == 0 with input as runs_as("")
+}
+
+test_a_user_name_is_a_warning if {
+	gate.warn["app runs as user dex:dex, a name: runAsNonRoot can't check it, so set the same user as a number (`user` on the recipe's image)"] with input as runs_as("dex:dex")
+}
+
+test_a_numeric_user_and_a_source_scan_say_nothing if {
+	count(gate.warn) == 0 with input as runs_as("1001:1001")
+	count(gate.warn) == 0 with input as runs_as("65532")
+	count(gate.warn) == 0 with input as runs_as(null)
+	count(gate.warn) == 0 with input as image({"fixable": [], "unfixed": []}, [])
+}

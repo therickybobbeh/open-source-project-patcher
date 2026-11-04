@@ -52,7 +52,7 @@ def gate_input(stage: str, recipe: str, line: str, image: str, ref: str, report:
         findings.append({"id": f.vuln_id, "severity": f.severity, "package": f.name, "installed": f.installed,
                          "fixed": f.fixed or "", "fixable": f.fixable, "ecosystem": f.ecosystem, "location": f.location,
                          "vex": st.status if st else None})
-    return {"stage": stage, "recipe": recipe, "line": line, "image": image, "ref": ref,
+    return {"stage": stage, "recipe": recipe, "line": line, "image": image, "ref": ref, "user": report.user,
             "params": gate.failOn.model_dump(), "findings": findings}
 
 
