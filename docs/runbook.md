@@ -496,8 +496,10 @@ deployments change; `patcher coverage --fail-on-uncovered` can gate a CI job on 
 (Argo CD v3.6 while the recipe tracks v3.5 and v3.4), the daily rescan reports it (`patcher
 new-lines`) and opens one issue per line, labelled `new-release-line`, with the entry to add. A prerelease, a Go
 submodule tag and a tag the recipe's `exclude` patterns match don't count. A recipe whose lines take a whole major
-(external-secrets: `v2`) gets its minors as releases of that line, and one issue for the next major (`v3`). Add the
-line to track it, and the issue closes itself. To stay where you are, close the issue: it isn't reopened, and the next
+(external-secrets: `v2`) gets its minors as releases of that line, and one issue for the next major (`v3`). An
+`image-only` recipe is watched the same way through its registries: its images' tags against the line, and against an
+image's own `tagPattern` when it versions separately (the issue then names the image, and the move is updating that
+pattern). Add the line to track it, and the issue closes itself. To stay where you are, close the issue: it isn't reopened, and the next
 new line opens a new one.
 
 **End-of-life runtimes.** The same daily run checks what each recipe builds with against

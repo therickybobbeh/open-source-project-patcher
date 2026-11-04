@@ -338,7 +338,8 @@ def new_lines(
         return
     typer.echo("| Recipe | New line | Newest release | Tracked lines |\n|---|---|---|---|")
     for x in found:
-        typer.echo(f"| {x.recipe} | {x.line} | `{x.tag}` | {', '.join(x.tracked)} |")
+        who = f"{x.recipe} ({x.image})" if x.image else x.recipe
+        typer.echo(f"| {who} | {x.line} | `{x.tag}` | {', '.join(f'`{t}`' if x.image else t for t in x.tracked)} |")
     if not found:
         typer.echo("| — | every recipe tracks the newest upstream release | | |")
 
