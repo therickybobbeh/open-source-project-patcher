@@ -1,0 +1,15 @@
+{
+  "swaps": [],
+  "unresolved": [
+    {
+      "ecosystem": "jar",
+      "target": "opt/kafka/libs/opentelemetry-api-1.63.0.jar",
+      "name": "io.opentelemetry:opentelemetry-api",
+      "installed": "1.63.0",
+      "vuln_id": "CVE-2026-118259",
+      "severity": "MEDIUM",
+      "fixed": "1.67.0",
+      "why": "held: its version is a property shared by five OpenTelemetry artifacts, which the maven adapter can't move for one"
+    }
+  ]
+}

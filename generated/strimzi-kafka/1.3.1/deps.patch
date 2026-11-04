@@ -1,0 +1,44 @@
+diff --git a/docker-images/artifacts/kafka-thirdparty-libs/4.3.2/pom.xml b/docker-images/artifacts/kafka-thirdparty-libs/4.3.2/pom.xml
+index ce90dff..c21a12a 100644
+--- a/docker-images/artifacts/kafka-thirdparty-libs/4.3.2/pom.xml
++++ b/docker-images/artifacts/kafka-thirdparty-libs/4.3.2/pom.xml
+@@ -31,6 +31,17 @@
+         <jackson.version>2.21.7</jackson.version>
+     </properties>
+ 
++    <dependencyManagement>
++        <dependencies>
++            <!-- patcher: CVE-2026-102554, override: CVE-2026-102554 is fixed in 33.7.2, published as 33.7.2-android (the flavor the add-ons use) -->
++            <dependency>
++                <groupId>com.google.guava</groupId>
++                <artifactId>guava</artifactId>
++                <version>33.7.2-android</version>
++            </dependency>
++        </dependencies>
++    </dependencyManagement>
++
+     <dependencies>
+         <!-- Support for the new JsonTemplateLayout as appender type -->
+         <dependency>
+diff --git a/docker-images/base/Dockerfile b/docker-images/base/Dockerfile
+index 80fc7a5..8bf9f2b 100644
+--- a/docker-images/base/Dockerfile
++++ b/docker-images/base/Dockerfile
+@@ -1,7 +1,7 @@
+ #####
+ # Build the helper container image for downloading prerequisites
+ #####
+-FROM registry.access.redhat.com/ubi9/ubi-minimal:latest AS downloader
++FROM registry.access.redhat.com/ubi9/ubi-minimal:latest@sha256:dfa0eb04abc59221544e74862432496add1f491f915c9b531880f91affc0e12c AS downloader
+ 
+ ARG TARGETOS
+ ARG TARGETARCH
+@@ -37,7 +37,7 @@ RUN set -ex; \
+ #####
+ # Build the main container image
+ #####
+-FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
++FROM registry.access.redhat.com/ubi9/ubi-minimal:latest@sha256:dfa0eb04abc59221544e74862432496add1f491f915c9b531880f91affc0e12c
+ 
+ LABEL org.opencontainers.image.source='https://github.com/strimzi/strimzi-kafka-operator'
+ 
