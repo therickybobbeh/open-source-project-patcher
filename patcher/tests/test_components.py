@@ -197,6 +197,49 @@ def test_release_skips_components_the_pr_kept_original(tmp_path):
     assert components.from_generated(Repo(tmp_path), parent, gen, tmp_path / "work") == {}
 
 
+def test_release_builds_components_from_the_reviewed_patch(tmp_path):
+    """The release re-creates each component's patched source, and `overlay` resets that tree to its last commit
+    before building: an uncommitted patch was thrown away, so argo-cd's helm and git-lfs and dex's gomplate shipped
+    with upstream's dependencies (and Go 1.26.0, the bump's minimum, rather than the newest 1.26.x) until 2026-11-04."""
+    import json
+    import subprocess
+
+    from patcher import upstream
+    from patcher.config import Repo
+
+    git = lambda *a: subprocess.run(["git", "-C", str(up), *upstream.GIT_ID, *a], check=True, capture_output=True, text=True).stdout
+    up = tmp_path / "upstream"
+    up.mkdir()
+    git("init", "-q")
+    (up / "go.mod").write_text("module example.com/tool\n\ngo 1.23.0\n\nrequire golang.org/x/net v0.38.0\n")
+    git("add", "-A")
+    git("commit", "-q", "-m", "v1.0.0")
+    git("tag", "v1.0.0")
+    commit = git("rev-parse", "HEAD").strip()
+    (up / "go.mod").write_text("module example.com/tool\n\ngo 1.26.0\n\nrequire golang.org/x/net v0.62.0\n")
+    patch = git("diff")
+    git("checkout", "--", ".")
+
+    (tmp_path / "recipes").mkdir()
+    (tmp_path / "recipes" / "_global.yaml").write_text("registry: ghcr.io/me\n")
+    (tmp_path / "recipes" / "tool.yaml").write_text(yaml.safe_dump({
+        "name": "tool", "mode": "component", "source": {"repo": up.as_uri(), "lines": [{"tagPattern": "x"}]},
+        "artifact": {"build": "go build -o /out/tool .", "output": "/out/tool"}}))
+    parent = Recipe.model_validate({"name": "app", "source": {"repo": "o/app", "lines": [{"tagPattern": "x"}]},
+                                    "build": {"images": [{"name": "app"}]},
+                                    "components": [{"recipe": "tool", "path": "/usr/local/bin/tool"}]})
+    gen = tmp_path / "gen"
+    (gen / "components" / "tool").mkdir(parents=True)
+    (gen / "components" / "tool" / "bump-plan.json").write_text(json.dumps(
+        {"recipe": "tool", "tag": "v1.0.0", "commit": commit, "status": "success", "requires": {"go": "1.26.0"}}))
+    (gen / "components" / "tool" / "deps.patch").write_text(patch)
+
+    comp = components.from_generated(Repo(tmp_path), parent, gen, tmp_path / "work")["tool"]
+    upstream.reset_tree(comp.src)  # what `overlay` does first
+    assert "golang.org/x/net v0.62.0" in (comp.src / "go.mod").read_text()
+    assert comp.go == "1.26"  # golang:1.26 is the newest 1.26.x; golang:1.26.0 lacks every stdlib fix since
+
+
 def test_one_component_version_per_line(tmp_path):
     ref = ComponentRef(recipe="helm", path="/usr/local/bin/helm")
     a = components.Component(ref, comp_recipe(), "4.2.1", "v4.2.1", "success", src=tmp_path)
@@ -341,3 +384,26 @@ def test_smoke_commands_get_the_images_smoke_env(monkeypatch, tmp_path):
     assert build.smoke_test(img, tmp_path / "log")
     cmd = seen[0]
     assert cmd[cmd.index("-e") + 1] == "SPLUNK_REALM=us0" and cmd.index("-e") < cmd.index("img:dev") < cmd.index("components")
+
+
+def test_a_release_that_lost_a_component_bump_is_stopped(tmp_path):
+    import json
+
+    recipe = Recipe.model_validate({"name": "app", "source": {"repo": "o/app", "lines": [{"tagPattern": "x"}]},
+                                    "build": {"images": [{"name": "app"}]},
+                                    "components": [{"recipe": "tool", "path": "/usr/local/bin/tool"}]})
+    plan = tmp_path / "components" / "tool" / "bump-plan.json"
+    plan.parent.mkdir(parents=True)
+    write = lambda status: plan.write_text(json.dumps({"recipe": "tool", "tag": "v1.0.0", "status": status, "changes": [
+        {"ecosystem": "gomod", "target": "go.mod", "name": "golang.org/x/net", "old": "v0.38.0", "new": "v0.62.0"},
+        {"ecosystem": "gomod", "target": "go.mod", "name": "go", "old": "1.23.0", "new": "1.26.0"}]}))
+    released = lambda net: ScanReport("img", packages=[
+        Package("usr/local/bin/tool", "gobinary", "golang.org/x/net", net, "1"),
+        Package("usr/local/bin/tool", "gobinary", "stdlib", "v1.26.10", "2"),
+        Package("usr/bin/other", "gobinary", "golang.org/x/net", "v0.1.0", "3")])  # not the component: not checked
+    write("success")
+    assert components.unapplied(recipe, tmp_path, "app", released("v0.38.0")) == [
+        "/usr/local/bin/tool: golang.org/x/net v0.38.0, the patch set has v0.62.0"]
+    assert components.unapplied(recipe, tmp_path, "app", released("v0.62.0")) == []
+    write("tests-failed")  # the PR kept the original binary: so does the release
+    assert components.unapplied(recipe, tmp_path, "app", released("v0.38.0")) == []

@@ -1140,6 +1140,9 @@ def publish(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, o
         digest = image_digest(img.ref)
         after = scan_image(f"{img.repository}@{digest}", out / f"scan-release-{spec.key}.json", severities=g.scan.severities,
                            platform=img.platforms[0], src="remote")
+        if missing := components.unapplied(recipe, gen, spec.key, after):
+            raise RuntimeError(f"{img.ref} doesn't ship its reviewed patch set: {'; '.join(missing[:5])}"
+                               f"{f' (+{len(missing) - 5} more)' if len(missing) > 5 else ''}. It isn't signed, promoted or recorded")
         vexdoc = openvex(repo.vex(recipe.name), oci_purl(img.repository, digest), after.findings,
                          extra_docs=[cr.vex] if cr and cr.vex else [])
         vex_path = out / f"vex-{spec.key}.openvex.json"

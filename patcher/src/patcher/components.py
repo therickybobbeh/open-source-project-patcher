@@ -213,10 +213,33 @@ def from_generated(repo: Repo, recipe: Recipe, gen: Path, workdir: Path) -> dict
         patch = plan_file.parent / "deps.patch"
         if patch.exists() and patch.stat().st_size:
             run(["git", "-C", str(src), "apply", "--binary", "--whitespace=nowarn", str(patch.resolve())])
+        # committed, as the PR run's tree is: `overlay` resets the tree to its last commit before building
+        upstream.commit_all(src, f"patcher: release {doc['tag']}", retag=doc["tag"])
         version = doc["tag"].lstrip("v").split("/")[-1].lstrip("v")
         comps[doc["recipe"]] = Component(ref, comp_recipe, version, doc["tag"], status=doc.get("status", ""), src=src,
-                                         go=(doc.get("requires") or {}).get("go"))
+                                         go=_required_go(plan_file))
     return comps
+
+
+def unapplied(recipe: Recipe, gen: Path, image_key: str, report: ScanReport) -> list[str]:
+    """Go modules a reviewed component patch set bumped that the released binary has at a lower version: the release
+    didn't build what the PR showed (for a week, argo-cd's helm and git-lfs shipped upstream's modules, see
+    `from_generated`). `report` is the released image's scan, with every package listed."""
+    from .versions import try_parse
+
+    found = []
+    for ref in applicable(recipe, image_key):
+        plan_file = gen / "components" / ref.recipe / "bump-plan.json"
+        doc = json.loads(plan_file.read_text()) if plan_file.is_file() else {}
+        if doc.get("status") not in USABLE:
+            continue  # the original binary ships, as the PR said
+        have = {p.name: p.version for p in report.packages if p.location == ref.path.lstrip("/")}
+        for c in doc.get("changes") or []:
+            name = "stdlib" if c.get("name") == "go" else c.get("name")  # the go line is the Go it's built with
+            got, want = try_parse("gomod", have.get(name)), try_parse("gomod", c.get("new"))
+            if c.get("ecosystem") == "gomod" and got and want and got < want:
+                found.append(f"{ref.path}: {name} {have[name]}, the patch set has {c['new']}")
+    return found
 
 
 def _required_go(plan_file: Path) -> str | None:
