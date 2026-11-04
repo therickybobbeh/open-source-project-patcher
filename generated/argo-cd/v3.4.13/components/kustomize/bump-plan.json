@@ -335,5 +335,11 @@
       "why": "needs-human: fix requires a bump beyond the `patch` policy"
     }
   ],
-  "skips": []
+  "skips": [],
+  "tests": {
+    "configured": true,
+    "ran": true,
+    "passed": true
+  },
+  "gate": {}
 }

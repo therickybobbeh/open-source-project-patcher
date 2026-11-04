@@ -1,0 +1,1074 @@
+{
+  "recipe": "argo-cd",
+  "line": "v3.4",
+  "tag": "v3.4.13",
+  "commit": "83ad9cd88fa03ec152b267b371e03ad670c4dd81",
+  "status": "success",
+  "requires": {},
+  "plan": {
+    "bumps": [
+      {
+        "ecosystem": "gomod",
+        "target": "gitops-engine/go.mod",
+        "name": "github.com/moby/spdystream",
+        "installed": "v0.5.0",
+        "to": "v0.5.1",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-35469"
+        ],
+        "direct": false,
+        "dir": "gitops-engine"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "gitops-engine/go.mod",
+        "name": "go.opentelemetry.io/otel",
+        "installed": "v1.38.0",
+        "to": "v1.41.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-29181"
+        ],
+        "direct": false,
+        "dir": "gitops-engine"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "gitops-engine/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.44.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2025-47911",
+          "CVE-2025-58190",
+          "CVE-2026-25680",
+          "CVE-2026-25681",
+          "CVE-2026-27136",
+          "CVE-2026-33814",
+          "CVE-2026-39821",
+          "CVE-2026-42502",
+          "CVE-2026-42506",
+          "CVE-2026-46600",
+          "CVE-2026-78659",
+          "CVE-2026-78660",
+          "CVE-2026-78661",
+          "CVE-2026-78663",
+          "CVE-2026-78669",
+          "CVE-2026-97032",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "gitops-engine"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "gitops-engine/go.mod",
+        "name": "golang.org/x/sys",
+        "installed": "v0.36.0",
+        "to": "v0.44.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-39824"
+        ],
+        "direct": false,
+        "dir": "gitops-engine"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "gitops-engine/go.mod",
+        "name": "golang.org/x/text",
+        "installed": "v0.29.0",
+        "to": "v0.41.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-56851",
+          "CVE-2026-56852"
+        ],
+        "direct": false,
+        "dir": "gitops-engine"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/go-jose/go-jose/v3",
+        "installed": "v3.0.1",
+        "to": "v3.0.5",
+        "level": "patch",
+        "reasons": [
+          "CVE-2024-28180",
+          "CVE-2025-27144",
+          "CVE-2026-34986"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/go-jose/go-jose/v4",
+        "installed": "v4.1.4",
+        "to": "v4.1.6",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-116585",
+          "CVE-2026-116586",
+          "CVE-2026-116587"
+        ],
+        "direct": true,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/klauspost/compress",
+        "installed": "v1.18.0",
+        "to": "v1.18.7",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-63209"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/slack-go/slack",
+        "installed": "v0.16.0",
+        "to": "v0.23.1",
+        "level": "minor",
+        "reasons": [
+          "GHSA-gxhx-2686-5h9g"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace",
+        "installed": "v1.44.0",
+        "to": "v1.45.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-81870"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc",
+        "installed": "v1.44.0",
+        "to": "v1.45.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-81870"
+        ],
+        "direct": true,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/sdk",
+        "installed": "v1.44.0",
+        "to": "v1.45.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-81870"
+        ],
+        "direct": true,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.58.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78659",
+          "CVE-2026-78660",
+          "CVE-2026-78661",
+          "CVE-2026-78663",
+          "CVE-2026-78669",
+          "CVE-2026-97032",
+          "CVE-2026-97045"
+        ],
+        "direct": true,
+        "dir": "."
+      },
+      {
+        "ecosystem": "yarn",
+        "target": "ui/yarn.lock",
+        "name": "brace-expansion",
+        "installed": "1.1.18",
+        "to": "1.1.21",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-102276",
+          "CVE-2026-102277",
+          "CVE-2026-102278"
+        ],
+        "direct": false,
+        "dir": "ui"
+      },
+      {
+        "ecosystem": "yarn",
+        "target": "ui/yarn.lock",
+        "name": "brace-expansion",
+        "installed": "2.1.4",
+        "to": "2.1.7",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-102276",
+          "CVE-2026-102277",
+          "CVE-2026-102278"
+        ],
+        "direct": false,
+        "dir": "ui"
+      },
+      {
+        "ecosystem": "yarn",
+        "target": "ui/yarn.lock",
+        "name": "dompurify",
+        "installed": "3.4.13",
+        "to": "3.4.17",
+        "level": "patch",
+        "reasons": [
+          "GHSA-6688-9rhm-gjv2",
+          "GHSA-c6gr-qvv4-5v3f",
+          "GHSA-cg2g-xh64-v4q7",
+          "GHSA-mrv2-3pqr-j5jr",
+          "GHSA-p98j-92pf-mc4p"
+        ],
+        "direct": false,
+        "dir": "ui"
+      },
+      {
+        "ecosystem": "yarn",
+        "target": "ui/yarn.lock",
+        "name": "form-data",
+        "installed": "4.0.4",
+        "to": "4.0.6",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-12143"
+        ],
+        "direct": false,
+        "dir": "ui"
+      },
+      {
+        "ecosystem": "yarn",
+        "target": "ui/yarn.lock",
+        "name": "formidable",
+        "installed": "2.1.2",
+        "to": "2.1.5",
+        "level": "patch",
+        "reasons": [
+          "CVE-2025-46653"
+        ],
+        "direct": false,
+        "dir": "ui"
+      },
+      {
+        "ecosystem": "yarn",
+        "target": "ui/yarn.lock",
+        "name": "lodash",
+        "installed": "4.17.23",
+        "to": "4.18.1",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-2950",
+          "CVE-2026-4800"
+        ],
+        "direct": false,
+        "dir": "ui"
+      },
+      {
+        "ecosystem": "yarn",
+        "target": "ui/yarn.lock",
+        "name": "lodash-es",
+        "installed": "4.17.23",
+        "to": "4.18.1",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-2950",
+          "CVE-2026-4800"
+        ],
+        "direct": true,
+        "dir": "ui"
+      },
+      {
+        "ecosystem": "yarn",
+        "target": "ui/yarn.lock",
+        "name": "minimatch",
+        "installed": "3.1.3",
+        "to": "3.1.4",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-27904"
+        ],
+        "direct": true,
+        "dir": "ui"
+      },
+      {
+        "ecosystem": "yarn",
+        "target": "ui/yarn.lock",
+        "name": "minimatch",
+        "installed": "5.1.6",
+        "to": "5.1.8",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-26996",
+          "CVE-2026-27903",
+          "CVE-2026-27904"
+        ],
+        "direct": false,
+        "dir": "ui"
+      },
+      {
+        "ecosystem": "yarn",
+        "target": "ui/yarn.lock",
+        "name": "moment",
+        "installed": "2.29.4",
+        "to": "2.31.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-17495"
+        ],
+        "direct": true,
+        "dir": "ui"
+      },
+      {
+        "ecosystem": "yarn",
+        "target": "ui/yarn.lock",
+        "name": "qs",
+        "installed": "6.14.2",
+        "to": "6.16.1",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-110816",
+          "CVE-2026-82417",
+          "CVE-2026-82562",
+          "CVE-2026-8723"
+        ],
+        "direct": false,
+        "dir": "ui"
+      },
+      {
+        "ecosystem": "yarn",
+        "target": "ui/yarn.lock",
+        "name": "yaml",
+        "installed": "1.10.2",
+        "to": "1.10.3",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-33532"
+        ],
+        "direct": false,
+        "dir": "ui"
+      }
+    ],
+    "unresolved": [
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/go-jose/go-jose/v3",
+        "installed": "v3.0.1",
+        "vuln_id": "CVE-2026-116587",
+        "severity": "HIGH",
+        "fixed": null,
+        "why": "no fixed version"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/go-jose/go-jose/v3",
+        "installed": "v3.0.1",
+        "vuln_id": "CVE-2026-116585",
+        "severity": "MEDIUM",
+        "fixed": null,
+        "why": "no fixed version"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/go-jose/go-jose/v3",
+        "installed": "v3.0.1",
+        "vuln_id": "CVE-2026-116586",
+        "severity": "MEDIUM",
+        "fixed": null,
+        "why": "no fixed version"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.57.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "yarn",
+        "target": "ui/yarn.lock",
+        "name": "diff",
+        "installed": "2.2.3",
+        "vuln_id": "GHSA-h6ch-v84p-w6p9",
+        "severity": "HIGH",
+        "fixed": "3.5.0",
+        "why": "needs-human: fix requires a bump beyond the `minor` policy"
+      },
+      {
+        "ecosystem": "yarn",
+        "target": "ui/yarn.lock",
+        "name": "diff",
+        "installed": "2.2.3",
+        "vuln_id": "CVE-2026-24001",
+        "severity": "LOW",
+        "fixed": "8.0.3, 5.2.2, 4.0.4, 3.5.1",
+        "why": "needs-human: fix requires a bump beyond the `minor` policy"
+      },
+      {
+        "ecosystem": "yarn",
+        "target": "ui/yarn.lock",
+        "name": "esbuild",
+        "installed": "0.14.38",
+        "vuln_id": "GHSA-67mh-4wv8-2f99",
+        "severity": "MEDIUM",
+        "fixed": "0.25.0",
+        "why": "needs-human: fix requires a bump beyond the `minor` policy"
+      },
+      {
+        "ecosystem": "yarn",
+        "target": "ui/yarn.lock",
+        "name": "fast-xml-parser",
+        "installed": "4.5.6",
+        "vuln_id": "CVE-2026-41650",
+        "severity": "MEDIUM",
+        "fixed": "5.7.0",
+        "why": "needs-human: fix requires a bump beyond the `minor` policy"
+      },
+      {
+        "ecosystem": "yarn",
+        "target": "ui/yarn.lock",
+        "name": "minimatch",
+        "installed": "3.1.3",
+        "vuln_id": "CVE-2026-118764",
+        "severity": "MEDIUM",
+        "fixed": "11.0.1",
+        "why": "needs-human: fix requires a bump beyond the `minor` policy"
+      },
+      {
+        "ecosystem": "yarn",
+        "target": "ui/yarn.lock",
+        "name": "minimatch",
+        "installed": "5.1.6",
+        "vuln_id": "CVE-2026-118764",
+        "severity": "MEDIUM",
+        "fixed": "11.0.1",
+        "why": "needs-human: fix requires a bump beyond the `minor` policy"
+      },
+      {
+        "ecosystem": "yarn",
+        "target": "ui/yarn.lock",
+        "name": "uuid",
+        "installed": "9.0.0",
+        "vuln_id": "CVE-2026-41907",
+        "severity": "MEDIUM",
+        "fixed": "11.1.1, 12.0.1, 13.0.1",
+        "why": "needs-human: fix requires a bump beyond the `minor` policy"
+      }
+    ],
+    "toolchain": {}
+  },
+  "changes": [
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/go-jose/go-jose/v4",
+      "old": "v4.1.4",
+      "new": "v4.1.6",
+      "note": "CVE-2026-116585, CVE-2026-116586, CVE-2026-116587",
+      "level": "patch"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/go-jose/go-jose/v3",
+      "old": "v3.0.1",
+      "new": "v3.0.5",
+      "note": "CVE-2024-28180, CVE-2025-27144, CVE-2026-34986",
+      "level": "patch"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace",
+      "old": "v1.44.0",
+      "new": "v1.45.0",
+      "note": "CVE-2026-81870",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc",
+      "old": "v1.44.0",
+      "new": "v1.45.0",
+      "note": "CVE-2026-81870",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/sdk",
+      "old": "v1.44.0",
+      "new": "v1.45.0",
+      "note": "CVE-2026-81870",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/klauspost/compress",
+      "old": "v1.18.0",
+      "new": "v1.18.7",
+      "note": "CVE-2026-63209",
+      "level": "patch"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.58.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78659, CVE-2026-78660, CVE-2026-78661, CVE-2026-78663, CVE-2026-78669, CVE-2026-97032, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/slack-go/slack",
+      "old": "v0.16.0",
+      "new": "v0.23.1",
+      "note": "GHSA-gxhx-2686-5h9g",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "gitops-engine/go.mod",
+      "name": "go.opentelemetry.io/otel",
+      "old": "v1.38.0",
+      "new": "v1.41.0",
+      "note": "CVE-2026-29181",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "gitops-engine/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.44.0",
+      "new": "v0.62.0",
+      "note": "CVE-2025-47911, CVE-2025-58190, CVE-2026-25680, CVE-2026-25681, CVE-2026-27136, CVE-2026-33814, CVE-2026-39821, CVE-2026-42502, CVE-2026-42506, CVE-2026-46600, CVE-2026-78659, CVE-2026-78660, CVE-2026-78661, CVE-2026-78663, CVE-2026-78669, CVE-2026-97032, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "gitops-engine/go.mod",
+      "name": "golang.org/x/sys",
+      "old": "v0.36.0",
+      "new": "v0.44.0",
+      "note": "CVE-2026-39824",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "gitops-engine/go.mod",
+      "name": "golang.org/x/text",
+      "old": "v0.29.0",
+      "new": "v0.41.0",
+      "note": "CVE-2026-56851, CVE-2026-56852",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "gitops-engine/go.mod",
+      "name": "github.com/moby/spdystream",
+      "old": "v0.5.0",
+      "new": "v0.5.1",
+      "note": "CVE-2026-35469",
+      "level": "patch"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "dompurify",
+      "old": "3.4.13",
+      "new": "3.4.17",
+      "note": "GHSA-6688-9rhm-gjv2, GHSA-c6gr-qvv4-5v3f, GHSA-cg2g-xh64-v4q7, GHSA-mrv2-3pqr-j5jr, GHSA-p98j-92pf-mc4p",
+      "level": "patch"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "form-data",
+      "old": "4.0.4",
+      "new": "4.0.6",
+      "note": "CVE-2026-12143",
+      "level": "patch"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "formidable",
+      "old": "2.1.2",
+      "new": "2.1.5",
+      "note": "CVE-2025-46653",
+      "level": "patch"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "lodash",
+      "old": "4.17.23",
+      "new": "4.18.1",
+      "note": "CVE-2026-2950, CVE-2026-4800",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "lodash-es",
+      "old": "4.17.23",
+      "new": "4.18.1",
+      "note": "CVE-2026-2950, CVE-2026-4800",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "moment",
+      "old": "2.29.4",
+      "new": "2.31.0",
+      "note": "CVE-2026-17495",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "qs",
+      "old": "6.14.2",
+      "new": "6.16.1",
+      "note": "CVE-2026-110816, CVE-2026-82417, CVE-2026-82562, CVE-2026-8723",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "yaml",
+      "old": "1.10.2",
+      "new": "1.10.3",
+      "note": "CVE-2026-33532",
+      "level": "patch"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "dompurify",
+      "old": "3.4.13",
+      "new": "3.4.17",
+      "note": "GHSA-6688-9rhm-gjv2, GHSA-c6gr-qvv4-5v3f, GHSA-cg2g-xh64-v4q7, GHSA-mrv2-3pqr-j5jr, GHSA-p98j-92pf-mc4p",
+      "level": "patch"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "lodash-es",
+      "old": "4.17.23",
+      "new": "4.18.1",
+      "note": "CVE-2026-2950, CVE-2026-4800",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "moment",
+      "old": "2.29.4",
+      "new": "2.31.0",
+      "note": "CVE-2026-17495",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "dompurify",
+      "old": "3.4.13",
+      "new": "3.4.17",
+      "note": "GHSA-6688-9rhm-gjv2, GHSA-c6gr-qvv4-5v3f, GHSA-cg2g-xh64-v4q7, GHSA-mrv2-3pqr-j5jr, GHSA-p98j-92pf-mc4p",
+      "level": "patch"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "lodash-es",
+      "old": "4.17.23",
+      "new": "4.18.1",
+      "note": "CVE-2026-2950, CVE-2026-4800",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "moment",
+      "old": "2.29.4",
+      "new": "2.31.0",
+      "note": "CVE-2026-17495",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "docker.io/library/golang",
+      "old": "golang:1.26.10@sha256:5c3f3f28a273c9b61698b2d34f18375929790ab1f1d3835d032d21e2b31eae0c",
+      "new": "golang:1.26.10@sha256:670bb5aa5349ae03b8516764718486f4f16399134bdc9acd0c46a23f043ab05c",
+      "note": "base image refresh",
+      "level": "patch"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "ARG BASE_IMAGE",
+      "old": "ubuntu:26.04@sha256:f3d28607ddd78734bb7f71f117f3c6706c666b8b76cbff7c9ff6e5718d46ff64",
+      "new": "ubuntu:26.04@sha256:6a06111c3b0a8600feadb270aec771dc239bf407b25625f93f44ab00e11f4d3c",
+      "note": "base image refresh",
+      "level": "patch"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "docker.io/library/node",
+      "old": "node:23.0.0@sha256:9d09fa506f5b8465c5221cbd6f980e29ae0ce9a3119e2b9bc0842e6a3f37bb59",
+      "new": "node:24.22.2@sha256:e7add2a490bb17d97b485b8641bd88455fff7839ade0f5eba493c3508124d413",
+      "note": "23.0.0 -> 24.22.2 (minVersions: the 24 line)",
+      "level": "patch"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "docker.io/library/golang",
+      "old": "golang:1.26.10@sha256:5c3f3f28a273c9b61698b2d34f18375929790ab1f1d3835d032d21e2b31eae0c",
+      "new": "golang:1.26.10@sha256:670bb5aa5349ae03b8516764718486f4f16399134bdc9acd0c46a23f043ab05c",
+      "note": "base image refresh",
+      "level": "patch"
+    }
+  ],
+  "failures": [
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "brace-expansion",
+      "wanted": "1.1.21",
+      "error": "needs-human: yarn.lock has brace-expansion on majors [1, 2]; a yarn resolution would force all of them to 1.1.21",
+      "hint": false
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "brace-expansion",
+      "wanted": "2.1.7",
+      "error": "needs-human: yarn.lock has brace-expansion on majors [1, 2]; a yarn resolution would force all of them to 2.1.7",
+      "hint": false
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "minimatch",
+      "wanted": "3.1.4",
+      "error": "needs-human: yarn.lock has minimatch on majors [3, 5, 9]; a yarn resolution would force all of them to 3.1.4",
+      "hint": false
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "minimatch",
+      "wanted": "5.1.8",
+      "error": "needs-human: yarn.lock has minimatch on majors [3, 5, 9]; a yarn resolution would force all of them to 5.1.8",
+      "hint": false
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "brace-expansion",
+      "wanted": "1.1.21",
+      "error": "needs-human: yarn.lock has brace-expansion on majors [1, 2]; a yarn resolution would force all of them to 1.1.21",
+      "hint": false
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "brace-expansion",
+      "wanted": "2.1.7",
+      "error": "needs-human: yarn.lock has brace-expansion on majors [1, 2]; a yarn resolution would force all of them to 2.1.7",
+      "hint": false
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "minimatch",
+      "wanted": "3.1.4",
+      "error": "needs-human: yarn.lock has minimatch on majors [3, 5, 9]; a yarn resolution would force all of them to 3.1.4",
+      "hint": false
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "minimatch",
+      "wanted": "5.1.8",
+      "error": "needs-human: yarn.lock has minimatch on majors [3, 5, 9]; a yarn resolution would force all of them to 5.1.8",
+      "hint": false
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "brace-expansion",
+      "wanted": "1.1.21",
+      "error": "needs-human: yarn.lock has brace-expansion on majors [1, 2]; a yarn resolution would force all of them to 1.1.21",
+      "hint": false
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "brace-expansion",
+      "wanted": "2.1.7",
+      "error": "needs-human: yarn.lock has brace-expansion on majors [1, 2]; a yarn resolution would force all of them to 2.1.7",
+      "hint": false
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "minimatch",
+      "wanted": "3.1.4",
+      "error": "needs-human: yarn.lock has minimatch on majors [3, 5, 9]; a yarn resolution would force all of them to 3.1.4",
+      "hint": false
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "minimatch",
+      "wanted": "5.1.8",
+      "error": "needs-human: yarn.lock has minimatch on majors [3, 5, 9]; a yarn resolution would force all of them to 5.1.8",
+      "hint": false
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "docker.io/library/golang",
+      "wanted": "1.27.3",
+      "error": "newer tag 1.27.3 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)",
+      "hint": true
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile",
+      "name": "docker.io/library/golang",
+      "wanted": "1.27.3",
+      "error": "newer tag 1.27.3 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)",
+      "hint": true
+    }
+  ],
+  "unresolved": [
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/go-jose/go-jose/v3",
+      "installed": "v3.0.5",
+      "vuln_id": "CVE-2026-116587",
+      "severity": "HIGH",
+      "fixed": null,
+      "why": "no fixed version"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/go-jose/go-jose/v3",
+      "installed": "v3.0.5",
+      "vuln_id": "CVE-2026-116585",
+      "severity": "MEDIUM",
+      "fixed": null,
+      "why": "no fixed version"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/go-jose/go-jose/v3",
+      "installed": "v3.0.5",
+      "vuln_id": "CVE-2026-116586",
+      "severity": "MEDIUM",
+      "fixed": null,
+      "why": "no fixed version"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "diff",
+      "installed": "2.2.3",
+      "vuln_id": "GHSA-h6ch-v84p-w6p9",
+      "severity": "HIGH",
+      "fixed": "3.5.0",
+      "why": "needs-human: fix requires a bump beyond the `minor` policy"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "diff",
+      "installed": "2.2.3",
+      "vuln_id": "CVE-2026-24001",
+      "severity": "LOW",
+      "fixed": "8.0.3, 5.2.2, 4.0.4, 3.5.1",
+      "why": "needs-human: fix requires a bump beyond the `minor` policy"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "esbuild",
+      "installed": "0.14.38",
+      "vuln_id": "GHSA-67mh-4wv8-2f99",
+      "severity": "MEDIUM",
+      "fixed": "0.25.0",
+      "why": "needs-human: fix requires a bump beyond the `minor` policy"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "fast-xml-parser",
+      "installed": "4.5.6",
+      "vuln_id": "CVE-2026-41650",
+      "severity": "MEDIUM",
+      "fixed": "5.7.0",
+      "why": "needs-human: fix requires a bump beyond the `minor` policy"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "minimatch",
+      "installed": "3.1.3",
+      "vuln_id": "CVE-2026-118764",
+      "severity": "MEDIUM",
+      "fixed": "11.0.1",
+      "why": "needs-human: fix requires a bump beyond the `minor` policy"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "minimatch",
+      "installed": "5.1.6",
+      "vuln_id": "CVE-2026-118764",
+      "severity": "MEDIUM",
+      "fixed": "11.0.1",
+      "why": "needs-human: fix requires a bump beyond the `minor` policy"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "uuid",
+      "installed": "9.0.0",
+      "vuln_id": "CVE-2026-41907",
+      "severity": "MEDIUM",
+      "fixed": "11.1.1, 12.0.1, 13.0.1",
+      "why": "needs-human: fix requires a bump beyond the `minor` policy"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "brace-expansion",
+      "installed": "1.1.18",
+      "vuln_id": "CVE-2026-102276,CVE-2026-102277,CVE-2026-102278",
+      "severity": "",
+      "fixed": "1.1.21",
+      "why": "still at 1.1.18 after 3 round(s)"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "brace-expansion",
+      "installed": "2.1.4",
+      "vuln_id": "CVE-2026-102276,CVE-2026-102277,CVE-2026-102278",
+      "severity": "",
+      "fixed": "2.1.7",
+      "why": "still at 2.1.4 after 3 round(s)"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "minimatch",
+      "installed": "3.1.3",
+      "vuln_id": "CVE-2026-27904",
+      "severity": "",
+      "fixed": "3.1.4",
+      "why": "still at 3.1.3 after 3 round(s)"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "minimatch",
+      "installed": "5.1.6",
+      "vuln_id": "CVE-2026-26996,CVE-2026-27903,CVE-2026-27904",
+      "severity": "",
+      "fixed": "5.1.8",
+      "why": "still at 5.1.6 after 3 round(s)"
+    }
+  ],
+  "skips": [
+    {
+      "match": "^TestIndex$",
+      "reason": "Downloads the live argo-helm index (argoproj.github.io); fails on network flakes, unrelated to dependency updates",
+      "owner": "platform-team",
+      "expires": "2027-04-30",
+      "filter": null
+    },
+    {
+      "match": "^Test_nativeHelmChart_ExtractChart$",
+      "reason": "Pulls a chart from the live argo-helm repository",
+      "owner": "platform-team",
+      "expires": "2027-04-30",
+      "filter": null
+    },
+    {
+      "match": "^TestVerifyCommitSignature$",
+      "reason": "Fetches the whole argo-cd repository with tags from GitHub (util/git); timed out after 90s on 2026-11-03 while the unpatched baseline's fetch made it, unrelated to dependency updates",
+      "owner": "platform-team",
+      "expires": "2027-04-30",
+      "filter": null
+    }
+  ],
+  "tests": {
+    "configured": true,
+    "ran": true,
+    "passed": true
+  },
+  "gate": {
+    "argocd": {
+      "passed": true,
+      "deny": [],
+      "warn": []
+    }
+  }
+}
