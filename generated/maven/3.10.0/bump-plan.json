@@ -2,7 +2,7 @@
   "recipe": "maven",
   "line": "maven3",
   "tag": "3.10.0",
-  "commit": "69a9073259ad229981116926ae48ec7ce27fc2af",
+  "commit": "ac3508748c6857e3bbcedcd855cbb755d3cf344f",
   "status": "success",
   "requires": {},
   "plan": {
@@ -16,16 +16,18 @@
       "target": "eclipse-temurin-17-noble/Dockerfile",
       "name": "eclipse-temurin",
       "old": "eclipse-temurin:17-jdk-noble",
-      "new": "eclipse-temurin:17-jdk-noble@sha256:53686f59c44e08ac3310d39ef9c3e3d3bb03370366d9c45802229c86fa2d8369",
-      "note": "base image refresh"
+      "new": "eclipse-temurin:17-jdk-noble@sha256:1c679e2dedde845115a77b5fbe41a84bfdb3a5d2d5294128edc39ccc9bd08433",
+      "note": "base image refresh",
+      "level": "patch"
     },
     {
       "ecosystem": "dockerfile",
       "target": "eclipse-temurin-17-noble/Dockerfile",
       "name": "eclipse-temurin",
       "old": "eclipse-temurin:17-jdk-noble",
-      "new": "eclipse-temurin:17-jdk-noble@sha256:53686f59c44e08ac3310d39ef9c3e3d3bb03370366d9c45802229c86fa2d8369",
-      "note": "base image refresh"
+      "new": "eclipse-temurin:17-jdk-noble@sha256:1c679e2dedde845115a77b5fbe41a84bfdb3a5d2d5294128edc39ccc9bd08433",
+      "note": "base image refresh",
+      "level": "patch"
     },
     {
       "ecosystem": "dockerfile",
@@ -33,10 +35,28 @@
       "name": "eclipse-temurin",
       "old": "eclipse-temurin:21-jdk-noble",
       "new": "eclipse-temurin:21-jdk-noble@sha256:114cabb73033ca4ce7ceec3deb62396bc1b716282bae051ed3c1d82e38fcab2d",
-      "note": "base image refresh"
+      "note": "base image refresh",
+      "level": "patch"
     }
   ],
   "failures": [],
   "unresolved": [],
-  "skips": []
+  "skips": [],
+  "tests": {
+    "configured": true,
+    "ran": true,
+    "passed": true
+  },
+  "gate": {
+    "maven-temurin-21-noble": {
+      "passed": true,
+      "deny": [],
+      "warn": []
+    },
+    "maven-temurin-17-noble": {
+      "passed": true,
+      "deny": [],
+      "warn": []
+    }
+  }
 }
