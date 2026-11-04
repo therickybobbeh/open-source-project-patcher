@@ -5,12 +5,14 @@ source:
   repo: argoproj/argo-cd
   # list the release lines you actually run; each gets its own PR, state and tags
   lines:
+    - name: v3.6
     - name: v3.5
     - name: v3.4
 toolchain:
   go: "1.26"
   node: "24"
-  pnpm: "10.28.1"   # ui/package.json packageManager; the image build runs `pnpm install --frozen-lockfile`
+  # pnpm: each line's own, from ui/package.json `packageManager` (v3.5 10.28.1, v3.6 12.3.4): a lockfile is only
+  # rewritten correctly by the pnpm major that wrote it
   yarn: "1.22.22"   # v3.4's UI is yarn classic (ui/yarn.lock)
 ecosystems:
   - type: gomod
@@ -60,16 +62,16 @@ components:
   - recipe: helm
     path: /usr/local/bin/helm
     # v3.4 bundles helm 3 (helm3_version=3.19.4), whose binary carries no Go build-info version, so it was never
-    # rebuilt; v3.5 bundles helm 4 (helm4_version)
-    versionFrom: { file: hack/tool-versions.sh, pattern: '^helm[34]_version=v?(?P<version>\S+)$' }
+    # rebuilt; v3.5 bundles helm 4 (helm4_version); v3.6 renamed the variables (HELM_VERSION, KUSTOMIZE_VERSION, ...)
+    versionFrom: { file: hack/tool-versions.sh, pattern: '^(?:helm[34]_version|HELM_VERSION)=v?(?P<version>\S+)$' }
   - recipe: kustomize
     path: /usr/local/bin/kustomize
     tag: "kustomize/v{{version}}"
-    versionFrom: { file: hack/tool-versions.sh, var: kustomize5_version }
+    versionFrom: { file: hack/tool-versions.sh, pattern: '^(?:kustomize5_version|KUSTOMIZE_VERSION)=v?(?P<version>\S+)$' }
     versionCommand: [version]
   - recipe: git-lfs
     path: /usr/local/bin/git-lfs
-    versionFrom: { file: hack/tool-versions.sh, var: git_lfs_version }
+    versionFrom: { file: hack/tool-versions.sh, pattern: '^(?:git_lfs_version|GIT_LFS_VERSION)=v?(?P<version>\S+)$' }
     versionCommand: [version]
 notes:
   - helm, kustomize and git-lfs are rebuilt from source at the versions in hack/tool-versions.sh (components); moving to a newer tool version still needs a patch that updates tool-versions.sh and hack/installers/checksums/.
