@@ -20,9 +20,10 @@ def pr(n, head, title, checks=OK, draft=False, mergeable="MERGEABLE"):
             "mergeable": mergeable, "statusCheckRollup": checks}
 
 
-def plan(status="success", ran=True, gate=True, level="minor"):
+def plan(status="success", ran=True, gate=True, level="minor", upgrade="patch"):
     """A patch set as a patch run writes it (generated/<recipe>/<tag>/bump-plan.json)."""
-    return {"recipe": "app", "line": "v1", "tag": "v1.0.0", "status": status,
+    return {"recipe": "app", "line": "v1", "tag": "v1.1.0" if upgrade == "minor" else "v1.0.1", "status": status,
+            "upstream": {"released": "v1.0.0", "level": upgrade},
             "tests": {"configured": True, "ran": ran, "passed": ran},
             "gate": {"app": {"passed": gate, "deny": [] if gate else ["CRITICAL CVE-1 is fixable"], "warn": []}},
             "changes": [{"ecosystem": "gomod", "target": "go.mod", "name": "golang.org/x/net", "old": "v0.60.0",
@@ -41,8 +42,10 @@ PRS = [
     pr(8, "dependabot/docker/patcher/x", "deps(image): bump uv",
        checks=[{"__typename": "CheckRun", "name": "test", "status": "COMPLETED", "conclusion": "FAILURE"}]),
     pr(9, "patch/argo-cd/v3.4", "[argo-cd] v3.4.13: dependency updates (success)"),  # a major bump: held
+    pr(10, "patch/external-secrets/v2", "[external-secrets] v2.14.1 → v2.15.0: dependency updates (success)"),  # an upgrade
 ]
-PLANS = {2: plan(), 5: plan(status="tests-preexisting"), 6: plan(status="tests-failed", ran=True), 9: plan(level="major")}
+PLANS = {2: plan(), 5: plan(status="tests-preexisting"), 6: plan(status="tests-failed", ran=True), 9: plan(level="major"),
+         10: plan(upgrade="minor")}
 
 
 @pytest.fixture
@@ -84,15 +87,16 @@ def test_listing_merges_nothing_and_shows_the_policy_s_reasons(round_):
     out, merged = round_()
     assert merged == []
     rows = [line.split()[1] for line in out.splitlines() if not line.startswith("note:")]
-    assert rows == ["#4", "#7", "#2", "#5", "#6", "#9", "#3", "#8", "#1"]  # records, patch, deps, the rest
+    assert rows == ["#4", "#7", "#2", "#5", "#6", "#9", "#10", "#3", "#8", "#1"]  # records, patch, deps, the rest
     assert "the merge policy allows it" in out
     assert "held: the run ended tests-preexisting: read the report" in out
     assert "held: major bump: golang.org/x/net v0.60.0 -> v0.62.0" in out
+    assert "held: upstream upgrade v1.0.0 -> v1.1.0 (minor): read upstream's release notes, then merge it by hand" in out
 
 
 @needs_tools
 def test_merge_takes_records_policy_allowed_patch_prs_and_dependencies(round_):
-    # ready ones only: #7's checks run, #8's failed, #6 is a draft, #5 and #9 are held by the policy, #1 is code
+    # ready ones only: #7's checks run, #8's failed, #6 is a draft, #5, #9 and #10 are held by the policy, #1 is code
     assert round_("--merge")[1] == ["4", "2", "3"]
 
 
