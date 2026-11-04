@@ -7,7 +7,6 @@ source:
     # the newest release: from v0.154.0 the image has no Smart Agent bundle (collectd, Python, Java), which
     # carried a quarter of 0.147.0's findings plus native code no scanner sees
     - name: v0
-      tagPattern: '^v0\.\d+\.\d+$'
 toolchain:
   go: "1.26"
 ecosystems:

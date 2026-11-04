@@ -7,7 +7,6 @@ source:
   # (v0.31.0, v0.36.0: no GitHub release, no images), so a run on one has no upstream image to compare with.
   lines:
     - name: v0
-      tagPattern: '^v0\.\d+\.\d+$'
 toolchain:
   go: "1.27"
 env:

@@ -5,9 +5,9 @@ source:
   repo: argoproj/argo-cd
   # list the release lines you actually run; each gets its own PR, state and tags
   lines:
-    - tagPattern: '^v3\.6\.\d+$'
-    - tagPattern: '^v3\.5\.\d+$'
-    - tagPattern: '^v3\.4\.\d+$'
+    - name: v3.6
+    - name: v3.5
+    - name: v3.4
 toolchain:
   go: "1.26"
   node: "24"

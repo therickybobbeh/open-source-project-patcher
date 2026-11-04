@@ -86,6 +86,7 @@ class Summary:
     src: str = ""  # the kept attempt's checkout (components build from it)
     image_tags: dict[str, str] = field(default_factory=dict)  # image-only: each image's upstream tag, which the release publishes
     gate: dict = field(default_factory=dict)  # image key -> gate.Verdict, on the image's final scan
+    upstream: dict = field(default_factory=dict)  # pipeline.upstream_move: how far the tag is from the line's release
 
 
 def _fixable_keys(r: ScanReport | None) -> dict[tuple[str, str], Finding]:
@@ -169,6 +170,15 @@ def render_markdown(s: Summary) -> str:
     if not s.recipe.publish:
         out += ["", "> **Not published** (`publish: false` in the recipe): merging records this patch set, but the release "
                     "workflow pushes no image for this recipe."]
+    up = s.upstream
+    if up.get("level") in ("minor", "major", "unknown"):
+        url = s.recipe.source.url if s.recipe.source else ""
+        notes = f" ([release notes]({url}/releases/tag/{s.tag}))" if url.startswith("https://github.com/") else ""
+        kind = "a release whose version can't be compared" if up["level"] == "unknown" else f"a {up['level']} release"
+        out += ["", f"> **Upgrade:** `{up['released']}` → `{s.tag}`, {kind}{notes}. The daily merge round leaves it for a "
+                    "person: merge it by hand once you've read what changed."]
+    elif up.get("level") == "new":
+        out += ["", f"> **First release of line `{s.line}`.** The daily merge round leaves it for a person: merge it by hand."]
     if s.attempts:
         out.append(f"Attempts: {' → '.join(s.attempts)}")
     out.append("")

@@ -28,7 +28,8 @@ def test_draft_from_checkout_is_a_valid_recipe(tmp_path):
     text = onboarding.draft(src, "app", "o/app", "v4.1.6")
     data = yaml.safe_load(text)
     r = Recipe.model_validate(data)  # the draft must validate as-is
-    assert r.source.lines[0].tagPattern == r"^v4\.1\.\d+$"
+    assert r.source.lines[0].tagPattern == r"^v4\.1\.\d+$" and r.source.lines[0].name == "v4.1"
+    assert '- name: "v4.1"' in text  # no regex to write: the name is the line
     assert [e.type for e in r.ecosystems] == ["gomod", "pnpm", "dockerfile"]
     assert r.toolchain.go == "1.26" and r.toolchain.pnpm == "11.9.0"
     assert r.tests.framework == "go" and "{{skip_args}}" in r.tests.command
@@ -147,5 +148,14 @@ def test_new_upstream_release_lines_are_reported(tmp_path):
     repo = _repo(tmp_path, recipes, [], {})
     found = inventory.new_lines(repo, list_tags=lambda url: next(v for k, v in tags.items() if k in url))
     assert [(x.recipe, x.line, x.tag, x.tracked) for x in found] == [("argo-cd", "v3.6", "v3.6.0", ["v3.5", "v3.4"])]
+
+    # a recipe whose line takes every minor of a major hears about the next major once, as that major (v3): its
+    # v3.1.0 is the same line as v3.0.0, not a new issue (argo-cd's lines are one minor each, so v3.6 is the line)
+    recipes = {"external-secrets": {"source": {"repo": "external-secrets/external-secrets", "lines": [{"name": "v2"}]}}}
+    (tmp_path / "eso").mkdir()
+    repo = _repo(tmp_path / "eso", recipes, [], {})
+    for newest in (["v3.0.0"], ["v3.0.0", "v3.1.0"]):
+        found = inventory.new_lines(repo, list_tags=lambda url: ["v2.14.1", "v2.15.0", *newest])
+        assert [(x.line, x.tag) for x in found] == [("v3", newest[-1])]
     assert inventory._shape(r"^release\-2\.0\.\d+$").pattern == r"^release\-\d+\.\d+\.\d+$"
     assert inventory._shape(r"^v1\.\d{2}$").pattern == r"^v\d+\.\d{2}$"  # quantifiers stay

@@ -4,7 +4,7 @@ description: Argo Rollouts (quay.io/argoproj/argo-rollouts, kubectl-argo-rollout
 source:
   repo: argoproj/argo-rollouts
   lines:
-    - tagPattern: '^v1\.10\.\d+$'
+    - name: v1.10
 toolchain:
   go: "1.26"
   node: "22"          # the image builds the UI on node:22

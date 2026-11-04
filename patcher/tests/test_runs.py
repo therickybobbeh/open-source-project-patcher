@@ -166,5 +166,32 @@ def test_an_edit_to_comments_or_prose_runs_nothing(tmp_path):
     assert pipeline.plan_matrix(repo, changed_files=["recipes/app.yaml", "recipes/_global.yaml"], before=before) == []
     # without the commit before the push, every change counts
     assert pipeline.plan_matrix(repo, changed_files=["recipes/app.yaml"]) == [{"recipe": "app", "line": "v1.2", **AMD64}]
+    # the same line, written as its name instead of a pattern
+    (tmp_path / "recipes" / "app.yaml").write_text(yaml.safe_dump({**recipe, "source": {"repo": "o/app", "lines": [{"name": "v1.2"}]}}))
+    assert pipeline.plan_matrix(repo, changed_files=["recipes/app.yaml"], before=before) == []
     (tmp_path / "recipes" / "app.yaml").write_text(yaml.safe_dump({**recipe, "build": {"images": [{"name": "app", "target": "prod"}]}}))
     assert pipeline.plan_matrix(repo, changed_files=["recipes/app.yaml"], before=before) == [{"recipe": "app", "line": "v1.2", **AMD64}]
+
+
+def test_a_patch_set_says_how_far_upstream_moved(tmp_path):
+    """What the merge policy holds an upgrade on, and what the PR title shows: external-secrets' line v2 takes v2.15.0
+    as its next release, like v2.14.2, but a minor release can change behaviour, so a person merges it."""
+    import datetime as dt
+
+    from patcher.models import LineState, State
+
+    (tmp_path / "recipes").mkdir()
+    (tmp_path / "recipes" / "_global.yaml").write_text("registry: ghcr.io/me\n")
+    repo = Repo(tmp_path)
+    recipe = Recipe.model_validate({"name": "eso", "source": {"repo": "o/eso", "lines": [{"name": "v2"}]},
+                                    "build": {"images": [{"name": "eso"}]}})
+    assert pipeline.upstream_move(repo, recipe, "v2", "v2.14.1") == {"released": None, "level": "new"}
+    repo.save_state("eso", State(lines={"v2": LineState(upstreamTag="v2.14.1", commit="c", revision=1,
+                                                        releasedAt=dt.datetime(2026, 11, 4, tzinfo=dt.timezone.utc))}))
+    moves = {tag: pipeline.upstream_move(repo, recipe, "v2", tag)["level"] for tag in ("v2.14.1", "v2.14.2", "v2.15.0", "v3.0.0")}
+    assert moves == {"v2.14.1": "same", "v2.14.2": "patch", "v2.15.0": "minor", "v3.0.0": "major"}
+    title = lambda tag, up: pipeline.pr_title({"recipe": "eso", "tag": tag, "status": "success"}, up)
+    assert title("v2.15.0", {"released": "v2.14.1", "level": "minor"}) == "[eso] v2.14.1 → v2.15.0: dependency updates (success)"
+    assert title("v2.14.2", {"released": "v2.14.1", "level": "patch"}) == "[eso] v2.14.2: dependency updates (success)"
+    assert title("v3.6.1", {"released": None, "level": "new"}) == "[eso] v3.6.1 (new line): dependency updates (success)"
+    assert title("v2.14.1", {}) == "[eso] v2.14.1: dependency updates (success)"  # a patch set from before the field

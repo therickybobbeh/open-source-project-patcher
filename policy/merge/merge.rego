@@ -9,6 +9,8 @@
 #   gate     {<image>: {passed, deny, warn}}: the release gate's verdict on each image
 #   changes  [{ecosystem, target, name, old, new, note, level}]; level is patch, minor or major (patch when the change
 #            isn't between two versions, e.g. a base image reference)
+#   upstream {released, level}: how far the patch set's upstream tag (`tag`) is from the line's release: same (a re-run
+#            for new fixes), patch, minor, major, unknown (a tag that isn't a version), or new (no release yet)
 package patcher.merge
 
 deny contains msg if {
@@ -18,6 +20,22 @@ deny contains msg if {
 
 deny contains "the patch set records no test or gate results (it predates the merge policy): re-run the line" if {
 	not input.tests
+}
+
+# an upstream release past a patch release can change behaviour: a person reads what changed and merges it
+deny contains msg if {
+	input.upstream.level in {"minor", "major", "unknown"}
+	msg := sprintf("upstream upgrade %s -> %s (%s): read upstream's release notes, then merge it by hand", [input.upstream.released, input.tag, input.upstream.level])
+}
+
+deny contains msg if {
+	input.upstream.level == "new"
+	msg := sprintf("the first release of line %s (%s): merge it by hand", [input.line, input.tag])
+}
+
+deny contains "the patch set doesn't record its upstream upgrade (it predates that rule): re-run the line" if {
+	input.tests
+	not input.upstream
 }
 
 deny contains "upstream tests didn't run" if {

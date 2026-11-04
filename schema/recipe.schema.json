@@ -784,7 +784,7 @@
     },
     "Line": {
       "additionalProperties": false,
-      "description": "A release line we track: the newest tag matching `tagPattern` (e.g. every v3.5.x), a pinned\n`tag`, or the head of a `branch` for projects that don't tag releases.",
+      "description": "A release line we track: the newest tag matching `tagPattern` (e.g. every v3.5.x), a pinned\n`tag`, or the head of a `branch` for projects that don't tag releases. A `name` that is a version prefix is\nenough on its own: `v3.5` follows every v3.5.x tag, `v2` every v2.x.y.",
       "properties": {
         "tagPattern": {
           "anyOf": [
@@ -796,7 +796,7 @@
             }
           ],
           "default": null,
-          "description": "Regex an upstream tag must match to belong to this line",
+          "description": "Regex an upstream tag must match to belong to this line; defaults to the tags `name` is the version prefix of (`v3.5`: every v3.5.x, `v2`: every v2.x.y)",
           "title": "Tagpattern"
         },
         "name": {
@@ -809,7 +809,7 @@
             }
           ],
           "default": null,
-          "description": "Short name used in branch/state keys; defaults to a slug of tagPattern",
+          "description": "Short name used in branch/state keys; defaults to a slug of tagPattern. Alone, a version prefix such as `v3.5` or `v2` is the line",
           "title": "Name"
         },
         "tag": {

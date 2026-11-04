@@ -4,7 +4,7 @@ description: Redis official image (library/redis), from the image source repo re
 source:
   repo: redis/docker-library-redis
   lines:
-    - tagPattern: '^v8\.10\.\d+$'
+    - name: v8.10
 toolchain: {}
 ecosystems:
   # Redis vendors its C deps (jemalloc, lua, hiredis) as modified subtrees; scanners can't see them and

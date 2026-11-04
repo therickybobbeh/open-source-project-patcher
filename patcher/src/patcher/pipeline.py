@@ -30,7 +30,7 @@ from .proc import CommandError, first_error, log, output, retry_on_network, run
 from .report import BASE_TOOLING, GLOBAL_NODE_PREFIX, ImageOutcome, Summary, bundled_paths, render_markdown
 from .scan import ScanReport, scan_fs, scan_image
 from .tests_runner import TestOutcome, only_preexisting, run_tests, same_setup_failure, setup_error
-from .versions import parse_semver, split_fixed, try_parse
+from .versions import level_between, parse_semver, split_fixed, try_parse
 from .vex import oci_purl, openvex
 
 # statuses whose patch set may be merged and released (tests-preexisting: upstream's own failures)
@@ -594,8 +594,6 @@ def _level(change) -> str:
     a, b = try_parse(change.ecosystem, change.old), try_parse(change.ecosystem, change.new)
     if not a or not b:
         return "patch"
-    from .versions import level_between
-
     return level_between(a, b, change.ecosystem).value
 
 
@@ -605,7 +603,22 @@ def _test_word(t: TestOutcome | None) -> str:
     return "tests passed" if t.passed else "tests failed"
 
 
+def upstream_move(repo: Repo, recipe: Recipe, key: str, tag: str) -> dict:
+    """How far `tag` is from the upstream release the line has out: `same` (a re-run for new fixes), `patch`, `minor`
+    or `major` (`unknown` when a tag isn't a version), or `new` when the line has no release yet. The merge policy
+    leaves anything past a patch release to a person."""
+    cur = repo.state(recipe.name).lines.get(key)
+    if cur is None:
+        return {"released": None, "level": "new"}
+    if cur.upstreamTag == tag:
+        return {"released": tag, "level": "same"}
+    a, b = upstream.tag_version(cur.upstreamTag), upstream.tag_version(tag)
+    return {"released": cur.upstreamTag, "level": level_between(a, b).value if a and b else "unknown"}
+
+
 def _write_outputs(repo: Repo, s: Summary, att: Attempt | None, out: Path) -> None:
+    if s.recipe.mode != "component":  # a component's version is its parent's choice
+        s.upstream = upstream_move(repo, s.recipe, s.line, s.tag)
     if s.status in RELEASABLE:  # what the release would be held to, so a reviewer sees it before merging
         s.gate = gate.check(repo.root, "patch", s.recipe, s.line, [(i.name, i.ref, i.after) for i in s.images if i.after], s.vex)
     gen = out / "generated"
@@ -631,6 +644,7 @@ def _write_outputs(repo: Repo, s: Summary, att: Attempt | None, out: Path) -> No
         "tests": {"configured": s.recipe.tests is not None, "ran": bool(s.tests and s.tests.ran),
                   "passed": bool(s.tests and s.tests.ran and s.tests.passed)},
         "gate": {k: v.to_json() for k, v in s.gate.items()},
+        **({"upstream": s.upstream} if s.upstream else {}),
         **({"imageTags": s.image_tags} if s.image_tags else {}),
     }
     (gen / "bump-plan.json").write_text(json.dumps(plan_doc, indent=2, sort_keys=False) + "\n")
@@ -1140,6 +1154,9 @@ def publish(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, o
         digest = image_digest(img.ref)
         after = scan_image(f"{img.repository}@{digest}", out / f"scan-release-{spec.key}.json", severities=g.scan.severities,
                            platform=img.platforms[0], src="remote")
+        if missing := components.unapplied(recipe, gen, spec.key, after):
+            raise RuntimeError(f"{img.ref} doesn't ship its reviewed patch set: {'; '.join(missing[:5])}"
+                               f"{f' (+{len(missing) - 5} more)' if len(missing) > 5 else ''}. It isn't signed, promoted or recorded")
         vexdoc = openvex(repo.vex(recipe.name), oci_purl(img.repository, digest), after.findings,
                          extra_docs=[cr.vex] if cr and cr.vex else [])
         vex_path = out / f"vex-{spec.key}.openvex.json"
@@ -1556,7 +1573,8 @@ def plan_matrix(repo: Repo, *, recipes: list[str] | None = None, changed_files: 
 def _same_meaning(repo: Repo, path: str, before: str) -> bool:
     """A recipes/, skips/ or vex/ file whose parsed content is unchanged since `before`, apart from a recipe's
     `description` and `notes`, and `gate` (a release is checked against the settings on main when it runs): comments,
-    formatting, prose or the gate only. Re-running a line (an hour of tests for some) can't change its patch set."""
+    formatting, prose or the gate only. A recipe is compared as it loads, so a line written as `name: v3.5` is the
+    line `tagPattern: '^v3\\.5\\.\\d+$'` was. Re-running a line (an hour of tests for some) can't change its patch set."""
     import yaml
 
     if not path.endswith(".yaml") or path.split("/")[0] not in ("recipes", "skips", "vex"):
@@ -1569,7 +1587,13 @@ def _same_meaning(repo: Repo, path: str, before: str) -> bool:
     def meaning(text: str):
         doc = yaml.safe_load(text)
         if path.startswith("recipes/") and isinstance(doc, dict):
-            doc = {k: v for k, v in doc.items() if k not in ("description", "notes", "gate")}
+            try:
+                recipe = Recipe.model_validate(doc)
+            except ValueError:  # _global.yaml, or a recipe that doesn't load
+                return {k: v for k, v in doc.items() if k not in ("description", "notes", "gate")}
+            for line in recipe.source.lines if recipe.source else []:
+                line.name = line_key(line)
+            return recipe.model_dump(mode="json", exclude={"description", "notes", "gate"})
         return doc
 
     try:
@@ -1612,9 +1636,21 @@ def collect(repo: Repo, out: Path) -> list[dict]:
             if old_plan.parent != dest and json.loads(old_plan.read_text()).get("line") == s["line"]:
                 shutil.rmtree(old_plan.parent)
         shutil.copytree(gen, dest)
+        up = json.loads((gen / "bump-plan.json").read_text()).get("upstream") or {}
         items.append({**{k: s[k] for k in ("recipe", "line", "tag", "status", "draft")}, "path": str(dest.relative_to(repo.root)),
-                      "body": str((summary_file.parent / "pr-body.md").resolve())})
+                      "body": str((summary_file.parent / "pr-body.md").resolve()), "title": pr_title(s, up)})
     return items
+
+
+def pr_title(s: dict, up: dict) -> str:
+    """`[external-secrets] v2.14.1 → v2.15.0: dependency updates (success)` for an upgrade past a patch release, so the PR
+    list shows which PRs move a line to a new upstream version; `[dex] v2.46.1: …` otherwise."""
+    what = s["tag"]
+    if up.get("level") in ("minor", "major", "unknown"):
+        what = f"{up['released']} → {s['tag']}"
+    elif up.get("level") == "new":
+        what = f"{s['tag']} (new line)"
+    return f"[{s['recipe']}] {what}: dependency updates ({s['status']})"
 
 
 os.environ.setdefault("TRIVY_NO_PROGRESS", "true")
