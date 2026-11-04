@@ -7,7 +7,7 @@ Upstream: https://github.com/argoproj/argo-cd @ `6d732962f61a` (line `v3.5`)
 | Artifact | Before | After | Fixed | New |
 |---|---|---|---|---|
 | source (`trivy fs`) | 1 / 22 / 22 / 6 | 0 / 2 / 3 / 0 | 48 | 0 |
-| image `argocd` | 2 / 121 / 122 / 10 | 0 / 2 / 0 / 0 | 263 | 0 |
+| image `argocd` | 2 / 121 / 130 / 10 | 0 / 2 / 0 / 0 | 271 | 0 |
 
 - `CVE-2026-116585` is still in source (`trivy fs`) (`go.mod`), in `github.com/go-jose/go-jose/v3` v3.0.5 (no fix): not counted as fixed
 - `CVE-2026-116586` is still in source (`trivy fs`) (`go.mod`), in `github.com/go-jose/go-jose/v3` v3.0.5 (no fix): not counted as fixed
@@ -65,7 +65,7 @@ Upstream: https://github.com/argoproj/argo-cd @ `6d732962f61a` (line `v3.5`)
 
 ### Upstream tests
 
-✅ passed in 11.3 min — `make test-local`
+✅ passed in 12.0 min — `make test-local`
 
 Skipped tests (from `skips/argo-cd.yaml`):
 
