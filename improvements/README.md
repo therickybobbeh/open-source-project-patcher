@@ -6,4 +6,4 @@ docs that describe the result move into `docs/`.
 
 | Proposal | Status | In short |
 |---|---|---|
-| [Image hardening](image-hardening.md) | Investigated 2026-11-03 | We patch but don't harden. 5 of 20 images run as root and 10 ship a shell and package manager. The plan: measure with Trivy and Dockle, then opt-in hardening in the overlay build, then minimal bases per recipe |
+| [Image hardening](image-hardening.md) | Decided 2026-11-04, not built | 17 of 22 images already run as non-root. Enforce non-root in the clusters (Pod Security `restricted`, chart values); change images only where they stand in the way: release upstream's non-root `argoexec`, and write dex's, router's and splunk-otel-collector's users as numbers. The gate reports how each image runs |

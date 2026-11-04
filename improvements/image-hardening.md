@@ -1,23 +1,104 @@
 # Image hardening
 
-**Status:** investigated on 2026-11-03; proposal, nothing built yet.
+**Status:** investigated on 2026-11-03; decision and plan on 2026-11-04 ([below](#decision-and-plan-2026-11-04)), nothing built yet.
 
 ## Summary
 
 - **We patch, we don't harden.** The pipeline removes known vulnerabilities (dependency bumps, rebuilt bundled tools,
   swapped jars, a refreshed base, Copa), and it signs and attests what it publishes (SBOM, OpenVEX, SLSA provenance).
   It doesn't reduce what an image can do: each image keeps its upstream Dockerfile's user, base and userland.
-- **Where the 20 released images stand:**
-  - 15 run as non-root by default.
-  - 10 ship no shell or package manager (distroless or `scratch`), and 10 ship a full OS userland.
+- **Where the released images stand:**
+  - On 2026-11-04, 17 of 22 run as non-root by default. On 11-03 it was 15 of 20; the two added since,
+    external-secrets and trivy-operator, are both non-root.
+  - On 11-03, 10 shipped no shell or package manager (distroless or `scratch`) and 10 shipped a full OS userland.
+    external-secrets ships none; trivy-operator ships busybox and apk.
   - No secrets: the only hits are commented samples in Maven's default `settings.xml`.
-- **Recommendation, smallest step first:**
-  1. Measure. Trivy is already in the pipeline, and Dockle adds setuid/setgid checks.
-  2. Add opt-in, low-risk hardening to the overlay build the pipeline already has.
-  3. Move to minimal bases per recipe where the tests prove it works.
+- **Decided (2026-11-04):** enforce non-root in the clusters (Pod Security `restricted` and chart values) instead of
+  rewriting images. Change images only where they stand in the way: release upstream's non-root `argoexec`, and write
+  dex's, router's and splunk-otel-collector's users as numbers. The release gate reports how each image runs. Details
+  and the PR plan are [below](#decision-and-plan-2026-11-04).
 
-  Runtime hardening in the clusters (Pod Security "restricted", admitting only images we signed) protects the most,
-  and needs no pipeline change.
+## Decision and plan (2026-11-04)
+
+**Goal:** the images run as non-root, and a cluster can enforce it. Where an open-source component helps, use one;
+where the pipeline already has what's needed, add nothing.
+
+**Decision:**
+- **Non-root is enforced where the pods run, not rewritten into every image.**
+  - 17 of the 22 released images already run as non-root.
+  - Most upstream Helm charts already set a non-root, restricted `securityContext`.
+  - Kubernetes' built-in Pod Security Admission (`restricted`) enforces non-root, no privilege escalation, all
+    capabilities dropped and seccomp, with nothing to install.
+- **Image changes only where the image itself stands in the way, two cases:**
+  - **`argoexec` runs as root.** Upstream already ships a non-root variant (the Dockerfile's `argoexec-nonroot`
+    target, `USER 8737`, published as `argoexec:<version>-nonroot`). We release that variant too.
+  - **dex, router and splunk-otel-collector run as a user name, not a number.** Kubernetes can't check that a name
+    is non-root, so with `runAsNonRoot: true` and no `runAsUser` the kubelet refuses to start the container ("image
+    has non-numeric user …, cannot verify user is non-root"). We write the same user as its number. It's the same
+    UID, so nothing changes at runtime.
+- **The pipeline reports how each image runs** and doesn't add a tool for it:
+  - The release scan's Trivy JSON already records the image user (`Metadata.ImageConfig.config.User`).
+  - The release gate warns on root and on non-numeric users, report-only like the rest of the gate today.
+- **Not now:**
+  - **Dockle and stripping setuid bits.** `allowPrivilegeEscalation: false`, which `restricted` requires, sets
+    `no_new_privs`, so setuid bits grant nothing.
+  - **SlimToolkit.** It removes whatever the probe didn't touch.
+  - **Moving to minimal bases.** It stays a per-recipe option (phase 3 of the first proposal below). It isn't needed
+    for non-root.
+  - **Docker Hardened Images:** the owner doesn't want to depend on them.
+- **One cluster-side component, optional:** admit only images `release.yml` on `main` signed.
+  - [Kyverno](https://kyverno.io/) `verifyImages` if the org already runs Kyverno.
+  - Otherwise Sigstore's [policy-controller](https://docs.sigstore.dev/policy-controller/overview/), the smaller,
+    single-purpose choice.
+
+**Every released image** (`state/` on `main`, measured 2026-11-04). *Runs as* is the image config's `User`. *Chart*
+is the upstream Helm chart's default `securityContext`.
+
+| Image | Runs as | Upstream chart | What we change | Risk |
+|---|---|---|---|---|
+| `argocd` (v3.4, v3.5) | `999` | argo-helm: non-root, read-only root, all capabilities dropped, seccomp, on every component | – | – |
+| `argo-rollouts`, `kubectl-argo-rollouts` | `999` | argo-helm: non-root, read-only root, all dropped, seccomp | – | – |
+| `workflow-controller`, `argocli` | `8737` | argo-helm: non-root, all dropped; no seccomp, so add `seccompProfile: RuntimeDefault` for `restricted` | – | – |
+| `argoexec` | **`0`** (`USER 0` upstream) | argo-helm: `executor.securityContext: {}`. Workflow pods run as root unless configured | Also release upstream's `argoexec-nonroot` (`v4.1.6-nonroot` runs as `8737`). Point the controller at it (`executor.image`) and set `runAsNonRoot` and `runAsUser: 8737` in `workflowDefaults` | Medium: a workflow whose own image needs root (Argo's docs: even `mkdir /my-dir`) has to set `runAsUser: 0` |
+| `copa` | **root** (no `USER`) | none: a CLI for CI | – (`copa --version` runs as `65532`; real runs need BuildKit's socket) | – |
+| `copacetic-frontend` | `65532` | none: a BuildKit frontend | – | – |
+| `dex`, `dex-distroless` | `dex:dex` (= `1001:1001`) | dexidp: none set; argo-cd's bundled dex sets `runAsUser: 1001` | `USER 1001:1001` | None: same UID |
+| `external-secrets` | `65534` | non-root (`runAsUser: 1000`), read-only root, all dropped, seccomp | – | – |
+| `maven` (temurin 17, 21) | **root** (no `USER`) | none: build images | – (non-root builds: `docker run -u` with `MAVEN_CONFIG`, as the official image documents) | – |
+| `opentelemetry-collector-contrib` (0.153, 0.164) | `10001:10001` | none set | – (numeric already; the deployment sets `restricted` values) | – |
+| `splunk-otel-collector` | `splunk-otel-collector` (= `999:999`) | `fsGroup: 999`. With log collection, an init container runs as root to `chown` host log directories (upstream's design) | `USER 999:999` | None: same UID |
+| `router` | `router` (= `1000:1000`) | none set | `USER 1000:1000` | None: same UID |
+| `strimzi-operator` | `1001` | non-root, read-only root, all dropped, seccomp. Kafka pods: set `STRIMZI_POD_SECURITY_PROVIDER_CLASS=restricted` (chart `extraEnvs`) | – | – |
+| `strimzi-maven-builder` | `1001` | used by the operator for Kafka Connect builds | – | – |
+| `trivy-operator` | `10000` | read-only root, all dropped; no `runAsNonRoot`/seccomp. Its scan jobs run the trivy image: set `trivyOperator.scanJobPodTemplatePodSecurityContext` (`runAsNonRoot: true`, `runAsUser: 10000`) | – | – |
+| `trivy` | **root** (no `USER`) | trivy chart: `runAsNonRoot`, `runAsUser: 65534`, read-only root, cache volume | – (as `65532`, `trivy image` works with `--cache-dir /tmp/trivy`, also on a read-only root; the default cache under `/` fails. Filesystem scans need root, upstream says) | – |
+
+Strimzi's Kafka image (recipe `strimzi-kafka`, first release pending) runs as `1001`, as upstream's does. `redis`
+isn't released yet: upstream starts as root and its entrypoint drops to the `redis` user.
+
+**Checks that ran:**
+- **Users:** `docker buildx imagetools inspect` on every digest.
+- **UIDs behind the user names:** `/etc/passwd` read out of each image (`docker create` and `docker cp`, which needs
+  no shell).
+- **Non-root runs:** `trivy` and `copa` run with `--user 65532:65532`.
+- **Chart defaults:** each chart's `values.yaml` on its default branch.
+- **Privileged ports:** none. Every exposed port is above 1024, so dropping all capabilities costs nothing.
+
+**Plan, as PRs:**
+
+| PR | What | Size | Changes images |
+|---|---|---|---|
+| 1 | `recipes/argo-workflows.yaml`: a 4th image, `argoexec` with `id: argoexec-nonroot`, `target: argoexec-nonroot` and `upstreamTag: "{{tag}}-nonroot"`, the way `dex-distroless` is a variant of `dex`. Released as `argoexec:v4.1.6-nonroot-patched.N` | Small (recipe only) | Adds one |
+| 2 | A recipe `user` on an image (`"1001:1001"`: numeric and not 0, checked when the recipe loads), set as the last layer of the overlay build. It also runs for an image with no components or jars, and smoke tests run as that user. Then set it on dex (both), router and splunk-otel-collector | Small to medium | Same UID, written as a number |
+| 3 | The release gate's input gets the image user from the scan; `policy/gate.rego` warns on root or a non-numeric user; the report shows "Runs as" per image | Small | No |
+| 4 | `docs/running-non-root.md`: the namespace labels for `restricted` (`pod-security.kubernetes.io/enforce: restricted`, with `warn`/`audit` first), the chart values per project (the table above), and a signature admission example (Kyverno `verifyImages` / policy-controller) pinned to `release.yml@refs/heads/main` | Small (docs) | No |
+
+Order: 1 and 3 are independent; 4 references 1 and 2. Rolling out `restricted` in a cluster: label namespaces with
+`warn` and `audit` first, read what they report, then `enforce`.
+
+**Later, only if needed:**
+- A non-root `USER` on `trivy` and `copa`, if someone runs them as pods without their chart or trivy-operator.
+- Minimal bases per recipe (phase 3 below).
 
 ## What hardening adds to patching
 
@@ -93,7 +174,11 @@ What stands out:
 | [OpenSCAP](https://www.open-scap.org/) + SCAP Security Guide | STIG and CIS profiles for RHEL/UBI images (`oscap-podman`) | LGPL-2.1 / BSD-3 | Only if an organization needs STIG evidence for the UBI-based images |
 | Kubernetes Pod Security Admission (`restricted`), with [Kyverno](https://kyverno.io/) or [Gatekeeper](https://open-policy-agent.github.io/gatekeeper/) | Non-root, no privilege escalation, all capabilities dropped, seccomp `RuntimeDefault`, read-only root filesystem | Apache-2.0 | Runtime, in the clusters: no pipeline change. Kyverno's `verifyImages` or Sigstore's policy-controller can also admit only images signed by `release.yml` on `main` |
 
-## Proposed plan
+## First proposal (2026-11-03)
+
+Superseded by the [decision](#decision-and-plan-2026-11-04) where they differ: no Dockle, no setuid stripping, and
+`user` only where an image's own user is root or not numeric.
+
 
 **Phase 1: measure (images unchanged).** Small: the work is a few flags, a report section and some Rego.
 - Scan each final image with `--image-config-scanners misconfig,secret` as well.
