@@ -1,16 +1,16 @@
 upstreamTag: 3.10.0
 commit: 69a9073259ad229981116926ae48ec7ce27fc2af
-revision: 4
-releasedAt: '2026-11-03T16:27:28Z'
+revision: 5
+releasedAt: '2026-11-04T13:24:32Z'
 platforms:
 - linux/amd64
 - linux/arm64
 images:
 - name: maven-temurin-21-noble
-  ref: ghcr.io/therickybobbeh/maven:3.10.0-eclipse-temurin-21-noble-patched.4
-  digest: sha256:18b175903f3a0238151b244c2a4b705300a90851898bceca46fbbb16d4e28ae3
+  ref: ghcr.io/therickybobbeh/maven:3.10.0-eclipse-temurin-21-noble-patched.5
+  digest: sha256:52a49ff322bd5fc97af8315fda31b861dd6bb5919d520b2693c0cb9b3840780a
   knownFixable: []
 - name: maven-temurin-17-noble
-  ref: ghcr.io/therickybobbeh/maven:3.10.0-eclipse-temurin-17-noble-patched.4
-  digest: sha256:3892218fe47eb18d43348164a318cef133784e38a2b37a9d95bdbe83bf494943
+  ref: ghcr.io/therickybobbeh/maven:3.10.0-eclipse-temurin-17-noble-patched.5
+  digest: sha256:a484b1163627da51aac64e46a75de6a89acb220b4e3647ce833053ae63fa0057
   knownFixable: []
