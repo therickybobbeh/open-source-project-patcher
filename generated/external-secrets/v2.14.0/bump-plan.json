@@ -1,0 +1,2401 @@
+{
+  "recipe": "external-secrets",
+  "line": "v2",
+  "tag": "v2.14.0",
+  "commit": "e932f3a3f6f274e8e269c01aa1f5fb3d1322e3c9",
+  "status": "success",
+  "requires": {
+    "go": "1.27.3"
+  },
+  "plan": {
+    "bumps": [
+      {
+        "ecosystem": "gomod",
+        "target": "apis/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "apis"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "generators/v1/acr/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "generators/v1/acr"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "generators/v1/beyondtrustworkloadcredentials/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "generators/v1/beyondtrustworkloadcredentials"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "generators/v1/cloudsmith/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "generators/v1/cloudsmith"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "generators/v1/ecr/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "generators/v1/ecr"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "generators/v1/fake/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "generators/v1/fake"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "generators/v1/gcr/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "generators/v1/gcr"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "generators/v1/github/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "generators/v1/github"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "generators/v1/gitlab/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "generators/v1/gitlab"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "generators/v1/grafana/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "generators/v1/grafana"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "generators/v1/mfa/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "generators/v1/mfa"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "generators/v1/password/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "generators/v1/password"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "generators/v1/quay/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "generators/v1/quay"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "generators/v1/sshkey/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "generators/v1/sshkey"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "generators/v1/sts/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "generators/v1/sts"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "generators/v1/uuid/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "generators/v1/uuid"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "generators/v1/vault/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "generators/v1/vault"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "generators/v1/webhook/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "generators/v1/webhook"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/akeyless/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/akeyless"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/aws/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/aws"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/azure/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/azure"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/barbican/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/barbican"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/beyondtrust/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/beyondtrust"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/beyondtrustworkloadcredentials/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/beyondtrustworkloadcredentials"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/bitwarden/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/bitwarden"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/chef/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/chef"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/cloudru/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/cloudru"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/conjur/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/conjur"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/crd/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/crd"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/delinea/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/delinea"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/doppler/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/doppler"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/dvls/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/dvls"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/fake/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/fake"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/fortanix/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/fortanix"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/gcp/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/gcp"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/github/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/github"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/gitlab/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/gitlab"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/ibm/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/ibm"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/infisical/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/infisical"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/keepersecurity/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/keepersecurity"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/kubernetes/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/kubernetes"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/nebius/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": true,
+        "dir": "providers/v1/nebius"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/ngrok/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/ngrok"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/onboardbase/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/onboardbase"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/onepassword/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/onepassword"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/onepasswordsdk/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/onepasswordsdk"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/openbao/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/openbao"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/oracle/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/oracle"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/ovh/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/ovh"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/passbolt/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/passbolt"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/passworddepot/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/passworddepot"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/previder/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/previder"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/pulumi/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/pulumi"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/scaleway/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/scaleway"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/secretserver/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/secretserver"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/senhasegura/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/senhasegura"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/vault/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/vault"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/volcengine/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/volcengine"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/webhook/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/webhook"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/yandex/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "providers/v1/yandex"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "runtime/go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.61.0",
+        "to": "v0.62.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-78661",
+          "CVE-2026-97045"
+        ],
+        "direct": false,
+        "dir": "runtime"
+      }
+    ],
+    "unresolved": [
+      {
+        "ecosystem": "gomod",
+        "target": "generators/v1/acr/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "generators/v1/beyondtrustworkloadcredentials/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "generators/v1/cloudsmith/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "generators/v1/gcr/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "generators/v1/quay/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "generators/v1/sshkey/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "generators/v1/vault/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "generators/v1/webhook/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/akeyless/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/aws/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/azure/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/beyondtrust/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/beyondtrustworkloadcredentials/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/bitwarden/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/chef/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/cloudru/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/conjur/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/crd/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/delinea/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/doppler/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/dvls/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/fake/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/fortanix/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/gcp/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/github/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/gitlab/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/ibm/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/infisical/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/keepersecurity/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/kubernetes/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/nebius/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/onboardbase/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/onepassword/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/onepasswordsdk/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/openbao/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/oracle/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/ovh/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/passbolt/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/passworddepot/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/pulumi/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/scaleway/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/secretserver/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/vault/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/volcengine/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "providers/v1/webhook/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "runtime/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      }
+    ],
+    "toolchain": {}
+  },
+  "changes": [
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "apis/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "runtime/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/akeyless/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/aws/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/azure/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/barbican/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/beyondtrust/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/beyondtrustworkloadcredentials/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/bitwarden/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/chef/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/cloudru/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/conjur/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/crd/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/delinea/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/doppler/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/dvls/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/fake/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/fortanix/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/gcp/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/github/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/gitlab/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/ibm/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/infisical/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/keepersecurity/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/kubernetes/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/nebius/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/ngrok/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/onboardbase/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/onepassword/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/onepasswordsdk/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/openbao/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/oracle/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/ovh/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/passbolt/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/passworddepot/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/previder/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/pulumi/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/scaleway/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/secretserver/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/senhasegura/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/vault/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/volcengine/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/webhook/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/yandex/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "generators/v1/acr/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "generators/v1/beyondtrustworkloadcredentials/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "generators/v1/cloudsmith/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "generators/v1/ecr/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "generators/v1/fake/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "generators/v1/gcr/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "generators/v1/github/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "generators/v1/gitlab/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "generators/v1/grafana/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "generators/v1/mfa/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "generators/v1/password/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "generators/v1/quay/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "generators/v1/sshkey/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "generators/v1/sts/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "generators/v1/uuid/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "generators/v1/vault/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "generators/v1/webhook/go.mod",
+      "name": "golang.org/x/net",
+      "old": "v0.61.0",
+      "new": "v0.62.0",
+      "note": "CVE-2026-78661, CVE-2026-97045",
+      "level": "minor"
+    }
+  ],
+  "failures": [],
+  "unresolved": [
+    {
+      "ecosystem": "gomod",
+      "target": "generators/v1/acr/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "generators/v1/beyondtrustworkloadcredentials/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "generators/v1/cloudsmith/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "generators/v1/gcr/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "generators/v1/quay/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "generators/v1/sshkey/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "generators/v1/vault/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "generators/v1/webhook/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/akeyless/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/aws/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/azure/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/beyondtrust/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/beyondtrustworkloadcredentials/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/bitwarden/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/chef/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/cloudru/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/conjur/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/crd/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/delinea/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/doppler/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/dvls/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/fake/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/fortanix/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/gcp/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/github/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/gitlab/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/ibm/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/infisical/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/keepersecurity/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/kubernetes/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/nebius/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/onboardbase/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/onepassword/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/onepasswordsdk/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/openbao/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/oracle/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/ovh/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/passbolt/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/passworddepot/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/pulumi/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/scaleway/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/secretserver/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/vault/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/volcengine/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "providers/v1/webhook/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "runtime/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+    }
+  ],
+  "skips": [],
+  "tests": {
+    "configured": true,
+    "ran": true,
+    "passed": true
+  },
+  "gate": {
+    "external-secrets": {
+      "passed": true,
+      "deny": [],
+      "warn": []
+    }
+  }
+}
