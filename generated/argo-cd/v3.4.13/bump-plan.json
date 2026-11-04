@@ -1070,5 +1070,9 @@
       "deny": [],
       "warn": []
     }
+  },
+  "upstream": {
+    "released": "v3.4.13",
+    "level": "same"
   }
 }
