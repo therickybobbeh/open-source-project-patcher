@@ -1,0 +1,48 @@
+{
+  "recipe": "strimzi",
+  "line": "1",
+  "tag": "1.3.1",
+  "commit": "555c3e0f07c203911bc3cb7d13ac085bfaa81b50",
+  "status": "success",
+  "requires": {},
+  "plan": {
+    "bumps": [],
+    "unresolved": [],
+    "toolchain": {}
+  },
+  "changes": [
+    {
+      "ecosystem": "dockerfile",
+      "target": "docker-images/base/Dockerfile",
+      "name": "registry.access.redhat.com/ubi9/ubi-minimal",
+      "old": "ubi-minimal:latest",
+      "new": "ubi-minimal:latest@sha256:dfa0eb04abc59221544e74862432496add1f491f915c9b531880f91affc0e12c",
+      "note": "base image refresh",
+      "level": "patch"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "docker-images/base/Dockerfile",
+      "name": "registry.access.redhat.com/ubi9/ubi-minimal",
+      "old": "ubi-minimal:latest",
+      "new": "ubi-minimal:latest@sha256:dfa0eb04abc59221544e74862432496add1f491f915c9b531880f91affc0e12c",
+      "note": "base image refresh",
+      "level": "patch"
+    }
+  ],
+  "failures": [],
+  "unresolved": [],
+  "skips": [],
+  "tests": {
+    "configured": true,
+    "ran": true,
+    "passed": true
+  },
+  "gate": {
+    "strimzi-operator": {
+      "passed": true,
+      "deny": [],
+      "warn": []
+    }
+  }
+}
