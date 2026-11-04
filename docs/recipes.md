@@ -69,10 +69,13 @@ what arrives without a recipe change:
 
 | Line | Upstream ships | What happens |
 |---|---|---|
-| `v3.5` (one minor) | v3.5.8 | The line's next release: its patch PR is updated |
-| `v3.5` | v3.6.0 | A new line: the daily rescan opens a `new-release-line` issue naming the entry to add (`- name: "v3.6"`). Nothing is built until you add it |
-| `v2` (a whole major) | v2.15.0 | The line's next release, like a patch release |
+| `v3.5` (one minor) | v3.5.8 | The line's next release: its patch PR is updated, and the daily merge round merges it once it's ready |
+| `v3.5` | v3.6.0 | A new line: the daily rescan opens a `new-release-line` issue naming the entry to add (`- name: "v3.6"`). Nothing is built until you add it, and the line's first release waits for a person |
+| `v2` (a whole major) | v2.15.0 | The line's next release, built and tested like a patch release. It's an upgrade, so the daily merge round leaves it for a person (`v2.14.1 → v2.15.0` in the PR title) |
 | `v2` | v3.0.0 | A new line: one issue for the major (`v3`), not one per minor |
+
+So `v3.5` means "stay on 3.5 until I add the next line", and `v2` means "follow 2.x, with a person merging each
+minor upgrade". The merge rules are in `policy/merge/merge.rego` ([runbook](runbook.md#the-daily-merge-round)).
 
 A line that has reached its end of life gets an `end-of-life` issue
 ([runbook](runbook.md#coverage-of-the-images-we-run)).

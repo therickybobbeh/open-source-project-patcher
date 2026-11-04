@@ -135,7 +135,9 @@ machine it runs on unless `--platform` says otherwise.
 
 ## Reviewing a patch PR
 
-Each PR is titled `[<recipe>] <tag>: dependency updates (<status>)`. The body is the generated
+Each PR is titled `[<recipe>] <tag>: dependency updates (<status>)`. When the line moves past a patch release, the
+title shows it: `[external-secrets] v2.14.1 → v2.15.0: …`, or `[argo-cd] v3.6.1 (new line): …` for a line's first
+release, and the report says so at the top. The body is the generated
 report; the same files are in `generated/<recipe>/<tag>/`. The PR is a **draft** when tests, the
 build or a smoke test failed. It is also a draft when the [release gate](gate.md) is enforced and would stop
 the release. The report's **Release gate** section shows the verdict either way.
@@ -252,7 +254,11 @@ scripts/merge-ready.sh --merge   # merge what is ready: release records, the pat
 - **Patch PRs** are the release decision, so the **merge policy** takes it: Rego in `policy/merge/`, run with conftest
   on the patch set the PR would merge. Out of the box it holds a PR whose run didn't succeed outright (for example
   `tests-preexisting`), whose upstream tests didn't run, that the release gate denies, or that makes a major bump, and
-  says why; a recipe without upstream tests is only a warning. Change what merges on its own by editing those rules
+  says why; a recipe without upstream tests is only a warning.
+- **Upstream upgrades** wait for a person too: a patch PR that moves its line past a patch release of upstream
+  (external-secrets v2.14.1 → v2.15.0 on the `v2` line), or a line's first release. A new upstream patch release, or
+  a re-run of the released tag for new fixes, merges in the round. To take the upgrade, read upstream's release notes
+  (linked at the top of the report) and merge the PR by hand. Change what merges on its own by editing those rules
   (`conftest verify --policy policy` runs their tests). Without conftest installed (`brew install conftest`), every
   patch PR is held.
 - **Code and docs PRs** are never merged by the script. Related ones come as a stack, each based on the previous PR's

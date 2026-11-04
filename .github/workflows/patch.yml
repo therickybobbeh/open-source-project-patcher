@@ -212,6 +212,7 @@ jobs:
             echo "found=true"
             echo "tag=$(jq -r .tag <<<"$item")"
             echo "status=$(jq -r .status <<<"$item")"
+            echo "title=$(jq -r .title <<<"$item")"
             echo "draft=$(jq -r .draft <<<"$item")"
             echo "body=$(jq -r .body <<<"$item")"
           } >> "$GITHUB_OUTPUT"
@@ -223,7 +224,7 @@ jobs:
           branch: patch/${{ matrix.recipe }}/${{ matrix.line }}
           add-paths: generated/${{ matrix.recipe }}/**
           commit-message: "${{ matrix.recipe }} ${{ steps.collect.outputs.tag }}: dependency updates"
-          title: "[${{ matrix.recipe }}] ${{ steps.collect.outputs.tag }}: dependency updates (${{ steps.collect.outputs.status }})"
+          title: ${{ steps.collect.outputs.title }}
           body-path: ${{ steps.collect.outputs.body }}
           draft: ${{ steps.collect.outputs.draft }}
           labels: security, automated, ${{ matrix.recipe }}${{ steps.collect.outputs.status == 'tests-preexisting' && ', preexisting-test-failures' || '' }}
