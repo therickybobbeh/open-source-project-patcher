@@ -529,7 +529,8 @@ footer .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.
           <tr><td>Skip or quarantine an upstream test</td><td><code>skips/&lt;recipe&gt;.yaml</code>: a reason, an owner and <code>expires</code></td><td>an expired entry warns; <code>skipGraceDays</code> (30) later the run fails</td></tr>
           <tr><td>Accept a finding, with the reason on record</td><td><code>vex/&lt;recipe&gt;.yaml</code></td><td><code>not_affected</code> or <code>fixed</code> settles it: the gate skips it, the rescan ignores it, and it ships as OpenVEX on every release</td></tr>
           <tr><td>What a release may still contain</td><td><code>gate</code> in <code>recipes/_global.yaml</code>, rules in <code>policy/*.rego</code></td><td>report only (<code>enforce: false</code>); it would deny a fixable CRITICAL</td></tr>
-          <tr><td>Which patch PRs merge without a person</td><td><code>policy/merge/*.rego</code>, read by the daily round</td><td>holds a run that didn't end <code>success</code>, tests that didn't run, a gate denial, or a major bump</td></tr>
+          <tr><td>Which patch PRs merge without a person</td><td><code>policy/merge/*.rego</code>, read by the daily round</td><td>holds a run that didn't end <code>success</code>, tests that didn't run, a gate denial, a major bump, an upstream
+            upgrade past a patch release, or a line's first release</td></tr>
         </tbody>
       </table>
     </div>
@@ -642,9 +643,10 @@ footer .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.
         and the inventory entry. Merging starts the first patch run; merge its patch PR to release, then the record-release PR.</p></li>
     </ol>
     <p class="muted">From then on the pipeline carries it. A new upstream tag in a line starts a patch run and its PR.
-      The daily rescan watches what was released. The next minor arrives as a <code>New release line</code> issue, and
-      adding it is one line in <code>source.lines</code>. Everything it will ask of you is the <a href="#github">table
-      below</a>.</p>
+      The daily rescan watches what was released. A new upstream minor comes one of two ways, set by the line: a
+      <code>v2</code> line takes every 2.x, so v2.15.0 is its next patch PR, which the daily round leaves for a person;
+      a <code>v3.5</code> line stays on 3.5, so v3.6 opens a <code>New release line</code> issue naming the line to add
+      (<code>- name: "v3.6"</code>). Everything it will ask of you is the <a href="#github">table below</a>.</p>
   </section>
 
   <section id="github" class="wrap wide" aria-labelledby="gh-title">
@@ -657,13 +659,13 @@ footer .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.
       <table>
         <thead><tr><th scope="col">You'll see</th><th scope="col">Title</th><th scope="col">What to do</th></tr></thead>
         <tbody>
-          <tr><td>Patch PR</td><td><code>[&lt;recipe&gt;] &lt;tag&gt;: dependency updates (&lt;status&gt;)</code></td><td>Read the report and merge to release. A draft means tests, the build or a smoke test failed — or the enforced release gate would stop it</td></tr>
+          <tr><td>Patch PR</td><td><code>[&lt;recipe&gt;] &lt;tag&gt;: dependency updates (&lt;status&gt;)</code>; an upgrade reads <code>v2.14.1 → v2.15.0</code>, a new line's first release <code>v3.6.1 (new line)</code></td><td>Read the report and merge to release. A draft means tests, the build or a smoke test failed — or the enforced release gate would stop it. An upgrade or a first release waits for you in the daily round: read upstream's release notes, then merge it by hand</td></tr>
           <tr><td>Release record</td><td><code>[&lt;recipe&gt;] record release of &lt;line&gt;</code></td><td>Merge it: it only records what was published</td></tr>
           <tr><td>Copa refresh record</td><td><code>[&lt;recipe&gt;] copa refresh of &lt;line&gt;</code></td><td>Merge it. Until then the rescan skips that line</td></tr>
           <tr><td>Tool pins (Mondays)</td><td><code>deps(tools): update pinned tool downloads in patcher/Dockerfile</code></td><td>Review and merge: the patcher image's own tools, releases at least 14 days old</td></tr>
           <tr><td>Dependabot</td><td><code>deps(actions)</code>, <code>deps(python)</code>, <code>deps(image)</code></td><td>Review and merge: the pipeline's dependencies, with a 14-day cooldown</td></tr>
           <tr><td>Failure alert</td><td><code>CI failure: &lt;workflow&gt; / &lt;job&gt;</code></td><td>Fix the cause. The issue closes itself when the job passes again</td></tr>
-          <tr><td>New release line</td><td><code>New release line: &lt;recipe&gt; &lt;line&gt;</code></td><td>Add the line to the recipe if you run that version</td></tr>
+          <tr><td>New release line</td><td><code>New release line: &lt;recipe&gt; &lt;line&gt;</code></td><td>If you run that version, add the line the issue names (<code>- name: "v3.6"</code>) to the recipe; if not, close it</td></tr>
           <tr><td>End of life</td><td><code>End of life: &lt;recipe&gt; &lt;runtime&gt; &lt;release&gt;</code></td><td>Plan the move off that runtime</td></tr>
         </tbody>
       </table>
