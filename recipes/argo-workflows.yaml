@@ -58,5 +58,15 @@ build:
       args: { GIT_TAG: "{{tag}}", GIT_COMMIT: "{{commit}}", GIT_TREE_STATE: clean }
       smoke: ["--help"]
       ownBinaries: [bin/argoexec]
+    # upstream's non-root executor (the Dockerfile's argoexec-nonroot target, USER 8737), published as
+    # argoexec:<tag>-nonroot: the one to run where pods must be non-root (docs/running-non-root.md)
+    - name: argoexec
+      id: argoexec-nonroot
+      upstream: quay.io/argoproj/argoexec
+      upstreamTag: "{{tag}}-nonroot"
+      target: argoexec-nonroot
+      args: { GIT_TAG: "{{tag}}", GIT_COMMIT: "{{commit}}", GIT_TREE_STATE: clean }
+      smoke: ["--help"]
+      ownBinaries: [bin/argoexec]
 notes:
   - The argocli image embeds the UI (STATIC_FILES=true in its build stage); UI dependencies are patched through ui/yarn.lock.

@@ -70,12 +70,13 @@ class ScanReport:
     packages: list[Package] = field(default_factory=list)
     os: str | None = None
     degraded: str = ""  # why this scan saw less than usual (shown in the report)
+    user: str | None = None  # an image's configured user ("" when it sets none, so root); None for a filesystem scan
 
     def fixable(self) -> list[Finding]:
         return [f for f in self.findings if f.fixable]
 
     def to_json(self) -> dict:
-        return {"artifact": self.artifact, "os": self.os, "findings": [asdict(f) for f in self.findings]}
+        return {"artifact": self.artifact, "os": self.os, "user": self.user, "findings": [asdict(f) for f in self.findings]}
 
 
 def parse_report(data: dict) -> ScanReport:
@@ -83,6 +84,8 @@ def parse_report(data: dict) -> ScanReport:
     md = data.get("Metadata") or {}
     if md.get("OS"):
         report.os = f"{md['OS'].get('Family', '')} {md['OS'].get('Name', '')}".strip()
+    if "ImageConfig" in md:
+        report.user = ((md["ImageConfig"] or {}).get("config") or {}).get("User") or ""
     for res in data.get("Results") or []:
         target = res.get("Target", "")
         ttype = res.get("Type", "")

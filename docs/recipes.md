@@ -443,6 +443,7 @@ build:
 | `timeoutMinutes` (on `build`) | Per image build, build `setup` command and component overlay (default 60). A build that hangs or fails on a network error is retried once |
 | `copa` | `true` (default): Copa patches leftover OS packages. `false`: off. `{libraries: true, level: patch}`: also patch Python and npm packages inside the image (Copa's experimental library patching, `COPA_EXPERIMENTAL=1`); meant for closed-source images that can't be rebuilt |
 | `bundledJars` | `{paths: [usr/share/maven/], level: patch}`: swap vulnerable jars of a third-party Java distribution the image unpacks for fixed releases from Maven Central. See [Bundled jars](#bundled-jars) |
+| `user` | The numeric user the image runs as, `uid` or `uid:gid` (not root): the last layer of the overlay build, so smoke tests and the release run as it. For an image whose upstream names its user (dex's `dex:dex`), write the same user as a number: a pod with `runAsNonRoot` can't start an image with a user name. The release gate warns on root and on a name ([gate.md](gate.md)) |
 
 Templates: `{{tag}}`, `{{version}}` (tag without `v`), `{{commit}}`, `{{short_commit}}`, and in
 image builds also `{{image}}`, `{{platform}}`, `{{arch}}`. Unknown placeholders are errors.

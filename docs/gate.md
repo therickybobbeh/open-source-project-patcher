@@ -45,6 +45,11 @@ against the settings on `main` when it runs.
 first for the recipes that already pass. A gate that stops a release also stops a *better* image: the one released
 before stays current. Fix the finding, or record a VEX decision, rather than leave a line stuck.
 
+**How the image runs.** Two built-in `warn` rules read `user`: an image that runs as root, and one that runs as a user
+*name* (`dex:dex`). A pod with `runAsNonRoot` (Pod Security Admission's `restricted` profile) can't start the second
+kind, because the kubelet can't check that a name isn't root. The fix for both is a numeric `user` on the recipe's image
+([recipes.md](recipes.md#build)). Each report's **Images** table shows what an image runs as.
+
 `policy/merge/` holds a second, separate policy (package `patcher.merge`): which patch PRs the daily merge round merges
 without a person ([runbook](runbook.md#the-daily-merge-round)). It reads the patch set, including this gate's verdict.
 
@@ -81,7 +86,7 @@ One document per image:
 ```json
 {
   "stage": "release",
-  "recipe": "argo-cd", "line": "v3.4", "image": "argocd", "ref": "ghcr.io/<owner>/argocd@sha256:…",
+  "recipe": "argo-cd", "line": "v3.4", "image": "argocd", "ref": "ghcr.io/<owner>/argocd@sha256:…", "user": "999",
   "params": {"fixable": ["CRITICAL"], "unfixed": []},
   "findings": [
     {"id": "CVE-2026-1234", "severity": "HIGH", "package": "golang.org/x/net", "installed": "0.30.0", "fixed": "0.38.0",
@@ -94,6 +99,7 @@ One document per image:
 |---|---|
 | `stage` | `patch` (the patch PR's image) or `release` (what a release or Copa refresh is about to sign) |
 | `params` | The recipe's `gate.failOn`, merged over `_global.yaml`'s |
+| `user` | The user in the image's config (`""` when it sets none, so root); `null` when the scan isn't of an image |
 | `findings[].fixable` | Trivy has a fixed version, and the finding's status allows the fix |
 | `findings[].location` | The file the package is in: a binary or jar in the image, or the OS package database |
 | `findings[].vex` | The status of the VEX statement that covers the finding, or `null` |

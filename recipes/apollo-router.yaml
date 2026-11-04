@@ -35,6 +35,7 @@ build:
     - name: router
       upstream: ghcr.io/apollographql/router
       dockerfile: dockerfiles/diy/dockerfiles/Dockerfile.repo
+      user: "1000:1000"  # upstream's `router` user as a number: a pod with runAsNonRoot can't check a user name
       smoke: ["--version"]
 notes:
   - GraphOS-licensed integration tests (entity cache, APQ, reporting) return early without TEST_APOLLO_KEY / TEST_APOLLO_GRAPH_REF, so they pass without exercising anything.

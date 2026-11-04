@@ -178,6 +178,7 @@ def test_overlay_copies_each_jar_over_the_old_path_and_labels_it():
     assert key == jars.LABEL and json.loads(json.loads(value)) == [
         {"path": f"/{LIB}", "name": "com.google.guava:guava", "from": "33.7.1-jre", "to": "33.7.2-jre", "sha256": s.sha256}]
     assert components.overlay_dockerfile("base", []) == "FROM base\n"
+    assert components.overlay_dockerfile("base", [], user="1001:1001") == "FROM base\nUSER 1001:1001\n"  # the last layer
 
 
 def test_report_lists_swaps_and_explains_what_is_left():

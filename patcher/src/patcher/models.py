@@ -385,6 +385,10 @@ class ImageSpec(_Model):
                                             "replaced with the fixed release from Maven Central (pinned by sha256) in an overlay "
                                             "on the built image, before smoke tests and Copa")
     copa: bool | CopaOptions = Field(True, description="Copa for leftover OS packages; an object enables library patching too")
+    user: str | None = Field(None, pattern=r"^[1-9][0-9]*(:[0-9]+)?$",
+                             description="The numeric user the image runs as (`uid` or `uid:gid`, not root): the last layer of the "
+                             "overlay build, before smoke tests and Copa. For an image whose upstream names its user (`dex:dex`), "
+                             "the same user as a number, so a pod with `runAsNonRoot` can start it")
     tagPattern: str | None = Field(None, description="image-only: this image's own tag regex when it versions separately from the line")
     platforms: list[str] = Field(default_factory=list, description="Platforms this image exists for, when fewer than build.platforms: "
                                  "it is built and released for those of build.platforms it lists")

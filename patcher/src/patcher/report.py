@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from collections import Counter
 from dataclasses import dataclass, field
 
@@ -300,10 +301,10 @@ def render_markdown(s: Summary) -> str:
 
     # --- images
     if s.images:
-        out += ["### Images", "", "| Image | Ref | Smoke | Copa |", "|---|---|---|---|"]
+        out += ["### Images", "", "| Image | Ref | Runs as | Smoke | Copa |", "|---|---|---|---|---|"]
         for i in s.images:
             smoke = ", ".join(("✅ " if x["ok"] else "❌ ") + f"`{x['cmd']}`" for x in i.smoke) or "-"
-            out.append(f"| {i.name} | `{i.ref}` | {smoke} | {i.copa or '-'} |")
+            out.append(f"| {i.name} | `{i.ref}` | {runs_as(i.after)} | {smoke} | {i.copa or '-'} |")
         out.append("")
 
     if s.vex_suggestions:
@@ -324,6 +325,20 @@ def render_markdown(s: Summary) -> str:
     if notes:
         out += ["### Notes", ""] + [f"- {n}" for n in notes] + [""]
     return "\n".join(out)
+
+
+def runs_as(report: ScanReport | None) -> str:
+    """The user an image runs as, as the release gate reads it: `999`, or root or a user name, which a pod with
+    runAsNonRoot can't run (policy/gate.rego warns on both)."""
+    if report is None or report.user is None:
+        return "-"
+    if report.user == "":
+        return "root (no `USER`)"
+    if report.user.split(":")[0] in ("0", "root"):
+        return f"`{report.user}` (root)"
+    if not re.fullmatch(r"[0-9]+(:[0-9]+)?", report.user):
+        return f"`{report.user}` (a name)"
+    return f"`{report.user}`"
 
 
 def _skip_row(e: SkipEntry, expired: bool = False) -> str:
