@@ -1,0 +1,22 @@
+diff --git a/docker-images/base/Dockerfile b/docker-images/base/Dockerfile
+index 80fc7a5..8bf9f2b 100644
+--- a/docker-images/base/Dockerfile
++++ b/docker-images/base/Dockerfile
+@@ -1,7 +1,7 @@
+ #####
+ # Build the helper container image for downloading prerequisites
+ #####
+-FROM registry.access.redhat.com/ubi9/ubi-minimal:latest AS downloader
++FROM registry.access.redhat.com/ubi9/ubi-minimal:latest@sha256:dfa0eb04abc59221544e74862432496add1f491f915c9b531880f91affc0e12c AS downloader
+ 
+ ARG TARGETOS
+ ARG TARGETARCH
+@@ -37,7 +37,7 @@ RUN set -ex; \
+ #####
+ # Build the main container image
+ #####
+-FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
++FROM registry.access.redhat.com/ubi9/ubi-minimal:latest@sha256:dfa0eb04abc59221544e74862432496add1f491f915c9b531880f91affc0e12c
+ 
+ LABEL org.opencontainers.image.source='https://github.com/strimzi/strimzi-kafka-operator'
+ 
