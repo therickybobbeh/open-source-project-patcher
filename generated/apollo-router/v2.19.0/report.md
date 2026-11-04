@@ -7,7 +7,11 @@ Upstream: https://github.com/apollographql/router @ `95383e1e952e` (line `v2`)
 | Artifact | Before | After | Fixed | New |
 |---|---|---|---|---|
 | source (`trivy fs`) | 0 / 2 / 2 / 1 | 0 / 0 / 1 / 0 | 4 | 0 |
-| image `router` | 0 / 2 / 8 / 2 | 0 / 0 / 0 / 0 | 13 | 0 |
+| image `router` | 0 / 2 / 8 / 2 | 0 / 0 / 0 / 0 | 16 | 0 |
+
+### Release gate (reported only (`gate.enforce: false`))
+
+- image `router`: ✅ passes
 
 ### Changes applied
 
@@ -17,7 +21,7 @@ Upstream: https://github.com/apollographql/router @ `95383e1e952e` (line `v2`)
 | cargo | `Cargo.lock` | `quinn-proto` | `0.11.12` | `0.11.15` | CVE-2026-31812, GHSA-4w2j-m93h-cj5j |
 | cargo | `Cargo.lock` | `rand` | `0.8.5` | `0.8.6` | GHSA-cq8v-f236-94qc |
 | cargo | `Cargo.lock` | `rand` | `0.9.2` | `0.9.3` | GHSA-cq8v-f236-94qc |
-| dockerfile | `dockerfiles/diy/dockerfiles/Dockerfile.repo` | `rust` | `rust:1.99.0-slim-bookworm` | `rust:1.99.1-slim-bookworm@sha256:24707e70a4f1e23d9a7b25202ec43126d28a52294b96aad5c670df1fd1f1d400` | 1.99.0-slim-bookworm -> 1.99.1-slim-bookworm |
+| dockerfile | `dockerfiles/diy/dockerfiles/Dockerfile.repo` | `rust` | `rust:1.99.0-slim-bookworm` | `rust:1.99.1-slim-bookworm@sha256:ed2c95ca377d6571b124b05e75e01207973ded639dce7d5542eb7bcd797e32aa` | 1.99.0-slim-bookworm -> 1.99.1-slim-bookworm |
 | dockerfile | `dockerfiles/diy/dockerfiles/Dockerfile.repo` | `debian` | `debian:bookworm-slim` | `debian:bookworm-slim@sha256:99c0b25c46d0214d5a2091092e7908907dcaecd6a962cde0ac700acee222b6f3` | base image refresh |
 
 ### Still fixable after patching
@@ -28,7 +32,7 @@ Upstream: https://github.com/apollographql/router @ `95383e1e952e` (line `v2`)
 
 ### Upstream tests
 
-✅ passed in 16.0 min — `cargo nextest run --locked --no-fail-fast --workspace --features ci,snapshot --profile ci -E 'not ((test(/integration::connectors::authentication::test_aws_sig_v4_signing$/)))'`
+✅ passed in 16.7 min — `cargo nextest run --locked --no-fail-fast --workspace --features ci,snapshot --profile ci -E 'not ((test(/integration::connectors::authentication::test_aws_sig_v4_signing$/)))'`
 
 Skipped tests (from `skips/apollo-router.yaml`):
 
@@ -38,9 +42,9 @@ Skipped tests (from `skips/apollo-router.yaml`):
 
 ### Images
 
-| Image | Ref | Smoke | Copa |
-|---|---|---|---|
-| router | `patcher.local/router:v2.19.0-patched.dev` | ✅ `--version` | no fixable OS packages |
+| Image | Ref | Runs as | Smoke | Copa |
+|---|---|---|---|---|
+| router | `patcher.local/router:v2.19.0-patched.dev-copa` | `1000:1000` | ✅ `--version` | patched (OS): 3 total, 3 patched, 0 skipped |
 
 ### Notes
 
