@@ -335,6 +335,7 @@ footer .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.
       <a href="#day">A day</a>
       <a href="#life">Life of a fix</a>
       <a href="#rules">Bump rules</a>
+      <a href="#policy">Policies</a>
       <a href="#use">Use the images</a>
       <a href="#onboard">Add a project</a>
       <a href="#github">In GitHub</a>
@@ -507,6 +508,60 @@ footer .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.
     </div>
   </section>
 
+  <section id="policy" class="wrap wide" aria-labelledby="policy-title">
+    <div class="head read" style="margin-inline:0">
+      <p class="eyebrow">Policies</p>
+      <h2 id="policy-title">Every decision is a file in the repository</h2>
+      <p class="lede">The bump rules above are settings, not code. Each one lives in a reviewed file; change it in a
+        PR and the next run follows it. Two of them are Rego (Open Policy Agent, run with conftest, tested in CI):
+        the release gate judges an image's final scan, the merge policy judges a patch set before the daily round
+        merges its PR.</p>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th scope="col">Decision</th><th scope="col">Lives in</th><th scope="col">Out of the box</th></tr></thead>
+        <tbody>
+          <tr><td>How far a bump may go on its own</td><td><code>policy.default</code> in <code>recipes/_global.yaml</code>, per ecosystem under <code>policy.ecosystems</code>, overridable per recipe</td><td><code>minor</code>. Beyond it, the finding is reported as needs-human instead of bumped</td></tr>
+          <tr><td>How old a fix must be</td><td><code>policy.minReleaseAgeDays</code>, bypass in <code>policy.cooldownBypass</code></td><td>7 days. CRITICAL fixes and CISA-KEV CVEs go in at once</td></tr>
+          <tr><td>Fixes that are only a commit</td><td><code>policy.untaggedFixes</code>, per recipe</td><td>off: the bump waits for the first release tagged after the fix</td></tr>
+          <tr><td>Force a version floor everywhere</td><td><code>overrides</code>, global or per recipe, each with a reason</td><td>empty. An override is a human decision: it ignores the policy cap</td></tr>
+          <tr><td>Never bump, or never past a version</td><td><code>holds</code>, each with a reason and an optional <code>max</code></td><td>empty</td></tr>
+          <tr><td>Skip or quarantine an upstream test</td><td><code>skips/&lt;recipe&gt;.yaml</code>: a reason, an owner and <code>expires</code></td><td>an expired entry warns; <code>skipGraceDays</code> (30) later the run fails</td></tr>
+          <tr><td>Accept a finding, with the reason on record</td><td><code>vex/&lt;recipe&gt;.yaml</code></td><td><code>not_affected</code> or <code>fixed</code> settles it: the gate skips it, the rescan ignores it, and it ships as OpenVEX on every release</td></tr>
+          <tr><td>What a release may still contain</td><td><code>gate</code> in <code>recipes/_global.yaml</code>, rules in <code>policy/*.rego</code></td><td>report only (<code>enforce: false</code>); it would deny a fixable CRITICAL</td></tr>
+          <tr><td>Which patch PRs merge without a person</td><td><code>policy/merge/*.rego</code>, read by the daily round</td><td>holds a run that didn't end <code>success</code>, tests that didn't run, a gate denial, or a major bump</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="head read" style="margin-inline:0">
+      <h3 style="font-size:var(--s2)">What it asks, and what you do</h3>
+      <p class="lede">A finding that stays in the report, or a PR the daily round holds, names its rule. The rule names
+        the file to change.</p>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th scope="col">It says</th><th scope="col">Because</th><th scope="col">Your move</th></tr></thead>
+        <tbody>
+          <tr><td><code>needs-human: … beyond the `minor` policy</code></td><td>The smallest fix is a bigger jump than the policy applies alone</td><td>Raise <code>policy</code> for that recipe or ecosystem, add an <code>overrides</code> entry, or carry a patch in <code>patches/&lt;recipe&gt;/</code> — or settle it with VEX</td></tr>
+          <tr><td><code>cooldown: … (eligible &lt;date&gt;)</code></td><td>The fix is younger than 7 days, and not CRITICAL or KEV</td><td>Nothing. The nightly rescan starts a patch run the day it clears</td></tr>
+          <tr><td><code>untagged: the fix … is a commit, not a release</code></td><td>No upstream release carries the fix yet</td><td>Wait: the line re-runs when upstream tags one. To apply the commit itself, set <code>untaggedFixes: true</code></td></tr>
+          <tr><td><code>held: &lt;the hold's reason&gt;</code></td><td>A <code>holds</code> entry pins the package</td><td>Re-test what the reason describes; raise the hold's <code>max</code> or remove it</td></tr>
+          <tr><td><code>in bundled artifact</code></td><td>The vulnerable code is in a binary the source doesn't build</td><td>Add a <code>components</code> entry (rebuilt from its own source), or <code>bundledJars</code> for a Java distribution</td></tr>
+          <tr><td>an expired skip</td><td>A skipped test's <code>expires</code> has passed</td><td>Re-check the test, then renew or remove the entry. Thirty days after expiry the run fails until someone does</td></tr>
+          <tr><td>Release gate: denied</td><td>The final image still holds something <code>gate.failOn</code> names, unexplained</td><td>Fix the finding or record a VEX decision. With <code>enforce: false</code> the verdict is only reported; with it on, a denied image is never signed</td></tr>
+          <tr><td>The daily round holds a patch PR</td><td>The merge policy wants a person to take the release decision</td><td>Read the report and merge by hand — or, if the rule is too strict, change it in <code>policy/merge/</code> (its tests run with <code>conftest verify --policy policy</code>)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="muted small read" style="margin-inline:0">The full references:
+      <a data-doc="docs/recipes.md#policy" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/recipes.md#policy">the bump policy</a>,
+      <a data-doc="docs/recipes.md#overrides-and-holds" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/recipes.md#overrides-and-holds">overrides and holds</a>,
+      <a data-doc="docs/runbook.md#skipping-upstream-tests" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/runbook.md#skipping-upstream-tests">skips</a>,
+      <a data-doc="docs/runbook.md#recording-vex-decisions" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/runbook.md#recording-vex-decisions">VEX decisions</a>,
+      <a data-doc="docs/gate.md" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/gate.md">the release gate</a> and
+      <a data-doc="docs/runbook.md#the-daily-merge-round" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/runbook.md#the-daily-merge-round">the merge round</a>.</p>
+  </section>
+
   <section id="use" class="wrap wide" aria-labelledby="use-title">
     <div class="head read" style="margin-inline:0">
       <p class="eyebrow">Use the images</p>
@@ -554,6 +609,16 @@ footer .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.
       <p class="lede">Allow an afternoon for a typical project, most of it spent getting upstream's tests to run. The full
         guide is <a data-doc="docs/onboarding.md" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/onboarding.md">docs/onboarding.md</a>.</p>
     </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th scope="col">You have</th><th scope="col">Mode</th><th scope="col">What the pipeline does</th></tr></thead>
+        <tbody>
+          <tr><td>The source, with tagged releases</td><td><code>source</code></td><td>Everything above: bumps, upstream tests, rebuild, Copa</td></tr>
+          <tr><td>Only an image (vendor, closed source)</td><td><code>image-only</code></td><td>Copa on OS packages (and pip/npm libraries with <code>copa.libraries</code>); bundled open-source helpers rebuilt. <code>publish: false</code> if the license forbids republishing</td></tr>
+          <tr><td>A binary inside another image (helm in Argo CD)</td><td><code>component</code></td><td>Rebuilt from its own source and copied into the parent image. Never released alone</td></tr>
+        </tbody>
+      </table>
+    </div>
     <ol class="howto">
       <li><h3>Check whether it's covered</h3><p class="muted">Add the image to <code>inventory.yaml</code> and run the coverage
         check. It names the patched image to switch to, a missing release line, or no recipe.</p>
@@ -567,9 +632,19 @@ footer .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.
       <li><h3>Run it locally, as CI does</h3><p class="muted">Inside the patcher image, which never pushes. The report it writes
         is the PR body you'll review.</p>
         <pre>scripts/patcher-docker.sh run &lt;name&gt; --out out   # out/&lt;name&gt;/&lt;line&gt;/generated/report.md</pre></li>
-      <li><h3>Open the PR, then merge what follows</h3><p class="muted">The recipe, its skips and the inventory entry. Merging starts the first
-        patch run; merge its patch PR to release, then the record-release PR.</p></li>
+      <li><h3>Make the first run clean</h3><p class="muted">Three things the report may ask. Tests that <em>also fail on the
+        unpatched source</em> are upstream's: a test that needs live credentials or an external service goes in
+        <code>skips/&lt;name&gt;.yaml</code> with a reason, an owner and an expiry — never one that fails only after the bumps.
+        Findings <code>in bundled artifact</code> become a component or <code>bundledJars</code>. What stays fixable is acted
+        on, or settled with VEX (<a href="#policy">Policies</a>). Repeat until the run ends <code>success</code>, or
+        <code>tests-preexisting</code> with every failure understood.</p></li>
+      <li><h3>Open the PR, then merge what follows</h3><p class="muted">The recipe, its skips, any <code>patches/&lt;name&gt;/</code>,
+        and the inventory entry. Merging starts the first patch run; merge its patch PR to release, then the record-release PR.</p></li>
     </ol>
+    <p class="muted">From then on the pipeline carries it. A new upstream tag in a line starts a patch run and its PR.
+      The daily rescan watches what was released. The next minor arrives as a <code>New release line</code> issue, and
+      adding it is one line in <code>source.lines</code>. Everything it will ask of you is the <a href="#github">table
+      below</a>.</p>
   </section>
 
   <section id="github" class="wrap wide" aria-labelledby="gh-title">
@@ -582,7 +657,7 @@ footer .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.
       <table>
         <thead><tr><th scope="col">You'll see</th><th scope="col">Title</th><th scope="col">What to do</th></tr></thead>
         <tbody>
-          <tr><td>Patch PR</td><td><code>[&lt;recipe&gt;] &lt;tag&gt;: dependency updates (&lt;status&gt;)</code></td><td>Read the report and merge to release. A draft means its tests failed</td></tr>
+          <tr><td>Patch PR</td><td><code>[&lt;recipe&gt;] &lt;tag&gt;: dependency updates (&lt;status&gt;)</code></td><td>Read the report and merge to release. A draft means tests, the build or a smoke test failed — or the enforced release gate would stop it</td></tr>
           <tr><td>Release record</td><td><code>[&lt;recipe&gt;] record release of &lt;line&gt;</code></td><td>Merge it: it only records what was published</td></tr>
           <tr><td>Copa refresh record</td><td><code>[&lt;recipe&gt;] copa refresh of &lt;line&gt;</code></td><td>Merge it. Until then the rescan skips that line</td></tr>
           <tr><td>Tool pins (Mondays)</td><td><code>deps(tools): update pinned tool downloads in patcher/Dockerfile</code></td><td>Review and merge: the patcher image's own tools, releases at least 14 days old</td></tr>
@@ -594,8 +669,8 @@ footer .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.
       </table>
     </div>
     <p class="muted small">Once a day, after the rescan, <code>scripts/merge-ready.sh</code> lists every open PR with what it
-      waits for, and <code>--merge</code> merges what is ready: release records first, then the patch PRs the merge policy
-      (Rego in <code>policy/merge/</code>) allows, then dependency PRs. Code and docs PRs are merged by a person
+      waits for, and <code>--merge</code> merges what is ready: release records first, then the patch PRs the
+      <a href="#policy">merge policy</a> (Rego in <code>policy/merge/</code>) allows, then dependency PRs. Code and docs PRs are merged by a person
       (<a data-doc="docs/runbook.md#the-daily-merge-round" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/runbook.md#the-daily-merge-round">the daily merge round</a>).</p>
     <p class="muted small">Day to day: the runbook covers <a data-doc="docs/runbook.md#reviewing-a-patch-pr" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/runbook.md#reviewing-a-patch-pr">reviewing a patch PR</a>,
       <a data-doc="docs/runbook.md#a-release-failed-after-the-builds" href="https://github.com/therickybobbeh/open-source-project-patcher/blob/main/docs/runbook.md#a-release-failed-after-the-builds">finishing a failed release</a> and
