@@ -35,6 +35,7 @@ build:
     - name: dex
       upstream: ghcr.io/dexidp/dex
       args: { VERSION: "{{tag}}" }
+      user: "1001:1001"  # upstream's dex:dex as a number: a pod with runAsNonRoot can't check a user name
       smoke: ["dex version"]
       ownBinaries: [usr/local/bin/dex, usr/local/bin/docker-entrypoint]
     - name: dex
@@ -42,6 +43,7 @@ build:
       upstream: ghcr.io/dexidp/dex
       upstreamTag: "{{tag}}-distroless"
       args: { VERSION: "{{tag}}", BASE_IMAGE: distroless }
+      user: "1001:1001"
       smoke: ["dex version"]
       ownBinaries: [usr/local/bin/dex, usr/local/bin/docker-entrypoint]
 # the gomplate binary is copied from ghcr.io/hairyhenderson/gomplate; it is rebuilt from source at the same

@@ -484,9 +484,10 @@ def _build_and_scan(repo: Repo, recipe: Recipe, att: Attempt, summary: Summary, 
                     swaps, unresolved = jars.prepare(img.ref, opts.platform, spec, built_scan, recipe, gate, out / f"overlay-{spec.key}")
                     summary.jars += swaps
                     summary.jar_unresolved += unresolved
-                if usable or swaps:  # one overlay for both, before the smoke tests
+                if usable or swaps or spec.user:  # one overlay for all of them, before the smoke tests
                     components.overlay(img.ref, usable, out / f"overlay-{spec.key}", platforms=[opts.platform], tag_ref=img.ref,
-                                       push=False, local_base=True, files=jars.copies(swaps), labels=jars.labels(swaps))
+                                       push=False, local_base=True, files=jars.copies(swaps), labels=jars.labels(swaps),
+                                       user=spec.user)
                 if not smoke_test(img, out / "build.log"):
                     summary.status = "smoke-failed"
                 built.append(img)
@@ -731,10 +732,10 @@ def _run_image_only(repo: Repo, recipe: Recipe, line: Line, out: Path, opts: Run
             swaps, unresolved = jars.prepare(ref, platform, spec, before, recipe, gate, out / f"overlay-{spec.key}")
             s.jars += swaps
             s.jar_unresolved += unresolved
-        overlaid = bool(usable or swaps)
+        overlaid = bool(usable or swaps or spec.user)
         if overlaid:
             components.overlay(ref, usable, out / f"overlay-{spec.key}", platforms=[platform], tag_ref=local, push=False,
-                               local_base=False, files=jars.copies(swaps), labels=jars.labels(swaps))
+                               local_base=False, files=jars.copies(swaps), labels=jars.labels(swaps), user=spec.user)
             img = BuiltImage(spec, local, platform)  # the vendor image changed: its smoke tests (if any) must still pass
             if not smoke_test(img, out / "build.log"):
                 s.status = "smoke-failed"
@@ -1049,11 +1050,11 @@ def release_build(repo: Repo, recipe: Recipe, key: str, platform: str, workdir: 
         local = f"{LOCAL_PREFIX}/{spec.name}:{render(spec.upstreamTag, tctx)}-release-{arch_of(platform)}"
         mine = [comps[c.recipe] for c in components.applicable(recipe, spec.key) if c.recipe in comps]
         mine_jars = swaps.get(spec.key, [])
-        if mine or mine_jars:  # build, then overlay the rebuilt components and the reviewed jar swaps
+        if mine or mine_jars or spec.user:  # build, then overlay the rebuilt components, the reviewed jar swaps, the user
             base = build_image(src, recipe.build, spec, f"{local}-base", platform, tctx, env, out / "build.log")
             jars.restage(base.ref, [platform], mine_jars, out / f"overlay-{spec.key}")
             components.overlay(base.ref, mine, out / f"overlay-{spec.key}", platforms=[platform], tag_ref=local, push=False,
-                               local_base=True, files=jars.copies(mine_jars), labels=jars.labels(mine_jars))
+                               local_base=True, files=jars.copies(mine_jars), labels=jars.labels(mine_jars), user=spec.user)
         else:
             build_image(src, recipe.build, spec, local, platform, tctx, env, out / "build.log")
         path = archive.path_for(images, platform, spec.key)
@@ -1210,10 +1211,11 @@ def _publish_image_only(repo: Repo, recipe: Recipe, key: str, platforms: list[st
             raise ValueError(f"{recipe.name}: image {spec.key} is released for none of {platforms}")
         mine = [comps[c.recipe] for c in components.applicable(recipe, spec.key) if c.recipe in comps]
         mine_jars = swaps.get(spec.key, [])
-        if mine or mine_jars:  # vendor image + our rebuilt helpers and swapped jars, all platforms in one cross-compiling build
+        if mine or mine_jars or spec.user:  # vendor image + our rebuilt helpers, swapped jars and user, all platforms in one build
             jars.restage(up_ref, plats, mine_jars, out / f"overlay-{spec.key}")
             components.overlay(up_ref, mine, out / f"overlay-{spec.key}", platforms=plats, tag_ref=f"{repo_ref}:{final}-build",
-                               push=True, local_base=False, files=jars.copies(mine_jars), labels=jars.labels(mine_jars))
+                               push=True, local_base=False, files=jars.copies(mine_jars), labels=jars.labels(mine_jars),
+                               user=spec.user)
         else:
             run(["docker", "buildx", "imagetools", "create", "-t", f"{repo_ref}:{final}-build", up_ref])
         cr = copa.for_image(spec, f"{repo_ref}:{final}-build", final, out, platforms=plats, severities=g.scan.severities, push=True,

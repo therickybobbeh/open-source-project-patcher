@@ -146,6 +146,29 @@ def test_release_build_saves_archives_and_pushes_nothing(tmp_path, monkeypatch):
     assert [b["archive"] for b in built] == ["images/arm64/app.tar"] and not stale.exists()
 
 
+def test_an_image_with_a_user_is_built_then_set_to_run_as_it(tmp_path, monkeypatch):
+    """`user` alone is enough for the overlay build: dex names its user (dex:dex), which a pod with runAsNonRoot can't
+    check, so the release sets the same user as a number. The other image is built as before."""
+    from patcher import components
+
+    r = app_recipe()
+    r["build"]["images"][0]["user"] = "1001:1001"
+    repo = make_repo(tmp_path, r)
+    calls = []
+    monkeypatch.setattr(pipeline, "prepare_release_source", lambda *a, **k: (tmp_path, {"tag": "v1.2.3", "commit": "c0ffee"}, {}))
+    monkeypatch.setattr(pipeline, "build_image", lambda src, b, spec, ref, platform, *a: calls.append(("build", ref))
+                        or BuiltImage(spec, ref, platform))
+    monkeypatch.setattr(components, "overlay", lambda base, comps, out, **k: calls.append(("overlay", base, k["tag_ref"], k["user"])))
+    monkeypatch.setattr(pipeline.archive, "export", lambda ref, dest, log=None: calls.append(("save", ref)))
+    pipeline.release_build(repo, repo.load_recipe("app"), "v1", "linux/amd64", tmp_path / "w", tmp_path / "out")
+    local = "patcher.local/app:v1.2.3-release-amd64"
+    assert calls == [("build", f"{local}-base"), ("overlay", f"{local}-base", local, "1001:1001"), ("save", local),
+                     ("build", "patcher.local/app:v1.2.3-debug-release-amd64"), ("save", "patcher.local/app:v1.2.3-debug-release-amd64")]
+    for bad in ("0", "0:0", "root", "dex:dex", "-1"):  # numeric and not root, or the recipe doesn't load
+        with pytest.raises(ValidationError):
+            pipeline.ImageSpec.model_validate({"name": "app", "user": bad})
+
+
 # --- push: the trusted job pushes only what it computes itself ----------------------------------------
 
 

@@ -45,6 +45,7 @@ build:
         -o cmd/otelcol/dist/otelcol_linux_{{arch}} ./cmd/otelcol &&
         docker buildx build --platform {{platform}} -f cmd/otelcol/Dockerfile -t {{image}} --load cmd/otelcol
       builtImage: "{{image}}"
+      user: "999:999"  # upstream's splunk-otel-collector user as a number: a pod with runAsNonRoot can't check a user name
       # `validate` loads the default gateway config with every component it uses. The distribution checks these
       # variables before any command (only --version and --help run without them). Its own argument handling makes
       # `components` and `--config ... validate` start the service instead, so they can't be smoke tests
