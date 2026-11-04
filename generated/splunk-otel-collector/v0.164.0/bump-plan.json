@@ -271,5 +271,9 @@
       "deny": [],
       "warn": []
     }
+  },
+  "upstream": {
+    "released": "v0.164.0",
+    "level": "same"
   }
 }
