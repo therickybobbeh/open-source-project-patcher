@@ -448,8 +448,8 @@ refresh isn't recorded yet: merge its `state/` PR first.
 
 The full walk-through for a new project, with a checklist, is [onboarding.md](onboarding.md).
 
-- **Line:** add it to `source.lines` in the recipe and merge. The push triggers `patch.yml` for that
-  recipe.
+- **Line:** add it to `source.lines` in the recipe, as its version prefix (`- name: "v3.6"`: every v3.6.x), and
+  merge. The push triggers `patch.yml` for that recipe. The `new-release-line` issue names the entry to add.
 - **Project:**
   1. Draft the recipe:
      - **Open source:** `patcher init owner/repo [--image quay.io/org/app:1.2.3]`. It detects the
@@ -488,10 +488,11 @@ deployments change; `patcher coverage --fail-on-uncovered` can gate a CI job on 
 
 **New upstream release lines.** A recipe follows the lines you list. When upstream ships a newer line
 (Argo CD v3.6 while the recipe tracks v3.5 and v3.4), the daily rescan reports it (`patcher
-new-lines`) and opens one issue per line, labelled `new-release-line`. A prerelease, a Go submodule tag
-and a tag the recipe's `exclude` patterns match don't count. Add the line to track it, and the issue closes
-itself. To stay where you are, close the issue: it isn't reopened, and the next major or minor opens a
-new one.
+new-lines`) and opens one issue per line, labelled `new-release-line`, with the entry to add. A prerelease, a Go
+submodule tag and a tag the recipe's `exclude` patterns match don't count. A recipe whose lines take a whole major
+(external-secrets: `v2`) gets its minors as releases of that line, and one issue for the next major (`v3`). Add the
+line to track it, and the issue closes itself. To stay where you are, close the issue: it isn't reopened, and the next
+new line opens a new one.
 
 **End-of-life runtimes.** The same daily run checks what each recipe builds with against
 [endoflife.date](https://endoflife.date) (`patcher eol`):

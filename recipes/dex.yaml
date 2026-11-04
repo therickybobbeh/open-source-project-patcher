@@ -6,7 +6,6 @@ source:
   # tags like `api/v2.x.y` belong to the API sub-module and never match this pattern
   lines:
     - name: v2
-      tagPattern: '^v2\.\d+\.\d+$'
 toolchain:
   go: "1.27"
 ecosystems:

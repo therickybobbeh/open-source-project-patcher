@@ -131,8 +131,7 @@ name: dex
 source:
   repo: dexidp/dex
   lines:
-    - name: v2
-      tagPattern: '^v2\.\d+\.\d+$'     # track the newest v2.x.y; add one line per version you run
+    - name: v2                       # track the newest v2.x.y; add one line per version you run
 toolchain: { go: "1.27" }
 ecosystems:
   - { type: gomod, dirs: [".", "api/v2"] }

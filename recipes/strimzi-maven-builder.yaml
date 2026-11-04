@@ -5,7 +5,6 @@ source:
   repo: strimzi/strimzi-kafka-operator
   lines:
     - name: "1"
-      tagPattern: '^1\.\d+\.\d+$'
 ecosystems:
   # FROM registry.access.redhat.com/ubi9/openjdk-21:<tag> + `microdnf update`: a rebuild with a
   # refreshed base picks up every RHEL errata; Maven itself comes from the UBI image.

@@ -5,7 +5,6 @@ source:
   repo: aquasecurity/trivy
   lines:
     - name: v0
-      tagPattern: '^v0\.\d+\.\d+$'
 toolchain:
   go: "1.27"
 ecosystems:

@@ -166,5 +166,8 @@ def test_an_edit_to_comments_or_prose_runs_nothing(tmp_path):
     assert pipeline.plan_matrix(repo, changed_files=["recipes/app.yaml", "recipes/_global.yaml"], before=before) == []
     # without the commit before the push, every change counts
     assert pipeline.plan_matrix(repo, changed_files=["recipes/app.yaml"]) == [{"recipe": "app", "line": "v1.2", **AMD64}]
+    # the same line, written as its name instead of a pattern
+    (tmp_path / "recipes" / "app.yaml").write_text(yaml.safe_dump({**recipe, "source": {"repo": "o/app", "lines": [{"name": "v1.2"}]}}))
+    assert pipeline.plan_matrix(repo, changed_files=["recipes/app.yaml"], before=before) == []
     (tmp_path / "recipes" / "app.yaml").write_text(yaml.safe_dump({**recipe, "build": {"images": [{"name": "app", "target": "prod"}]}}))
     assert pipeline.plan_matrix(repo, changed_files=["recipes/app.yaml"], before=before) == [{"recipe": "app", "line": "v1.2", **AMD64}]

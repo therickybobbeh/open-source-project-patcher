@@ -1556,7 +1556,8 @@ def plan_matrix(repo: Repo, *, recipes: list[str] | None = None, changed_files: 
 def _same_meaning(repo: Repo, path: str, before: str) -> bool:
     """A recipes/, skips/ or vex/ file whose parsed content is unchanged since `before`, apart from a recipe's
     `description` and `notes`, and `gate` (a release is checked against the settings on main when it runs): comments,
-    formatting, prose or the gate only. Re-running a line (an hour of tests for some) can't change its patch set."""
+    formatting, prose or the gate only. A recipe is compared as it loads, so a line written as `name: v3.5` is the
+    line `tagPattern: '^v3\\.5\\.\\d+$'` was. Re-running a line (an hour of tests for some) can't change its patch set."""
     import yaml
 
     if not path.endswith(".yaml") or path.split("/")[0] not in ("recipes", "skips", "vex"):
@@ -1569,7 +1570,13 @@ def _same_meaning(repo: Repo, path: str, before: str) -> bool:
     def meaning(text: str):
         doc = yaml.safe_load(text)
         if path.startswith("recipes/") and isinstance(doc, dict):
-            doc = {k: v for k, v in doc.items() if k not in ("description", "notes", "gate")}
+            try:
+                recipe = Recipe.model_validate(doc)
+            except ValueError:  # _global.yaml, or a recipe that doesn't load
+                return {k: v for k, v in doc.items() if k not in ("description", "notes", "gate")}
+            for line in recipe.source.lines if recipe.source else []:
+                line.name = line_key(line)
+            return recipe.model_dump(mode="json", exclude={"description", "notes", "gate"})
         return doc
 
     try:

@@ -5,9 +5,7 @@ source:
   repo: open-telemetry/opentelemetry-collector-releases
   lines:
     - name: v0.153  # the version we run
-      tagPattern: '^v0\.153\.\d+$'
     - name: v0  # the newest release, to upgrade to
-      tagPattern: '^v0\.\d+\.\d+$'
 toolchain:
   go: "1.26"
 env:

@@ -5,7 +5,6 @@ source:
   repo: project-copacetic/copacetic
   lines:
     - name: v0
-      tagPattern: '^v0\.\d+\.\d+$'
 toolchain:
   go: "1.26"  # 1.25 is end-of-life (2026-08)
 ecosystems:

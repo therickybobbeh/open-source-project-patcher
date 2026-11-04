@@ -5,7 +5,6 @@ source:
   repo: apollographql/router
   lines:
     - name: v2
-      tagPattern: '^v2\.\d+\.\d+$'
 toolchain:
   # versions come from upstream's .config/mise/config.toml; only what patch/test/build needs is
   # installed (binstall first, so cargo-nextest is a download instead of a compile)
