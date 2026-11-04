@@ -73,6 +73,7 @@ Component recipes (`mode: component`, never released on their own): `helm`, `kus
 | [docs/onboarding.md](docs/onboarding.md) | Adding a project or vendor image: coverage check, `patcher init`, resolving the draft, a clean first run, merge and release, with a checklist |
 | [docs/recipes.md](docs/recipes.md) | Reference for every recipe field, skip handling per test framework, `_global.yaml`, worked examples |
 | [docs/gate.md](docs/gate.md) | The release gate: which findings a released image may still have (Rego in `policy/`, run with conftest), report-only or enforced |
+| [docs/running-non-root.md](docs/running-non-root.md) | Running the images as non-root: Pod Security Admission `restricted`, chart values per project, admitting only images the pipeline signed |
 | [docs/runbook.md](docs/runbook.md) | Setup, reviewing patch PRs (statuses, malicious packages, VEX suggestions), skips, VEX decisions, releases, onboarding a project, coverage, dependency hygiene, CLI reference |
 | [docs/troubleshooting.md](docs/troubleshooting.md) | Symptom → cause → fix for problems hit while bringing the pipeline up |
 | [docs/examples/](docs/examples/README.md) | Validated example recipes for Python (pip-compiled, pytest), Gradle and a vendor image with Copa library patching |
