@@ -1,14 +1,14 @@
 upstreamTag: v3.4.13
 commit: 83ad9cd88fa03ec152b267b371e03ad670c4dd81
-revision: 2
-releasedAt: '2026-11-04T19:50:22Z'
+revision: 3
+releasedAt: '2026-11-04T20:36:30Z'
 platforms:
 - linux/amd64
 - linux/arm64
 images:
 - name: argocd
-  ref: ghcr.io/therickybobbeh/argocd:v3.4.13-patched.2
-  digest: sha256:029ebd48a7062a18ac4420ae48ada59cb319f3096a41127b583116533ac5e961
+  ref: ghcr.io/therickybobbeh/argocd:v3.4.13-patched.3
+  digest: sha256:1c5a9bcccb4b89e2559beb43ec38f836c8638c3cf223931c84bcb7470275ca5c
   knownFixable:
   - CVE-2026-35206|helm.sh/helm/v3|usr/local/bin/helm
   - CVE-2026-48978|oras.land/oras-go/v2|usr/local/bin/helm
