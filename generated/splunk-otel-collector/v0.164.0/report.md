@@ -39,13 +39,13 @@ Upstream: https://github.com/signalfx/splunk-otel-collector @ `370a0a68ebf6` (li
 
 ### Upstream tests
 
-✅ passed in 24.9 min — `make test-all`
+✅ passed in 24.2 min — `make test-all`
 
 ### Images
 
-| Image | Ref | Smoke | Copa |
-|---|---|---|---|
-| splunk-otel-collector | `patcher.local/splunk-otel-collector:0.164.0-patched.dev` | ✅ `--version`, ✅ `validate` | no fixable OS packages |
+| Image | Ref | Runs as | Smoke | Copa |
+|---|---|---|---|---|
+| splunk-otel-collector | `patcher.local/splunk-otel-collector:0.164.0-patched.dev` | `999:999` | ✅ `--version`, ✅ `validate` | no fixable OS packages |
 
 ### VEX suggestions (govulncheck reachability)
 
