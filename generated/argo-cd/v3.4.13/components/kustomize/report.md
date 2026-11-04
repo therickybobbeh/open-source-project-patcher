@@ -32,7 +32,7 @@ Attempts: full plan: tests failed → unpatched baseline: tests passed → cappe
 
 ### Upstream tests
 
-✅ passed in 0.2 min — `cd kustomize && go test  ./...`
+✅ passed in 0.1 min — `cd kustomize && go test  ./...`
 
 ### VEX suggestions (govulncheck reachability)
 
