@@ -622,9 +622,9 @@ class ReleasedImage(_Model):
     name: str
     ref: str
     digest: str
-    knownFixable: list[str] = Field(default_factory=list, description="`vuln|package|location` of fixable findings at release; "
-                                    "rescan acts on findings not in this list, and on those whose fix the release-age rule "
-                                    "held back once it clears")
+    knownFixable: list[str] = Field(default_factory=list, description="`vuln|package|location` of fixable findings at release "
+                                    "that the reviewed PR run had too; rescan acts on findings not in this list, and on those "
+                                    "whose fix the release-age rule held back once it clears")
 
 
 class LineState(_Model):

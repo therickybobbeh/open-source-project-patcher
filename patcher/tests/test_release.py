@@ -743,3 +743,23 @@ def test_rescan_leaves_os_findings_of_a_copa_off_image_for_its_next_rebuild(tmp_
     assert pipeline.rescan(repo, tmp_path / "rescan")["refresh"] == []
     found["rescan-app-v1-app-debug"] = [tzdata]  # and in one Copa patches
     assert pipeline.rescan(repo, tmp_path / "rescan")["refresh"] == [{"recipe": "app", "line": "v1"}]
+
+
+def test_a_fix_that_came_out_after_the_pr_run_is_not_known_at_release():
+    """`knownFixable` is what the rescan leaves alone. A fixable finding the reviewed PR run didn't have (its fix was
+    published while the PR waited) stays out of it, so the next rescan re-runs the line instead of waiting for the
+    next upstream tag. OS findings match whatever image the scan was of: the PR run's local build or the pushed digest."""
+    from patcher.scan import Finding, ScanReport
+
+    def finding(vid, target, eco="gobinary"):
+        return Finding(target, eco, eco, "golang.org/x/net" if eco != "os" else "openssl", "v1", "v2", vid, "HIGH", "fixed")
+
+    pr_run = [finding("CVE-1", "usr/local/bin/helm"), finding("CVE-2", "patcher.local/app:v1.2.3-patched.dev (debian 13.4)", "os")]
+    released = ScanReport("ghcr.io/me/app@sha256:1", findings=[
+        finding("CVE-1", "usr/local/bin/helm"), finding("CVE-2", "ghcr.io/me/app@sha256:1 (debian 13.4)", "os"),
+        finding("CVE-3", "usr/local/bin/helm")])  # published after the PR run
+    doc = {"leftovers": {"app": sorted({pipeline._reviewed_key(f) for f in pr_run})}}
+    assert pipeline._known_fixable(released, doc, "app") == [
+        "CVE-1|golang.org/x/net|usr/local/bin/helm", "CVE-2|openssl|ghcr.io/me/app@sha256:1 (debian 13.4)"]
+    # a patch set from before `leftovers`, or an image its run didn't build: every fixable finding is known, as before
+    assert len(pipeline._known_fixable(released, {}, "app")) == len(pipeline._known_fixable(released, doc, "other")) == 3

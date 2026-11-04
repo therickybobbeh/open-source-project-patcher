@@ -645,6 +645,8 @@ def _write_outputs(repo: Repo, s: Summary, att: Attempt | None, out: Path) -> No
         "tests": {"configured": s.recipe.tests is not None, "ran": bool(s.tests and s.tests.ran),
                   "passed": bool(s.tests and s.tests.ran and s.tests.passed)},
         "gate": {k: v.to_json() for k, v in s.gate.items()},
+        # the fixable findings each image still had at the end of this run: what the PR explains (see _known_fixable)
+        "leftovers": {i.name: sorted({_reviewed_key(f) for f in i.after.fixable()}) for i in s.images if i.after},
         **({"upstream": s.upstream} if s.upstream else {}),
         **({"imageTags": s.image_tags} if s.image_tags else {}),
     }
@@ -1162,7 +1164,7 @@ def publish(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, o
                          extra_docs=[cr.vex] if cr and cr.vex else [])
         vex_path = out / f"vex-{spec.key}.openvex.json"
         vex_path.write_text(json.dumps(vexdoc, indent=2) + "\n")
-        images.append(ReleasedImage(name=spec.key, ref=img.ref, digest=digest, knownFixable=_fixable_keys(after)))
+        images.append(ReleasedImage(name=spec.key, ref=img.ref, digest=digest, knownFixable=_known_fixable(after, doc, spec.key)))
         released.append({"image": spec.key, "repository": img.repository, "tag": img.final, "digest": digest, "vex": str(vex_path),
                          "copa": copa_note, "jars": [f"/{s.path}: {s.name} {s.new}" for s in swaps.get(spec.key, [])]})
         scanned.append((spec.key, f"{img.repository}@{digest}", after))
@@ -1228,7 +1230,8 @@ def _publish_image_only(repo: Repo, recipe: Recipe, key: str, platforms: list[st
         vex_path = out / f"vex-{spec.key}.openvex.json"
         vex_path.write_text(json.dumps(openvex(repo.vex(recipe.name), oci_purl(repo_ref, digest), after.findings,
                                                extra_docs=[cr.vex] if cr and cr.vex else []), indent=2) + "\n")
-        images.append(ReleasedImage(name=spec.key, ref=f"{repo_ref}:{final}", digest=digest, knownFixable=_fixable_keys(after)))
+        images.append(ReleasedImage(name=spec.key, ref=f"{repo_ref}:{final}", digest=digest,
+                                    knownFixable=_known_fixable(after, doc, spec.key)))
         released.append({"image": spec.key, "repository": repo_ref, "tag": final, "digest": digest, "vex": str(vex_path),
                          "copa": cr.note() if cr else "disabled",
                          "jars": [f"/{s.path}: {s.name} {s.new}" for s in mine_jars]})
@@ -1273,6 +1276,25 @@ def promote(repo: Repo, recipe: Recipe, released: list[dict]) -> list[str]:
 
 def _fixable_keys(report: ScanReport) -> list[str]:
     return sorted({"|".join(f.key) for f in report.fixable()})
+
+
+def _reviewed_key(f) -> str:
+    """A finding as both the PR run and the release see it. An OS package's location names the scanned image, which
+    differs between the two (the local build, the pushed digest), so it's left out."""
+    return f"{f.vuln_id}|{f.name}|{'' if f.ecosystem == 'os' else f.location}"
+
+
+def _known_fixable(after: ScanReport, doc: dict, key: str) -> list[str]:
+    """A release's `knownFixable`: its fixable findings that the reviewed PR run had too (`leftovers` in the patch set),
+    which the PR explains. One only the release has, because its fix came out after the PR's last run, stays new, so
+    the next rescan acts on it; counted as known, it waited for the line's next upstream tag. A patch set from before
+    `leftovers`, or an image its PR run didn't build, counts every fixable finding as known, as before. (A Copa refresh
+    keeps counting all of them: what Copa couldn't fix would otherwise send the line back every day.)"""
+    seen = (doc.get("leftovers") or {}).get(key)
+    if seen is None:
+        return _fixable_keys(after)
+    seen = set(seen)
+    return sorted({"|".join(f.key) for f in after.fixable() if _reviewed_key(f) in seen})
 
 
 def pending_lines(paths: list[str]) -> set[tuple[str, str]]:
@@ -1500,8 +1522,12 @@ def _built_here(recipe: Recipe) -> bool:
 
 
 def plan_matrix(repo: Repo, *, recipes: list[str] | None = None, changed_files: list[str] | None = None,
-                include_all: bool = False, before: str | None = None, errors: list[dict] | None = None) -> list[dict]:
+                include_all: bool = False, before: str | None = None, errors: list[dict] | None = None,
+                open_prs: set[str] | None = None) -> list[dict]:
     """The lines that need a patch run, each with the platform it builds on (`_patch_platform`).
+
+    `open_prs`: the head branches of the open pull requests. A patch branch whose PR was closed then isn't a PR waiting
+    for review, and the nightly run opens a new one; without it, every patch branch counts as one.
 
     `errors`: a recipe that can't be planned (an unreadable recipe, upstream tags that can't be listed) becomes a row
     there and the others are still planned (patch.yml runs them, then fails `plan-errors`). Without it, it is raised."""
@@ -1543,7 +1569,7 @@ def plan_matrix(repo: Repo, *, recipes: list[str] | None = None, changed_files: 
                         key = line_key(line)
                         cur = state.lines.get(key)
                         tag = _image_only_targets(recipe, line)[0][1]
-                        if include_all or ((cur is None or cur.upstreamTag != tag) and not _pr_pending(repo, name, key, tag)
+                        if include_all or ((cur is None or cur.upstreamTag != tag) and not _pr_pending(repo, name, key, tag, open_prs)
                                            and not _merged(repo, name, key, tag)):
                             selected.setdefault(name, set()).add(key)
                     continue
@@ -1553,7 +1579,8 @@ def plan_matrix(repo: Repo, *, recipes: list[str] | None = None, changed_files: 
                     tag, commit = upstream.resolve_line(recipe.source, line, tags)
                     cur = state.lines.get(key)
                     new = cur is None or cur.upstreamTag != tag or (line.branch and cur.commit != commit)
-                    if include_all or (new and not _pr_pending(repo, name, key, tag) and not _merged(repo, name, key, tag, commit)):
+                    if include_all or (new and not _pr_pending(repo, name, key, tag, open_prs)
+                                       and not _merged(repo, name, key, tag, commit)):
                         selected.setdefault(name, set()).add(key)
     matrix = []
     for name, keys in sorted(selected.items()):
@@ -1604,9 +1631,12 @@ def _same_meaning(repo: Repo, path: str, before: str) -> bool:
         return False
 
 
-def _pr_pending(repo: Repo, name: str, key: str, tag: str) -> bool:
-    """A patch PR for exactly this upstream tag is already waiting for review (its branch holds the tag's patch set),
-    so the nightly run doesn't redo it. Needs the PR branches fetched (patch.yml checks out with fetch-depth 0)."""
+def _pr_pending(repo: Repo, name: str, key: str, tag: str, open_prs: set[str] | None = None) -> bool:
+    """A patch PR for exactly this upstream tag is already waiting for review (its branch holds the tag's patch set, and
+    its PR is open), so the nightly run doesn't redo it. A closed PR leaves its branch behind: counted as pending, it
+    stopped redis v8.10 for a week. Needs the PR branches fetched (patch.yml checks out with fetch-depth 0)."""
+    if open_prs is not None and f"patch/{name}/{key}" not in open_prs:
+        return False
     ref = f"refs/remotes/origin/patch/{name}/{key}:generated/{name}/{tag}/bump-plan.json"
     return run(["git", "-C", str(repo.root), "cat-file", "-e", ref], check=False, quiet=True).code == 0
 
