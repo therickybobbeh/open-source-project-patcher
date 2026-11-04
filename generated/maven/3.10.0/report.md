@@ -1,21 +1,26 @@
 ## ✅ maven `3.10.0` — success
 
-Upstream: https://github.com/carlossg/docker-maven @ `69a9073259ad` (line `maven3`)
+Upstream: https://github.com/carlossg/docker-maven @ `ac3508748c68` (line `maven3`)
 
 ### Fixable vulnerabilities (critical / high / medium / low)
 
 | Artifact | Before | After | Fixed | New |
 |---|---|---|---|---|
 | source (`trivy fs`) | 0 / 0 / 0 / 0 | 0 / 0 / 0 / 0 | 0 | 0 |
-| image `maven-temurin-21-noble` | 0 / 1 / 0 / 0 | 0 / 0 / 0 / 0 | 1 | 0 |
-| image `maven-temurin-17-noble` | 0 / 1 / 0 / 0 | 0 / 0 / 0 / 0 | 1 | 0 |
+| image `maven-temurin-21-noble` | 0 / 1 / 7 / 0 | 0 / 0 / 0 / 0 | 8 | 0 |
+| image `maven-temurin-17-noble` | 0 / 1 / 7 / 0 | 0 / 0 / 0 / 0 | 8 | 0 |
+
+### Release gate (reported only (`gate.enforce: false`))
+
+- image `maven-temurin-21-noble`: ✅ passes
+- image `maven-temurin-17-noble`: ✅ passes
 
 ### Changes applied
 
 | Ecosystem | File | Package | From | To | Why |
 |---|---|---|---|---|---|
-| dockerfile | `eclipse-temurin-17-noble/Dockerfile` | `eclipse-temurin` | `eclipse-temurin:17-jdk-noble` | `eclipse-temurin:17-jdk-noble@sha256:53686f59c44e08ac3310d39ef9c3e3d3bb03370366d9c45802229c86fa2d8369` | base image refresh |
-| dockerfile | `eclipse-temurin-17-noble/Dockerfile` | `eclipse-temurin` | `eclipse-temurin:17-jdk-noble` | `eclipse-temurin:17-jdk-noble@sha256:53686f59c44e08ac3310d39ef9c3e3d3bb03370366d9c45802229c86fa2d8369` | base image refresh |
+| dockerfile | `eclipse-temurin-17-noble/Dockerfile` | `eclipse-temurin` | `eclipse-temurin:17-jdk-noble` | `eclipse-temurin:17-jdk-noble@sha256:1c679e2dedde845115a77b5fbe41a84bfdb3a5d2d5294128edc39ccc9bd08433` | base image refresh |
+| dockerfile | `eclipse-temurin-17-noble/Dockerfile` | `eclipse-temurin` | `eclipse-temurin:17-jdk-noble` | `eclipse-temurin:17-jdk-noble@sha256:1c679e2dedde845115a77b5fbe41a84bfdb3a5d2d5294128edc39ccc9bd08433` | base image refresh |
 | dockerfile | `eclipse-temurin-21-noble/Dockerfile` | `eclipse-temurin` | `eclipse-temurin:21-jdk-noble` | `eclipse-temurin:21-jdk-noble@sha256:114cabb73033ca4ce7ceec3deb62396bc1b716282bae051ed3c1d82e38fcab2d` | base image refresh |
 
 ### Bundled jars swapped
@@ -28,14 +33,14 @@ Replaced with the fixed release from Maven Central, pinned by sha256 (`jars.json
 
 ### Upstream tests
 
-✅ passed in 1.5 min — `for t in eclipse-temurin-21-noble eclipse-temurin-17-noble; do TAG=$t bats tests/tests.bats ; done`
+✅ passed in 1.4 min — `for t in eclipse-temurin-21-noble eclipse-temurin-17-noble; do TAG=$t bats tests/tests.bats ; done`
 
 ### Images
 
 | Image | Ref | Smoke | Copa |
 |---|---|---|---|
-| maven-temurin-21-noble | `patcher.local/maven:3.10.0-eclipse-temurin-21-noble-patched.dev` | ✅ `mvn -v`, ✅ `mvn -B -emp smoke` | no fixable OS packages |
-| maven-temurin-17-noble | `patcher.local/maven:3.10.0-eclipse-temurin-17-noble-patched.dev` | ✅ `mvn -v`, ✅ `mvn -B -emp smoke` | no fixable OS packages |
+| maven-temurin-21-noble | `patcher.local/maven:3.10.0-eclipse-temurin-21-noble-patched.dev-copa` | ✅ `mvn -v`, ✅ `mvn -B -emp smoke` | patched (OS): 7 total, 7 patched, 0 skipped |
+| maven-temurin-17-noble | `patcher.local/maven:3.10.0-eclipse-temurin-17-noble-patched.dev-copa` | ✅ `mvn -v`, ✅ `mvn -B -emp smoke` | patched (OS): 7 total, 7 patched, 0 skipped |
 
 ### Notes
 
