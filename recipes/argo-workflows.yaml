@@ -5,7 +5,7 @@ source:
   repo: argoproj/argo-workflows
   # add the lines you run, e.g. '^v4\.0\.\d+$' or '^v3\.7\.\d+$'
   lines:
-    - tagPattern: '^v4\.1\.\d+$'
+    - name: v4.1
 toolchain:
   go: "1.26"
   node: "24"          # ui/package.json engines >=20; the image's UI stage is raised to node 24 (minVersions)

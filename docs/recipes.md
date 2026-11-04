@@ -43,13 +43,15 @@ source:
   repo: argoproj/argo-cd          # GitHub owner/name, or any git URL
   exclude: ['^helm-chart']        # tag regexes to ignore
   lines:
-    - tagPattern: '^v3\.5\.\d+$'  # newest tag matching -> key "v3.5"
-    - tagPattern: '^v3\.4\.\d+$'
+    - name: v3.5                  # every v3.5.x tag: the newest one is built
+    - name: v3.4
 ```
 
 Each line is one of the following:
-- **`tagPattern`**: follow the newest tag matching this regex (semver order). The line key is a
-  slug of the pattern (`^v3\.5\.\d+$` → `v3.5`) unless `name` is set.
+- **`name`** alone, a version prefix: `v3.5` follows every v3.5.x tag, `v2` every v2.x.y, `"1"` every 1.x.y (tags
+  without a `v`). The name is also the line's key: its patch PR branch, state file and image tags.
+- **`tagPattern`**, for tags a version prefix can't name (`kustomize/v5.8.1`): follow the newest tag matching this
+  regex (semver order). The line key is `name` if set, else a slug of the pattern (`^v3\.5\.\d+$` → `v3.5`).
 - **`tag`**: pin one exact tag.
 - **`branch`** + **`versionFrom`** + **`name`**: for projects that release from a branch without
   tags. The version is read from a file at the branch head:
@@ -60,7 +62,24 @@ Each line is one of the following:
     versionFrom: { file: eclipse-temurin-17-noble/Dockerfile, var: MAVEN_VERSION }   # or pattern: '...(?P<version>...)'
   ```
 
-Each line gets its own patch PR, release state and image tags. List the versions you actually run.
+Each line gets its own patch PR, release state and image tags. List the versions you actually run: the recipe is the
+one place that says which versions of a project you use.
+
+**What a line takes by itself.** The nightly run builds the newest tag a line matches, so the line's shape decides
+what arrives without a recipe change:
+
+| Line | Upstream ships | What happens |
+|---|---|---|
+| `v3.5` (one minor) | v3.5.8 | The line's next release: its patch PR is updated, and the daily merge round merges it once it's ready |
+| `v3.5` | v3.6.0 | A new line: the daily rescan opens a `new-release-line` issue naming the entry to add (`- name: "v3.6"`). Nothing is built until you add it, and the line's first release waits for a person |
+| `v2` (a whole major) | v2.15.0 | The line's next release, built and tested like a patch release. It's an upgrade, so the daily merge round leaves it for a person (`v2.14.1 → v2.15.0` in the PR title) |
+| `v2` | v3.0.0 | A new line: one issue for the major (`v3`), not one per minor |
+
+So `v3.5` means "stay on 3.5 until I add the next line", and `v2` means "follow 2.x, with a person merging each
+minor upgrade". The merge rules are in `policy/merge/merge.rego` ([runbook](runbook.md#the-daily-merge-round)).
+
+A line that has reached its end of life gets an `end-of-life` issue
+([runbook](runbook.md#coverage-of-the-images-we-run)).
 
 ## Toolchain
 

@@ -204,6 +204,17 @@ def test_line_key_and_render():
         render("{{nope}}", {})
 
 
+def test_a_line_named_for_a_version_prefix_needs_no_pattern():
+    assert Line(name="v3.5").tagPattern == r"^v3\.5\.\d+$"  # every v3.5.x
+    assert Line(name="v2").tagPattern == r"^v2\.\d+\.\d+$"  # every v2.x.y: minor releases are the line's too
+    assert Line(name="1").tagPattern == r"^1\.\d+\.\d+$"  # tags without a v
+    assert [line_key(Line(name=n)) for n in ("v3.5", "v2", "1")] == ["v3.5", "v2", "1"]
+    assert Line(name="v1", tagPattern=r"^1\.\d+\.\d+$").tagPattern == r"^1\.\d+\.\d+$"  # a pattern wins
+    for name in ("maven3x", "kustomize/v5", "v2-lts"):  # not a version prefix: the line needs a pattern
+        with pytest.raises(ValueError, match="version prefix"):
+            Line(name=name)
+
+
 def test_upstream_tag_of_inverts_final_tag(tmp_path):
     from patcher.config import Repo
     from patcher.pipeline import final_tag, upstream_tag_of

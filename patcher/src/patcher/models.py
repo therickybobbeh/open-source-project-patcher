@@ -49,20 +49,40 @@ class VersionFrom(_Model):
         return self
 
 
+LINE_NAME = re.compile(r"(?P<prefix>[A-Za-z][A-Za-z_-]*)?(?P<major>\d+)(?:\.(?P<minor>\d+))?")
+
+
+def line_pattern(name: str) -> str | None:
+    """The tags a line named for a version prefix follows: `v3.5` -> every v3.5.x, `v2` -> every v2.x.y."""
+    m = LINE_NAME.fullmatch(name)
+    if not m:
+        return None
+    prefix = re.escape(m.group("prefix") or "")
+    if m.group("minor") is None:
+        return rf"^{prefix}{m.group('major')}\.\d+\.\d+$"
+    return rf"^{prefix}{m.group('major')}\.{m.group('minor')}\.\d+$"
+
+
 class Line(_Model):
     """A release line we track: the newest tag matching `tagPattern` (e.g. every v3.5.x), a pinned
-    `tag`, or the head of a `branch` for projects that don't tag releases."""
+    `tag`, or the head of a `branch` for projects that don't tag releases. A `name` that is a version prefix is
+    enough on its own: `v3.5` follows every v3.5.x tag, `v2` every v2.x.y."""
 
-    tagPattern: str | None = Field(None, description="Regex an upstream tag must match to belong to this line")
-    name: str | None = Field(None, description="Short name used in branch/state keys; defaults to a slug of tagPattern")
+    tagPattern: str | None = Field(None, description="Regex an upstream tag must match to belong to this line; defaults to "
+                                   "the tags `name` is the version prefix of (`v3.5`: every v3.5.x, `v2`: every v2.x.y)")
+    name: str | None = Field(None, description="Short name used in branch/state keys; defaults to a slug of tagPattern. "
+                             "Alone, a version prefix such as `v3.5` or `v2` is the line")
     tag: str | None = Field(None, description="Pin an exact upstream tag instead of following the newest one")
     branch: str | None = Field(None, description="Track this branch's head instead of tags (requires `versionFrom` and `name`)")
     versionFrom: VersionFrom | None = None
 
     @model_validator(mode="after")
     def _check(self) -> "Line":
+        if not (self.tagPattern or self.tag or self.branch) and self.name:
+            self.tagPattern = line_pattern(self.name)
         if sum(bool(x) for x in (self.tagPattern, self.tag, self.branch)) != 1:
-            raise ValueError("exactly one of `tagPattern`, `tag` or `branch` is required")
+            raise ValueError("exactly one of `tagPattern`, `tag` or `branch` is required, or a `name` that is a version "
+                             "prefix such as v3.5 or v2")
         if self.branch and not (self.versionFrom and self.name):
             raise ValueError("branch lines need `versionFrom` and `name`")
         return self

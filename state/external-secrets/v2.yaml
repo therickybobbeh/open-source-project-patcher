@@ -1,0 +1,13 @@
+upstreamTag: v2.14.0
+commit: e932f3a3f6f274e8e269c01aa1f5fb3d1322e3c9
+revision: 1
+releasedAt: '2026-11-04T17:05:17Z'
+platforms:
+- linux/amd64
+- linux/arm64
+images:
+- name: external-secrets
+  ref: ghcr.io/therickybobbeh/external-secrets:v2.14.0-patched.1
+  digest: sha256:0c274b118663673c5fd4957a2027d949d8e66993a8cc3774169bbd055481f7a6
+  knownFixable:
+  - GO-2026-5932|golang.org/x/crypto|usr/bin/external-secrets

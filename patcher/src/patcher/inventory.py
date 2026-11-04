@@ -124,7 +124,7 @@ def as_json(rows: list[Row]) -> list[dict]:
 @dataclass
 class NewLine:
     recipe: str
-    line: str  # major.minor of the newest release, as its tags spell it: v3.6
+    line: str  # the line to add, as its tags spell it: v3.6, or v3 for a recipe whose lines take every minor
     tag: str
     tracked: list[str]
 
@@ -135,11 +135,23 @@ def _shape(pattern: str) -> re.Pattern[str]:
     return re.compile(re.sub(r"\{[^}]*\}|(?<!\\)(\d+)", lambda m: m.group(0) if m.group(1) is None else r"\d+", pattern))
 
 
+def _takes_minors(pattern: str, tags) -> bool:
+    """A line of a whole major (^v2\\.\\d+\\.\\d+$: every v2.x.y), rather than of one minor (^v3\\.5\\.\\d+$): the next
+    minor of a tag it matches matches it too."""
+    rx = re.compile(pattern)
+    for tag in tags:
+        m = re.search(r"(\d+)\.(\d+)((?:\.\d+)*)$", tag) if rx.search(tag) else None
+        if m:
+            return bool(rx.search(f"{tag[:m.start()]}{m.group(1)}.{int(m.group(2)) + 1}{'.0' * m.group(3).count('.')}"))
+    return False
+
+
 def new_lines(repo: Repo, list_tags=None) -> list[NewLine]:
     """The newest upstream release of each source recipe, when none of its tracked lines covers it: the
     recipe follows v3.5 and v3.4, upstream shipped v3.6.0. Only tags shaped like the tracked lines' count
     (not Go submodule tags such as apis/v0.1.0), and no prereleases. Tracking a new line can need recipe
-    changes, so this only reports it."""
+    changes, so this only reports it. A recipe whose lines take every minor of a major (external-secrets: v2) is
+    told about the next major as one line (v3), not about each of its minors."""
     list_tags = list_tags or upstream.list_tags
     found = []
     for path in repo.recipe_paths():
@@ -151,7 +163,8 @@ def new_lines(repo: Repo, list_tags=None) -> list[NewLine]:
         shapes = [_shape(p) for p in patterns]
         excluded = [re.compile(e) for e in r.source.exclude]
         best = None
-        for tag in list_tags(r.source.url):
+        tags = list(list_tags(r.source.url))
+        for tag in tags:
             if not any(s.search(tag) for s in shapes) or any(e.search(tag) for e in excluded):
                 continue
             v = upstream.tag_version(tag)
@@ -164,6 +177,7 @@ def new_lines(repo: Repo, list_tags=None) -> list[NewLine]:
         v, tag = best
         m = re.search(r"v?\d+(?:\.\d+)*(?:-[0-9A-Za-z.\-]+)?$", tag)
         prefix = tag[: m.start()] + ("v" if m.group(0).startswith("v") else "")
-        found.append(NewLine(r.name, f"{prefix}{v.major}.{v.minor}", tag, [line_key(l) for l in lines]))
+        line = f"{prefix}{v.major}" if any(_takes_minors(p, tags) for p in patterns) else f"{prefix}{v.major}.{v.minor}"
+        found.append(NewLine(r.name, line, tag, [line_key(l) for l in lines]))
     return found
 

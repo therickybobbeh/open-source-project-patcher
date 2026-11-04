@@ -135,7 +135,9 @@ machine it runs on unless `--platform` says otherwise.
 
 ## Reviewing a patch PR
 
-Each PR is titled `[<recipe>] <tag>: dependency updates (<status>)`. The body is the generated
+Each PR is titled `[<recipe>] <tag>: dependency updates (<status>)`. When the line moves past a patch release, the
+title shows it: `[external-secrets] v2.14.1 → v2.15.0: …`, or `[argo-cd] v3.6.1 (new line): …` for a line's first
+release, and the report says so at the top. The body is the generated
 report; the same files are in `generated/<recipe>/<tag>/`. The PR is a **draft** when tests, the
 build or a smoke test failed. It is also a draft when the [release gate](gate.md) is enforced and would stop
 the release. The report's **Release gate** section shows the verdict either way.
@@ -252,7 +254,11 @@ scripts/merge-ready.sh --merge   # merge what is ready: release records, the pat
 - **Patch PRs** are the release decision, so the **merge policy** takes it: Rego in `policy/merge/`, run with conftest
   on the patch set the PR would merge. Out of the box it holds a PR whose run didn't succeed outright (for example
   `tests-preexisting`), whose upstream tests didn't run, that the release gate denies, or that makes a major bump, and
-  says why; a recipe without upstream tests is only a warning. Change what merges on its own by editing those rules
+  says why; a recipe without upstream tests is only a warning.
+- **Upstream upgrades** wait for a person too: a patch PR that moves its line past a patch release of upstream
+  (external-secrets v2.14.1 → v2.15.0 on the `v2` line), or a line's first release. A new upstream patch release, or
+  a re-run of the released tag for new fixes, merges in the round. To take the upgrade, read upstream's release notes
+  (linked at the top of the report) and merge the PR by hand. Change what merges on its own by editing those rules
   (`conftest verify --policy policy` runs their tests). Without conftest installed (`brew install conftest`), every
   patch PR is held.
 - **Code and docs PRs** are never merged by the script. Related ones come as a stack, each based on the previous PR's
@@ -448,8 +454,8 @@ refresh isn't recorded yet: merge its `state/` PR first.
 
 The full walk-through for a new project, with a checklist, is [onboarding.md](onboarding.md).
 
-- **Line:** add it to `source.lines` in the recipe and merge. The push triggers `patch.yml` for that
-  recipe.
+- **Line:** add it to `source.lines` in the recipe, as its version prefix (`- name: "v3.6"`: every v3.6.x), and
+  merge. The push triggers `patch.yml` for that recipe. The `new-release-line` issue names the entry to add.
 - **Project:**
   1. Draft the recipe:
      - **Open source:** `patcher init owner/repo [--image quay.io/org/app:1.2.3]`. It detects the
@@ -488,10 +494,11 @@ deployments change; `patcher coverage --fail-on-uncovered` can gate a CI job on 
 
 **New upstream release lines.** A recipe follows the lines you list. When upstream ships a newer line
 (Argo CD v3.6 while the recipe tracks v3.5 and v3.4), the daily rescan reports it (`patcher
-new-lines`) and opens one issue per line, labelled `new-release-line`. A prerelease, a Go submodule tag
-and a tag the recipe's `exclude` patterns match don't count. Add the line to track it, and the issue closes
-itself. To stay where you are, close the issue: it isn't reopened, and the next major or minor opens a
-new one.
+new-lines`) and opens one issue per line, labelled `new-release-line`, with the entry to add. A prerelease, a Go
+submodule tag and a tag the recipe's `exclude` patterns match don't count. A recipe whose lines take a whole major
+(external-secrets: `v2`) gets its minors as releases of that line, and one issue for the next major (`v3`). Add the
+line to track it, and the issue closes itself. To stay where you are, close the issue: it isn't reopened, and the next
+new line opens a new one.
 
 **End-of-life runtimes.** The same daily run checks what each recipe builds with against
 [endoflife.date](https://endoflife.date) (`patcher eol`):

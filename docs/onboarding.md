@@ -34,7 +34,7 @@ uv run patcher init --image registry.example.com/vendor/app:4.5  # image only
 `init` clones the repo at its newest release and writes `recipes/<name>.yaml` and
 `skips/<name>.yaml`. It detects:
 
-- the release line (a `tagPattern` for the newest major/minor);
+- the release line of the newest release (`- name: "v4.1"`: every v4.1.x tag);
 - the ecosystems (Go, Rust, Maven, Gradle, npm/pnpm/yarn, Python) and their tools;
 - the toolchain versions;
 - the Dockerfiles and their targets;
@@ -50,7 +50,7 @@ Every `TODO` in the draft needs a decision. Compare with the closest
 
 | Field | What to check |
 |---|---|
-| `source.lines` | One entry per version you run. `tagPattern` must match only that line's tags |
+| `source.lines` | One entry per version you run, as its version prefix: `v4.1` (one minor) or `v4` (every minor of the major). Use `tagPattern` only for tags a prefix can't name |
 | `ecosystems` | One entry per manifest directory. Remove anything that isn't shipped (docs sites, examples) |
 | `build.images` | Dockerfile, `target`, the `upstream` image you run today (it's the "before" in every report), `smoke` commands that prove the image starts, `ownBinaries` if the image also carries third-party binaries |
 | `tests` | Mirror the upstream CI job: same command, setup, services (compose, Testcontainers) and env. Set `timeoutMinutes` |
