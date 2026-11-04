@@ -1500,8 +1500,12 @@ def _built_here(recipe: Recipe) -> bool:
 
 
 def plan_matrix(repo: Repo, *, recipes: list[str] | None = None, changed_files: list[str] | None = None,
-                include_all: bool = False, before: str | None = None, errors: list[dict] | None = None) -> list[dict]:
+                include_all: bool = False, before: str | None = None, errors: list[dict] | None = None,
+                open_prs: set[str] | None = None) -> list[dict]:
     """The lines that need a patch run, each with the platform it builds on (`_patch_platform`).
+
+    `open_prs`: the head branches of the open pull requests. A patch branch whose PR was closed then isn't a PR waiting
+    for review, and the nightly run opens a new one; without it, every patch branch counts as one.
 
     `errors`: a recipe that can't be planned (an unreadable recipe, upstream tags that can't be listed) becomes a row
     there and the others are still planned (patch.yml runs them, then fails `plan-errors`). Without it, it is raised."""
@@ -1543,7 +1547,7 @@ def plan_matrix(repo: Repo, *, recipes: list[str] | None = None, changed_files: 
                         key = line_key(line)
                         cur = state.lines.get(key)
                         tag = _image_only_targets(recipe, line)[0][1]
-                        if include_all or ((cur is None or cur.upstreamTag != tag) and not _pr_pending(repo, name, key, tag)
+                        if include_all or ((cur is None or cur.upstreamTag != tag) and not _pr_pending(repo, name, key, tag, open_prs)
                                            and not _merged(repo, name, key, tag)):
                             selected.setdefault(name, set()).add(key)
                     continue
@@ -1553,7 +1557,8 @@ def plan_matrix(repo: Repo, *, recipes: list[str] | None = None, changed_files: 
                     tag, commit = upstream.resolve_line(recipe.source, line, tags)
                     cur = state.lines.get(key)
                     new = cur is None or cur.upstreamTag != tag or (line.branch and cur.commit != commit)
-                    if include_all or (new and not _pr_pending(repo, name, key, tag) and not _merged(repo, name, key, tag, commit)):
+                    if include_all or (new and not _pr_pending(repo, name, key, tag, open_prs)
+                                       and not _merged(repo, name, key, tag, commit)):
                         selected.setdefault(name, set()).add(key)
     matrix = []
     for name, keys in sorted(selected.items()):
@@ -1604,9 +1609,12 @@ def _same_meaning(repo: Repo, path: str, before: str) -> bool:
         return False
 
 
-def _pr_pending(repo: Repo, name: str, key: str, tag: str) -> bool:
-    """A patch PR for exactly this upstream tag is already waiting for review (its branch holds the tag's patch set),
-    so the nightly run doesn't redo it. Needs the PR branches fetched (patch.yml checks out with fetch-depth 0)."""
+def _pr_pending(repo: Repo, name: str, key: str, tag: str, open_prs: set[str] | None = None) -> bool:
+    """A patch PR for exactly this upstream tag is already waiting for review (its branch holds the tag's patch set, and
+    its PR is open), so the nightly run doesn't redo it. A closed PR leaves its branch behind: counted as pending, it
+    stopped redis v8.10 for a week. Needs the PR branches fetched (patch.yml checks out with fetch-depth 0)."""
+    if open_prs is not None and f"patch/{name}/{key}" not in open_prs:
+        return False
     ref = f"refs/remotes/origin/patch/{name}/{key}:generated/{name}/{tag}/bump-plan.json"
     return run(["git", "-C", str(repo.root), "cat-file", "-e", ref], check=False, quiet=True).code == 0
 

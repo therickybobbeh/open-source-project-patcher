@@ -44,6 +44,7 @@ jobs:
     permissions:
       contents: read
       actions: read          # scheduled runs skip lines another run is patching right now
+      pull-requests: read    # a patch branch whose PR was closed doesn't hold its line back
     outputs:
       matrix: ${{ steps.plan.outputs.matrix }}
       count: ${{ steps.plan.outputs.count }}
@@ -76,6 +77,11 @@ jobs:
           if [ "$EVENT" = workflow_dispatch ] && [ -n "$RECIPE" ]; then args+=(--recipe "$RECIPE");
           elif [ "$ALL" = true ]; then args+=(--all);
           elif [ "$EVENT" = push ]; then git diff --name-only "$BEFORE" HEAD > "$RUNNER_TEMP/changed"; args+=(--changed-files "$RUNNER_TEMP/changed" --before "$BEFORE"); fi
+          # the open PRs: a patch branch left behind by a closed PR is no PR waiting for review (if the list can't be
+          # read, every patch branch counts as one, as before)
+          if gh pr list -R "$GITHUB_REPOSITORY" --state open --limit 500 --json headRefName -q '.[].headRefName' > "$RUNNER_TEMP/open-prs"; then
+            args+=(--open-prs "$RUNNER_TEMP/open-prs")
+          fi
           plan=$(uv run --project patcher --frozen patcher plan "${args[@]}")
           # a recipe that can't be planned is an error row; the others still run, and `plan-errors` fails for it
           errors=$(jq -c '.errors' <<<"$plan")

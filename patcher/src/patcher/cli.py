@@ -80,6 +80,8 @@ def plan(
     before: Optional[str] = typer.Option(None, help="The commit before the push: changed config files that only differ in "
                                                     "comments, `description` or `notes` run nothing"),
     all_lines: bool = typer.Option(False, "--all", help="Every line of every recipe"),
+    open_prs: Optional[Path] = typer.Option(None, help="File listing the head branches of the open PRs: a patch branch whose "
+                                                       "PR was closed then doesn't hold its line back"),
     repo: Optional[Path] = RepoOpt,
 ) -> None:
     """Print the lines that need a run, as a GitHub Actions matrix: {"include": [{recipe, line, platform, arch}],
@@ -90,8 +92,9 @@ def plan(
         text = sys.stdin.read() if str(changed_files) == "-" else changed_files.read_text()
         changed = [l.strip() for l in text.splitlines() if l.strip()]
     errors: list[dict] = []
+    heads = {l.strip() for l in open_prs.read_text().splitlines() if l.strip()} if open_prs else None
     matrix = pipeline.plan_matrix(r, recipes=recipe or None, changed_files=changed, include_all=all_lines, before=before,
-                                  errors=errors)
+                                  errors=errors, open_prs=heads)
     typer.echo(json.dumps({"include": matrix, "errors": errors}))
 
 

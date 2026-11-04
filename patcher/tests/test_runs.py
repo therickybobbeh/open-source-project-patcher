@@ -111,6 +111,36 @@ def test_the_nightly_run_skips_a_tag_whose_patch_set_is_merged(tmp_path, monkeyp
     assert pipeline.plan_matrix(repo) == [{"recipe": "app", "line": "v1.2", **AMD64}, {"recipe": "other", "line": "v1.2", **AMD64}]
 
 
+def test_a_closed_pr_doesnt_hold_its_line_back(tmp_path, monkeypatch):
+    """Closing a patch PR leaves its branch, which still holds the tag's patch set. Counted as a PR waiting for review,
+    it kept redis v8.10 out of every nightly run for a week; only an open PR holds a line back."""
+    import subprocess
+
+    def git(*args):
+        return subprocess.run(["git", "-C", str(tmp_path), "-c", "user.name=t", "-c", "user.email=t@t", *args],
+                              check=True, capture_output=True, text=True).stdout.strip()
+
+    (tmp_path / "recipes").mkdir()
+    (tmp_path / "recipes" / "_global.yaml").write_text("registry: ghcr.io/me\n")
+    (tmp_path / "recipes" / "app.yaml").write_text(yaml.safe_dump(
+        {"name": "app", "source": {"repo": "o/app", "lines": [{"name": "v1.2"}]}, "build": {"images": [{"name": "app"}]}}))
+    git("init", "-q")
+    git("add", "-A")
+    git("commit", "-qm", "main")
+    git("checkout", "-qb", "pr")  # the PR branch, as `patch.yml` fetches it: refs/remotes/origin/patch/app/v1.2
+    (tmp_path / "generated" / "app" / "v1.2.3").mkdir(parents=True)
+    (tmp_path / "generated" / "app" / "v1.2.3" / "bump-plan.json").write_text("{}")
+    git("add", "-A")
+    git("commit", "-qm", "patch set")
+    git("update-ref", "refs/remotes/origin/patch/app/v1.2", "HEAD")
+    git("checkout", "-q", "-")
+    monkeypatch.setattr(upstream, "list_tags", lambda url: {"v1.2.3": "c0ffee"})
+    repo = Repo(tmp_path)
+    assert pipeline.plan_matrix(repo) == []  # no list of open PRs: the branch counts, as before
+    assert pipeline.plan_matrix(repo, open_prs={"patch/app/v1.2"}) == []  # its PR is open: waiting for review
+    assert pipeline.plan_matrix(repo, open_prs={"fix/other"}) == [{"recipe": "app", "line": "v1.2", **AMD64}]  # closed
+
+
 def test_one_recipe_that_cant_be_planned_doesnt_stop_the_others(tmp_path, monkeypatch):
     from patcher.proc import CommandError
 

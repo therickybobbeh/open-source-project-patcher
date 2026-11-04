@@ -238,6 +238,10 @@ updated in place.
 
 Two runs never patch the same line at once: the second one waits.
 
+Closing a patch PR without merging it doesn't stop its line: the next nightly run opens a new PR for the same release
+(the closed PR's branch is reused). The recipe decides what's patched. To stop a line, remove it from `source.lines`;
+to keep a dependency where it is, add a `hold`.
+
 ### The daily merge round
 
 Once a day, after the rescan has run (mid-afternoon UTC, see above), one command shows every open PR and what it
