@@ -1,20 +1,20 @@
 upstreamTag: v2.46.1
 commit: 75eb19238e10fc4750e7efb05a4031b254b04029
-revision: 4
-releasedAt: '2026-11-04T19:48:43Z'
+revision: 5
+releasedAt: '2026-11-04T21:21:00Z'
 platforms:
 - linux/amd64
 - linux/arm64
 images:
 - name: dex
-  ref: ghcr.io/therickybobbeh/dex:v2.46.1-patched.4
-  digest: sha256:3bd8ed1083db572342ea6103f94a69a44bd050e0f6b8a7d8ce87f0af84d33404
+  ref: ghcr.io/therickybobbeh/dex:v2.46.1-patched.5
+  digest: sha256:4e7db4097a23588fe6a4926be27904dd7aa5b1c30b6b710ce9d6cab0a881c787
   knownFixable:
   - GO-2026-5932|golang.org/x/crypto|usr/local/bin/dex
   - GO-2026-5932|golang.org/x/crypto|usr/local/bin/gomplate
 - name: dex-distroless
-  ref: ghcr.io/therickybobbeh/dex:v2.46.1-distroless-patched.4
-  digest: sha256:d9eec32640368fd61808f7171baf398913ccaa69b7d9ea21cbe54cf0077cf457
+  ref: ghcr.io/therickybobbeh/dex:v2.46.1-distroless-patched.5
+  digest: sha256:7d45caf0afd13ef429cce72b59eb4e725567cf553e369a324eb7a716313d0297
   knownFixable:
   - GO-2026-5932|golang.org/x/crypto|usr/local/bin/dex
   - GO-2026-5932|golang.org/x/crypto|usr/local/bin/gomplate
