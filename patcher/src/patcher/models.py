@@ -460,9 +460,17 @@ class RecipeScan(_Model):
     skipFiles: list[str] = Field(default_factory=list)
 
 
+# `{{name}}` placeholders the pipeline fills at run time, which a recipe's `vars` can't take
+RUNTIME_PLACEHOLDERS = frozenset({"tag", "version", "version_v", "commit", "short_commit", "image", "platform", "arch", "go",
+                                  "skip_args", "skip_regex", "skip_file", "src", "upstream_tag", "revision", "old_version"})
+_PLACEHOLDER = re.compile(r"\{\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\}")
+
+
 class Recipe(_Model):
     name: str = Field(pattern=r"^[a-z0-9][a-z0-9-]*$")
     description: str | None = None
+    vars: dict[str, str] = Field(default_factory=dict, description="Values the recipe needs in several places, written once: "
+                                 "`{{name}}` anywhere in the recipe is `vars.name` (e.g. the Kafka version strimzi-kafka builds)")
     mode: Literal["source", "image-only", "component"] = Field("source", description="component: patched and tested like a source "
                                                                  "recipe, but only shipped inside other images (see `components`)")
     publish: bool = Field(True, description="false: patch, test, scan and report as usual, but never push images to the registry "
@@ -486,6 +494,26 @@ class Recipe(_Model):
     env: dict[str, str] = Field(default_factory=dict, description="Env for every stage")
     scan: RecipeScan = Field(default_factory=RecipeScan)
     notes: list[str] = Field(default_factory=list, description="Free-form notes copied into the PR report")
+
+    @model_validator(mode="before")
+    @classmethod
+    def _put_vars(cls, data):
+        values = data.get("vars") if isinstance(data, dict) else None
+        if not values or not isinstance(values, dict):
+            return data
+        if clash := sorted(set(values) & RUNTIME_PLACEHOLDERS):
+            raise ValueError(f"`vars` can't be named {', '.join(clash)}: the pipeline fills {{{{{clash[0]}}}}} itself")
+
+        def put(x):
+            if isinstance(x, str):
+                return _PLACEHOLDER.sub(lambda m: str(values[m.group(1)]) if m.group(1) in values else m.group(0), x)
+            if isinstance(x, list):
+                return [put(v) for v in x]
+            if isinstance(x, dict):
+                return {k: put(v) for k, v in x.items()}
+            return x
+
+        return {k: v if k == "vars" else put(v) for k, v in data.items()}
 
     @model_validator(mode="after")
     def _check(self) -> "Recipe":

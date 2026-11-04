@@ -1531,6 +1531,14 @@
       "default": null,
       "title": "Description"
     },
+    "vars": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Values the recipe needs in several places, written once: `{{name}}` anywhere in the recipe is `vars.name` (e.g. the Kafka version strimzi-kafka builds)",
+      "title": "Vars",
+      "type": "object"
+    },
     "mode": {
       "default": "source",
       "description": "component: patched and tested like a source recipe, but only shipped inside other images (see `components`)",
