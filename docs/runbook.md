@@ -263,7 +263,20 @@ scripts/merge-ready.sh --merge   # merge what is ready: release records, the pat
   patch PR is held.
 - **Code and docs PRs** are never merged by the script. Related ones come as a stack, each based on the previous PR's
   branch: merge them bottom-up. Merged branches are deleted automatically, so the next PR in the stack moves to `main`
-  by itself.
+  by itself. The chain is also linked as a [GitHub stack](https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/creating-stacked-pull-requests)
+  (public preview): each PR shows the stack map, and its merge box can merge the stack up to that PR in one step. The
+  pipeline's own PRs (patch, release record, dependency) are never stacked: each one merges on its own.
+
+  To open a stack yourself, chain the PRs (`gh pr create --base <the previous PR's branch>`), then link them, bottom
+  first, with the banner GitHub shows on the chain, `gh stack link <pr> <pr> …` (the `github/gh-stack` CLI extension),
+  or the API:
+
+  ```bash
+  echo '{"pull_requests": [<bottom>, <next>]}' | gh api --method POST repos/<owner>/<repo>/stacks --input -
+  ```
+
+  Update a lower PR with a new commit, and merge it into the PRs above; `gh stack sync` and `gh stack rebase` rewrite
+  the branches and force-push them instead.
 
 ### Failure alerts
 
