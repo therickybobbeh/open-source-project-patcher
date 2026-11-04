@@ -65,7 +65,7 @@ Upstream: https://github.com/argoproj/argo-cd @ `6d732962f61a` (line `v3.5`)
 
 ### Upstream tests
 
-✅ passed in 9.1 min — `make test-local`
+✅ passed in 11.3 min — `make test-local`
 
 Skipped tests (from `skips/argo-cd.yaml`):
 
@@ -73,6 +73,7 @@ Skipped tests (from `skips/argo-cd.yaml`):
 |---|---|---|---|
 | `^TestIndex$` | Downloads the live argo-helm index (argoproj.github.io); fails on network flakes, unrelated to dependency updates | platform-team | 2027-04-30 |
 | `^Test_nativeHelmChart_ExtractChart$` | Pulls a chart from the live argo-helm repository | platform-team | 2027-04-30 |
+| `^TestVerifyCommitSignature$` | Fetches the whole argo-cd repository with tags from GitHub (util/git); timed out after 90s on 2026-11-03 while the unpatched baseline's fetch made it, unrelated to dependency updates | platform-team | 2027-04-30 |
 
 ### Images
 
