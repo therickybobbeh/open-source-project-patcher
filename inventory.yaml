@@ -5,6 +5,7 @@
 # TODO: the versions below are placeholders (the newest upstream releases on 2026-10-28). Replace them
 # with the versions you deploy, and fill in usedBy/owner.
 images:
+  - image: quay.io/argoproj/argocd:v3.6.0
   - image: quay.io/argoproj/argocd:v3.5.6
   - image: quay.io/argoproj/workflow-controller:v4.1.6
   - image: quay.io/argoproj/argocli:v4.1.6
