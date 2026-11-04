@@ -107,7 +107,7 @@ Upstream: https://github.com/argoproj/argo-cd @ `83ad9cd88fa0` (line `v3.4`)
 
 ### Upstream tests
 
-✅ passed in 11.7 min — `make test-local`
+✅ passed in 9.6 min — `make test-local`
 
 Skipped tests (from `skips/argo-cd.yaml`):
 

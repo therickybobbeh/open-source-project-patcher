@@ -47,7 +47,7 @@ Upstream: https://github.com/helm/helm @ `7cfb6e486dac` (line `helm-3.19.4`)
 
 ### Upstream tests
 
-✅ passed in 2.1 min — `go test  ./...`
+✅ passed in 1.7 min — `go test  ./...`
 
 ### VEX suggestions (govulncheck reachability)
 
