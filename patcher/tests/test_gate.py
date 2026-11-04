@@ -131,4 +131,5 @@ def test_the_patch_pr_shows_the_verdict_and_is_a_draft_if_the_release_would_stop
     assert patch_set["tests"] == {"configured": False, "ran": False, "passed": False}
     assert [c["level"] for c in patch_set["changes"]] == ["minor", "patch"]  # an image reference counts as patch
     assert patch_set["upstream"] == {"released": None, "level": "new"}  # no release of line v1 yet
+    assert list(patch_set["leftovers"]) == ["app"]  # each image's fixable findings at the end of the run
     assert "**First release of line `v1`.**" in report

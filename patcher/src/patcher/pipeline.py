@@ -645,6 +645,8 @@ def _write_outputs(repo: Repo, s: Summary, att: Attempt | None, out: Path) -> No
         "tests": {"configured": s.recipe.tests is not None, "ran": bool(s.tests and s.tests.ran),
                   "passed": bool(s.tests and s.tests.ran and s.tests.passed)},
         "gate": {k: v.to_json() for k, v in s.gate.items()},
+        # the fixable findings each image still had at the end of this run: what the PR explains (see _known_fixable)
+        "leftovers": {i.name: sorted({_reviewed_key(f) for f in i.after.fixable()}) for i in s.images if i.after},
         **({"upstream": s.upstream} if s.upstream else {}),
         **({"imageTags": s.image_tags} if s.image_tags else {}),
     }
@@ -1162,7 +1164,7 @@ def publish(repo: Repo, recipe: Recipe, key: str, platforms: list[str] | None, o
                          extra_docs=[cr.vex] if cr and cr.vex else [])
         vex_path = out / f"vex-{spec.key}.openvex.json"
         vex_path.write_text(json.dumps(vexdoc, indent=2) + "\n")
-        images.append(ReleasedImage(name=spec.key, ref=img.ref, digest=digest, knownFixable=_fixable_keys(after)))
+        images.append(ReleasedImage(name=spec.key, ref=img.ref, digest=digest, knownFixable=_known_fixable(after, doc, spec.key)))
         released.append({"image": spec.key, "repository": img.repository, "tag": img.final, "digest": digest, "vex": str(vex_path),
                          "copa": copa_note, "jars": [f"/{s.path}: {s.name} {s.new}" for s in swaps.get(spec.key, [])]})
         scanned.append((spec.key, f"{img.repository}@{digest}", after))
@@ -1228,7 +1230,8 @@ def _publish_image_only(repo: Repo, recipe: Recipe, key: str, platforms: list[st
         vex_path = out / f"vex-{spec.key}.openvex.json"
         vex_path.write_text(json.dumps(openvex(repo.vex(recipe.name), oci_purl(repo_ref, digest), after.findings,
                                                extra_docs=[cr.vex] if cr and cr.vex else []), indent=2) + "\n")
-        images.append(ReleasedImage(name=spec.key, ref=f"{repo_ref}:{final}", digest=digest, knownFixable=_fixable_keys(after)))
+        images.append(ReleasedImage(name=spec.key, ref=f"{repo_ref}:{final}", digest=digest,
+                                    knownFixable=_known_fixable(after, doc, spec.key)))
         released.append({"image": spec.key, "repository": repo_ref, "tag": final, "digest": digest, "vex": str(vex_path),
                          "copa": cr.note() if cr else "disabled",
                          "jars": [f"/{s.path}: {s.name} {s.new}" for s in mine_jars]})
@@ -1273,6 +1276,25 @@ def promote(repo: Repo, recipe: Recipe, released: list[dict]) -> list[str]:
 
 def _fixable_keys(report: ScanReport) -> list[str]:
     return sorted({"|".join(f.key) for f in report.fixable()})
+
+
+def _reviewed_key(f) -> str:
+    """A finding as both the PR run and the release see it. An OS package's location names the scanned image, which
+    differs between the two (the local build, the pushed digest), so it's left out."""
+    return f"{f.vuln_id}|{f.name}|{'' if f.ecosystem == 'os' else f.location}"
+
+
+def _known_fixable(after: ScanReport, doc: dict, key: str) -> list[str]:
+    """A release's `knownFixable`: its fixable findings that the reviewed PR run had too (`leftovers` in the patch set),
+    which the PR explains. One only the release has, because its fix came out after the PR's last run, stays new, so
+    the next rescan acts on it; counted as known, it waited for the line's next upstream tag. A patch set from before
+    `leftovers`, or an image its PR run didn't build, counts every fixable finding as known, as before. (A Copa refresh
+    keeps counting all of them: what Copa couldn't fix would otherwise send the line back every day.)"""
+    seen = (doc.get("leftovers") or {}).get(key)
+    if seen is None:
+        return _fixable_keys(after)
+    seen = set(seen)
+    return sorted({"|".join(f.key) for f in after.fixable() if _reviewed_key(f) in seen})
 
 
 def pending_lines(paths: list[str]) -> set[tuple[str, str]]:

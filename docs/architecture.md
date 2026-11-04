@@ -259,9 +259,11 @@ How revisions are chosen:
 
 ## Rescan and `knownFixable`
 
-At release time, each image's fixable findings are stored in `state/` as `knownFixable`. These are
-already explained in the release PR (for example, CVEs inside a bundled helm binary). `rescan` acts
-only on fixable findings that are **new** and not covered by a VEX statement:
+At release time, each image's fixable findings that the reviewed PR run had too are stored in `state/` as
+`knownFixable`: the PR explains them (for example, CVEs inside a bundled helm binary). The patch set records what
+the PR run left (`leftovers` in `bump-plan.json`); a finding only the release has, because its fix came out after
+the PR's last run, isn't known, so the next rescan acts on it. `rescan` acts only on fixable findings that are
+**new** and not covered by a VEX statement:
 - **new OS-package findings only:** a `refresh` run of `release.yml`, a Copa re-patch that publishes the next
   revision, signed, attested and recorded like a release. Images with `copa: false` don't count: their OS findings
   wait for the next rebuild. A refresh in which Copa failed and nothing was refreshed fails, which raises a CI alert;
