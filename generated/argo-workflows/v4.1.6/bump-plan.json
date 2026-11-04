@@ -330,7 +330,18 @@
     "argoexec": {
       "passed": true,
       "deny": [],
+      "warn": [
+        "argoexec runs as root: give it a numeric non-root user (`user` on the recipe's image), or run it with runAsUser"
+      ]
+    },
+    "argoexec-nonroot": {
+      "passed": true,
+      "deny": [],
       "warn": []
     }
+  },
+  "upstream": {
+    "released": "v4.1.6",
+    "level": "same"
   }
 }
