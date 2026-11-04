@@ -1,14 +1,14 @@
 upstreamTag: v2.46.1
 commit: 75eb19238e10fc4750e7efb05a4031b254b04029
-revision: 2
-releasedAt: '2026-10-29T20:19:12Z'
+revision: 3
+releasedAt: '2026-11-03T21:18:19Z'
 platforms:
 - linux/amd64
 - linux/arm64
 images:
 - name: dex
-  ref: ghcr.io/therickybobbeh/dex:v2.46.1-patched.2
-  digest: sha256:418d13889add99858f3e18084406de23b2d78f8c20828f585b47524e43d0ce28
+  ref: ghcr.io/therickybobbeh/dex:v2.46.1-patched.3
+  digest: sha256:4d93c65921236fd9160134ce1b2b64c968aea7ba413c6737fb4f4fb77f733242
   knownFixable:
   - CVE-2026-111943|stdlib|usr/local/bin/gomplate
   - CVE-2026-116585|github.com/go-jose/go-jose/v4|usr/local/bin/gomplate
@@ -33,7 +33,6 @@ images:
   - CVE-2026-78659|stdlib|usr/local/bin/gomplate
   - CVE-2026-78660|golang.org/x/net|usr/local/bin/gomplate
   - CVE-2026-78660|stdlib|usr/local/bin/gomplate
-  - CVE-2026-78661|golang.org/x/net|usr/local/bin/dex
   - CVE-2026-78661|golang.org/x/net|usr/local/bin/gomplate
   - CVE-2026-78662|golang.org/x/crypto|usr/local/bin/gomplate
   - CVE-2026-78663|golang.org/x/net|usr/local/bin/gomplate
@@ -52,12 +51,13 @@ images:
   - CVE-2026-97031|stdlib|usr/local/bin/gomplate
   - CVE-2026-97032|golang.org/x/net|usr/local/bin/gomplate
   - CVE-2026-97032|stdlib|usr/local/bin/gomplate
-  - CVE-2026-97045|golang.org/x/net|usr/local/bin/dex
   - CVE-2026-97045|golang.org/x/net|usr/local/bin/gomplate
   - GHSA-hrxh-6v49-42gf|google.golang.org/grpc|usr/local/bin/gomplate
+  - GO-2026-5932|golang.org/x/crypto|usr/local/bin/dex
+  - GO-2026-5932|golang.org/x/crypto|usr/local/bin/gomplate
 - name: dex-distroless
-  ref: ghcr.io/therickybobbeh/dex:v2.46.1-distroless-patched.2
-  digest: sha256:ae0a237289762641b440a36a84c34f7750c0e6c972944dcb04579ae40d3b424d
+  ref: ghcr.io/therickybobbeh/dex:v2.46.1-distroless-patched.3
+  digest: sha256:8f0e362e176ba9d3fa72a6e9ff5a72dbb4d8cf4e8a6e105582f2aab01225fd1b
   knownFixable:
   - CVE-2026-111943|stdlib|usr/local/bin/gomplate
   - CVE-2026-116585|github.com/go-jose/go-jose/v4|usr/local/bin/gomplate
@@ -82,7 +82,6 @@ images:
   - CVE-2026-78659|stdlib|usr/local/bin/gomplate
   - CVE-2026-78660|golang.org/x/net|usr/local/bin/gomplate
   - CVE-2026-78660|stdlib|usr/local/bin/gomplate
-  - CVE-2026-78661|golang.org/x/net|usr/local/bin/dex
   - CVE-2026-78661|golang.org/x/net|usr/local/bin/gomplate
   - CVE-2026-78662|golang.org/x/crypto|usr/local/bin/gomplate
   - CVE-2026-78663|golang.org/x/net|usr/local/bin/gomplate
@@ -101,6 +100,7 @@ images:
   - CVE-2026-97031|stdlib|usr/local/bin/gomplate
   - CVE-2026-97032|golang.org/x/net|usr/local/bin/gomplate
   - CVE-2026-97032|stdlib|usr/local/bin/gomplate
-  - CVE-2026-97045|golang.org/x/net|usr/local/bin/dex
   - CVE-2026-97045|golang.org/x/net|usr/local/bin/gomplate
   - GHSA-hrxh-6v49-42gf|google.golang.org/grpc|usr/local/bin/gomplate
+  - GO-2026-5932|golang.org/x/crypto|usr/local/bin/dex
+  - GO-2026-5932|golang.org/x/crypto|usr/local/bin/gomplate
