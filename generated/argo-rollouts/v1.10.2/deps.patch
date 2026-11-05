@@ -1,5 +1,5 @@
 diff --git a/Dockerfile b/Dockerfile
-index 6ee2bde..f42e365 100644
+index 6ee2bde..e9dda11 100644
 --- a/Dockerfile
 +++ b/Dockerfile
 @@ -3,7 +3,7 @@
@@ -7,7 +7,7 @@ index 6ee2bde..f42e365 100644
  # Also used as the image in CI jobs so needs all dependencies
  ####################################################################################################
 -FROM --platform=$BUILDPLATFORM golang:1.26 AS builder
-+FROM --platform=$BUILDPLATFORM golang:1.26@sha256:670bb5aa5349ae03b8516764718486f4f16399134bdc9acd0c46a23f043ab05c AS builder
++FROM --platform=$BUILDPLATFORM golang:1.26@sha256:c2af3746d2f3a488078d4acd21fb67c6fe801333dec6542fb1548467d408a812 AS builder
  
  RUN apt-get update && apt-get install -y \
      wget \
@@ -25,12 +25,12 @@ index 6ee2bde..f42e365 100644
  # Rollout Controller Build stage which performs the actual build of argo-rollouts binaries
  ####################################################################################################
 -FROM --platform=$BUILDPLATFORM golang:1.26 AS argo-rollouts-build
-+FROM --platform=$BUILDPLATFORM golang:1.26@sha256:670bb5aa5349ae03b8516764718486f4f16399134bdc9acd0c46a23f043ab05c AS argo-rollouts-build
++FROM --platform=$BUILDPLATFORM golang:1.26@sha256:c2af3746d2f3a488078d4acd21fb67c6fe801333dec6542fb1548467d408a812 AS argo-rollouts-build
  
  WORKDIR /go/src/github.com/argoproj/argo-rollouts
  
 diff --git a/go.mod b/go.mod
-index d41a0f6..80523b6 100644
+index d8593e4..fab13ae 100644
 --- a/go.mod
 +++ b/go.mod
 @@ -39,9 +39,9 @@ require (
