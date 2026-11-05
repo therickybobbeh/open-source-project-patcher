@@ -1,14 +1,14 @@
-## ✅ argo-rollouts `v1.10.1` — success
+## ✅ argo-rollouts `v1.10.2` — success
 
-Upstream: https://github.com/argoproj/argo-rollouts @ `356117c8e9a2` (line `v1.10`)
+Upstream: https://github.com/argoproj/argo-rollouts @ `be8a6221c6c9` (line `v1.10`)
 
 ### Fixable vulnerabilities (critical / high / medium / low)
 
 | Artifact | Before | After | Fixed | New |
 |---|---|---|---|---|
-| source (`trivy fs`) | 0 / 15 / 14 / 1 | 0 / 1 / 1 / 0 | 30 | 0 |
-| image `argo-rollouts` | 0 / 10 / 7 / 0 | 0 / 0 / 0 / 0 | 23 | 4 |
-| image `kubectl-argo-rollouts` | 0 / 10 / 7 / 0 | 0 / 0 / 0 / 0 | 23 | 4 |
+| source (`trivy fs`) | 0 / 15 / 12 / 1 | 0 / 1 / 1 / 0 | 28 | 0 |
+| image `argo-rollouts` | 0 / 9 / 7 / 0 | 0 / 0 / 0 / 0 | 22 | 4 |
+| image `kubectl-argo-rollouts` | 0 / 9 / 7 / 0 | 0 / 0 / 0 / 0 | 22 | 4 |
 
 ### Release gate (reported only (`gate.enforce: false`))
 
@@ -27,14 +27,14 @@ Upstream: https://github.com/argoproj/argo-rollouts @ `356117c8e9a2` (line `v1.1
 | gomod | `go.mod` | `golang.org/x/text` | `v0.38.0` | `v0.41.0` | CVE-2026-56851, CVE-2026-56852 |
 | gomod | `go.mod` | `golang.org/x/mod` | `v0.36.0` | `v0.40.0` | CVE-2026-56864, CVE-2026-56865 |
 | pnpm | `ui/pnpm-lock.yaml` | `@babel/runtime` | `7.23.5` | `7.26.10` | CVE-2025-27789 |
-| pnpm | `ui/pnpm-lock.yaml` | `lodash` | `4.17.21` | `4.18.1` | CVE-2025-13465, CVE-2026-2950, CVE-2026-4800 |
-| pnpm | `ui/pnpm-lock.yaml` | `lodash-es` | `4.17.21` | `4.18.1` | CVE-2025-13465, CVE-2026-2950, CVE-2026-4800 |
+| pnpm | `ui/pnpm-lock.yaml` | `lodash` | `4.17.21` | `4.18.1` | CVE-2025-13465, CVE-2026-4800 |
+| pnpm | `ui/pnpm-lock.yaml` | `lodash-es` | `4.17.21` | `4.18.1` | CVE-2025-13465, CVE-2026-4800 |
 | pnpm | `ui/pnpm-lock.yaml` | `min-document` | `2.19.0` | `2.19.1` | CVE-2025-57352 |
 | pnpm | `ui/pnpm-lock.yaml` | `moment` | `2.29.4` | `2.31.0` | CVE-2026-17495 |
 | pnpm | `ui/pnpm-lock.yaml` | `path-to-regexp` | `1.8.0` | `1.9.0` | CVE-2024-45296 |
-| dockerfile | `Dockerfile` | `golang` | `golang:1.26` | `golang:1.26@sha256:670bb5aa5349ae03b8516764718486f4f16399134bdc9acd0c46a23f043ab05c` | base image refresh |
+| dockerfile | `Dockerfile` | `golang` | `golang:1.26` | `golang:1.26@sha256:c2af3746d2f3a488078d4acd21fb67c6fe801333dec6542fb1548467d408a812` | base image refresh |
 | dockerfile | `Dockerfile` | `docker.io/library/node` | `node:22` | `node:22@sha256:18a6d90fd60542269850c80ca03b29b1d9b14d6b221ac7ee8e35b0d33ef904bd` | base image refresh |
-| dockerfile | `Dockerfile` | `golang` | `golang:1.26` | `golang:1.26@sha256:670bb5aa5349ae03b8516764718486f4f16399134bdc9acd0c46a23f043ab05c` | base image refresh |
+| dockerfile | `Dockerfile` | `golang` | `golang:1.26` | `golang:1.26@sha256:c2af3746d2f3a488078d4acd21fb67c6fe801333dec6542fb1548467d408a812` | base image refresh |
 
 ### Still fixable after patching
 
@@ -64,10 +64,10 @@ Upstream: https://github.com/argoproj/argo-rollouts @ `356117c8e9a2` (line `v1.1
 
 ### Images
 
-| Image | Ref | Smoke | Copa |
-|---|---|---|---|
-| argo-rollouts | `patcher.local/argo-rollouts:v1.10.1-patched.dev` | ✅ `--help` | disabled |
-| kubectl-argo-rollouts | `patcher.local/kubectl-argo-rollouts:v1.10.1-patched.dev` | ✅ `version` | disabled |
+| Image | Ref | Runs as | Smoke | Copa |
+|---|---|---|---|---|
+| argo-rollouts | `patcher.local/argo-rollouts:v1.10.2-patched.dev` | `999` | ✅ `--help` | disabled |
+| kubectl-argo-rollouts | `patcher.local/kubectl-argo-rollouts:v1.10.2-patched.dev` | `999` | ✅ `version` | disabled |
 
 ### VEX suggestions (govulncheck reachability)
 

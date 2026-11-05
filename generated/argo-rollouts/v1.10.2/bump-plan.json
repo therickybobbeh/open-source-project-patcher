@@ -1,8 +1,8 @@
 {
   "recipe": "argo-rollouts",
   "line": "v1.10",
-  "tag": "v1.10.1",
-  "commit": "356117c8e9a21b74b58c2c01d640aa91994522b5",
+  "tag": "v1.10.2",
+  "commit": "be8a6221c6c9751cd14497f31a2cb3c33690375a",
   "status": "success",
   "requires": {},
   "plan": {
@@ -133,7 +133,6 @@
         "level": "minor",
         "reasons": [
           "CVE-2025-13465",
-          "CVE-2026-2950",
           "CVE-2026-4800"
         ],
         "direct": false,
@@ -148,7 +147,6 @@
         "level": "minor",
         "reasons": [
           "CVE-2025-13465",
-          "CVE-2026-2950",
           "CVE-2026-4800"
         ],
         "direct": false,
@@ -307,7 +305,7 @@
       "name": "lodash",
       "old": "4.17.21",
       "new": "4.18.1",
-      "note": "CVE-2025-13465, CVE-2026-2950, CVE-2026-4800",
+      "note": "CVE-2025-13465, CVE-2026-4800",
       "level": "minor"
     },
     {
@@ -316,7 +314,7 @@
       "name": "lodash-es",
       "old": "4.17.21",
       "new": "4.18.1",
-      "note": "CVE-2025-13465, CVE-2026-2950, CVE-2026-4800",
+      "note": "CVE-2025-13465, CVE-2026-4800",
       "level": "minor"
     },
     {
@@ -351,7 +349,7 @@
       "target": "Dockerfile",
       "name": "golang",
       "old": "golang:1.26",
-      "new": "golang:1.26@sha256:670bb5aa5349ae03b8516764718486f4f16399134bdc9acd0c46a23f043ab05c",
+      "new": "golang:1.26@sha256:c2af3746d2f3a488078d4acd21fb67c6fe801333dec6542fb1548467d408a812",
       "note": "base image refresh",
       "level": "patch"
     },
@@ -369,7 +367,7 @@
       "target": "Dockerfile",
       "name": "golang",
       "old": "golang:1.26",
-      "new": "golang:1.26@sha256:670bb5aa5349ae03b8516764718486f4f16399134bdc9acd0c46a23f043ab05c",
+      "new": "golang:1.26@sha256:c2af3746d2f3a488078d4acd21fb67c6fe801333dec6542fb1548467d408a812",
       "note": "base image refresh",
       "level": "patch"
     }
@@ -441,5 +439,25 @@
       "deny": [],
       "warn": []
     }
+  },
+  "leftovers": {
+    "argo-rollouts": [
+      "DLA-4792-1|tzdata|",
+      "DLA-4845-1|ca-certificates|",
+      "DLA-4854-1|tzdata|",
+      "DLA-4867-1|tzdata|",
+      "GO-2026-5932|golang.org/x/crypto|bin/rollouts-controller"
+    ],
+    "kubectl-argo-rollouts": [
+      "DLA-4792-1|tzdata|",
+      "DLA-4845-1|ca-certificates|",
+      "DLA-4854-1|tzdata|",
+      "DLA-4867-1|tzdata|",
+      "GO-2026-5932|golang.org/x/crypto|bin/kubectl-argo-rollouts"
+    ]
+  },
+  "upstream": {
+    "released": "v1.10.1",
+    "level": "patch"
   }
 }
