@@ -2,7 +2,7 @@
   "recipe": "maven",
   "line": "maven3",
   "tag": "3.10.0",
-  "commit": "ac3508748c6857e3bbcedcd855cbb755d3cf344f",
+  "commit": "aaa0262cac383f60d12b1f7e154a63b3e468b4a7",
   "status": "success",
   "requires": {},
   "plan": {
@@ -16,7 +16,7 @@
       "target": "eclipse-temurin-17-noble/Dockerfile",
       "name": "eclipse-temurin",
       "old": "eclipse-temurin:17-jdk-noble",
-      "new": "eclipse-temurin:17-jdk-noble@sha256:1c679e2dedde845115a77b5fbe41a84bfdb3a5d2d5294128edc39ccc9bd08433",
+      "new": "eclipse-temurin:17-jdk-noble@sha256:ec2c8050c856a00986776ddd94d4facc9e872430c27799108ca318a26f9f1887",
       "note": "base image refresh",
       "level": "patch"
     },
@@ -25,7 +25,7 @@
       "target": "eclipse-temurin-17-noble/Dockerfile",
       "name": "eclipse-temurin",
       "old": "eclipse-temurin:17-jdk-noble",
-      "new": "eclipse-temurin:17-jdk-noble@sha256:1c679e2dedde845115a77b5fbe41a84bfdb3a5d2d5294128edc39ccc9bd08433",
+      "new": "eclipse-temurin:17-jdk-noble@sha256:ec2c8050c856a00986776ddd94d4facc9e872430c27799108ca318a26f9f1887",
       "note": "base image refresh",
       "level": "patch"
     },
@@ -51,12 +51,24 @@
     "maven-temurin-21-noble": {
       "passed": true,
       "deny": [],
-      "warn": []
+      "warn": [
+        "maven-temurin-21-noble runs as root: give it a numeric non-root user (`user` on the recipe's image), or run it with runAsUser"
+      ]
     },
     "maven-temurin-17-noble": {
       "passed": true,
       "deny": [],
-      "warn": []
+      "warn": [
+        "maven-temurin-17-noble runs as root: give it a numeric non-root user (`user` on the recipe's image), or run it with runAsUser"
+      ]
     }
+  },
+  "leftovers": {
+    "maven-temurin-21-noble": [],
+    "maven-temurin-17-noble": []
+  },
+  "upstream": {
+    "released": "3.10.0",
+    "level": "same"
   }
 }

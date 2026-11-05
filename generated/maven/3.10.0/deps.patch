@@ -1,10 +1,10 @@
 diff --git a/eclipse-temurin-17-noble/Dockerfile b/eclipse-temurin-17-noble/Dockerfile
-index 5394eb9..a9d057c 100644
+index 5394eb9..9b94dd6 100644
 --- a/eclipse-temurin-17-noble/Dockerfile
 +++ b/eclipse-temurin-17-noble/Dockerfile
 @@ -1,4 +1,4 @@
 -FROM eclipse-temurin:17-jdk-noble AS builder
-+FROM eclipse-temurin:17-jdk-noble@sha256:1c679e2dedde845115a77b5fbe41a84bfdb3a5d2d5294128edc39ccc9bd08433 AS builder
++FROM eclipse-temurin:17-jdk-noble@sha256:ec2c8050c856a00986776ddd94d4facc9e872430c27799108ca318a26f9f1887 AS builder
  
  ARG MAVEN_VERSION=3.10.0
  ARG USER_HOME_DIR="/root"
@@ -13,7 +13,7 @@ index 5394eb9..a9d057c 100644
  
  
 -FROM eclipse-temurin:17-jdk-noble
-+FROM eclipse-temurin:17-jdk-noble@sha256:1c679e2dedde845115a77b5fbe41a84bfdb3a5d2d5294128edc39ccc9bd08433
++FROM eclipse-temurin:17-jdk-noble@sha256:ec2c8050c856a00986776ddd94d4facc9e872430c27799108ca318a26f9f1887
  
  RUN apt-get update \
    && apt-get install -y ca-certificates curl git openssh-client --no-install-recommends \
