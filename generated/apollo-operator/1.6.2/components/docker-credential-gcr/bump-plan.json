@@ -13,5 +13,12 @@
   "changes": [],
   "failures": [],
   "unresolved": [],
-  "skips": []
+  "skips": [],
+  "tests": {
+    "configured": true,
+    "ran": true,
+    "passed": true
+  },
+  "gate": {},
+  "leftovers": {}
 }
