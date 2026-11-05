@@ -36,7 +36,7 @@ jobs:
           PATCHER_RUNS_ON_UPSTREAM: ${{ vars.PATCHER_RUNS_ON_UPSTREAM }}
           PATCHER_RUNS_ON_UPSTREAM_ARM64: ${{ vars.PATCHER_RUNS_ON_UPSTREAM_ARM64 }}
         run: scripts/check-runner-pools.sh
-      - uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
         with:
           enable-cache: false  # no shared cache: patch jobs, which run upstream code, can write it
       # The release gate's policy (policy/): formatted, its Rego tests pass, and conftest is on PATH for the Python tests
