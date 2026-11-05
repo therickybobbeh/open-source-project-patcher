@@ -1,34 +1,34 @@
-upstreamTag: v1.10.1
-commit: 356117c8e9a21b74b58c2c01d640aa91994522b5
-revision: 4
-releasedAt: '2026-11-03T21:18:49Z'
+upstreamTag: v1.10.2
+commit: be8a6221c6c9751cd14497f31a2cb3c33690375a
+revision: 1
+releasedAt: '2026-11-05T15:36:51Z'
 platforms:
 - linux/amd64
 - linux/arm64
 images:
 - name: argo-rollouts
-  ref: ghcr.io/therickybobbeh/argo-rollouts:v1.10.1-patched.4
-  digest: sha256:ebd98b8b24e753880a0f9a168d0b122847aea941d9602f5f4e638a2627bbee94
+  ref: ghcr.io/therickybobbeh/argo-rollouts:v1.10.2-patched.1
+  digest: sha256:4ae33b19676548f86f4a3c30c900b3fb689ccdb21c24a9ac213dcd325e971534
   knownFixable:
-  - DLA-4792-1|tzdata|ghcr.io/therickybobbeh/argo-rollouts@sha256:ebd98b8b24e753880a0f9a168d0b122847aea941d9602f5f4e638a2627bbee94
+  - DLA-4792-1|tzdata|ghcr.io/therickybobbeh/argo-rollouts@sha256:4ae33b19676548f86f4a3c30c900b3fb689ccdb21c24a9ac213dcd325e971534
     (debian 12.15)
-  - DLA-4845-1|ca-certificates|ghcr.io/therickybobbeh/argo-rollouts@sha256:ebd98b8b24e753880a0f9a168d0b122847aea941d9602f5f4e638a2627bbee94
+  - DLA-4845-1|ca-certificates|ghcr.io/therickybobbeh/argo-rollouts@sha256:4ae33b19676548f86f4a3c30c900b3fb689ccdb21c24a9ac213dcd325e971534
     (debian 12.15)
-  - DLA-4854-1|tzdata|ghcr.io/therickybobbeh/argo-rollouts@sha256:ebd98b8b24e753880a0f9a168d0b122847aea941d9602f5f4e638a2627bbee94
+  - DLA-4854-1|tzdata|ghcr.io/therickybobbeh/argo-rollouts@sha256:4ae33b19676548f86f4a3c30c900b3fb689ccdb21c24a9ac213dcd325e971534
     (debian 12.15)
-  - DLA-4867-1|tzdata|ghcr.io/therickybobbeh/argo-rollouts@sha256:ebd98b8b24e753880a0f9a168d0b122847aea941d9602f5f4e638a2627bbee94
+  - DLA-4867-1|tzdata|ghcr.io/therickybobbeh/argo-rollouts@sha256:4ae33b19676548f86f4a3c30c900b3fb689ccdb21c24a9ac213dcd325e971534
     (debian 12.15)
   - GO-2026-5932|golang.org/x/crypto|bin/rollouts-controller
 - name: kubectl-argo-rollouts
-  ref: ghcr.io/therickybobbeh/kubectl-argo-rollouts:v1.10.1-patched.4
-  digest: sha256:e224769e28f9cc0b7ce50df944e83a1a6ded6eb3a058e4f802fc19e73cec28d7
+  ref: ghcr.io/therickybobbeh/kubectl-argo-rollouts:v1.10.2-patched.1
+  digest: sha256:514109b76ad5c86d7a1421785b4ae75a54a6c9e881829114794a68ebfbc66c22
   knownFixable:
-  - DLA-4792-1|tzdata|ghcr.io/therickybobbeh/kubectl-argo-rollouts@sha256:e224769e28f9cc0b7ce50df944e83a1a6ded6eb3a058e4f802fc19e73cec28d7
+  - DLA-4792-1|tzdata|ghcr.io/therickybobbeh/kubectl-argo-rollouts@sha256:514109b76ad5c86d7a1421785b4ae75a54a6c9e881829114794a68ebfbc66c22
     (debian 12.15)
-  - DLA-4845-1|ca-certificates|ghcr.io/therickybobbeh/kubectl-argo-rollouts@sha256:e224769e28f9cc0b7ce50df944e83a1a6ded6eb3a058e4f802fc19e73cec28d7
+  - DLA-4845-1|ca-certificates|ghcr.io/therickybobbeh/kubectl-argo-rollouts@sha256:514109b76ad5c86d7a1421785b4ae75a54a6c9e881829114794a68ebfbc66c22
     (debian 12.15)
-  - DLA-4854-1|tzdata|ghcr.io/therickybobbeh/kubectl-argo-rollouts@sha256:e224769e28f9cc0b7ce50df944e83a1a6ded6eb3a058e4f802fc19e73cec28d7
+  - DLA-4854-1|tzdata|ghcr.io/therickybobbeh/kubectl-argo-rollouts@sha256:514109b76ad5c86d7a1421785b4ae75a54a6c9e881829114794a68ebfbc66c22
     (debian 12.15)
-  - DLA-4867-1|tzdata|ghcr.io/therickybobbeh/kubectl-argo-rollouts@sha256:e224769e28f9cc0b7ce50df944e83a1a6ded6eb3a058e4f802fc19e73cec28d7
+  - DLA-4867-1|tzdata|ghcr.io/therickybobbeh/kubectl-argo-rollouts@sha256:514109b76ad5c86d7a1421785b4ae75a54a6c9e881829114794a68ebfbc66c22
     (debian 12.15)
   - GO-2026-5932|golang.org/x/crypto|bin/kubectl-argo-rollouts
