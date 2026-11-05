@@ -22,10 +22,16 @@ def test_every_released_line_is_listed_with_its_moving_tags():
     released = {(p.stem, key) for p in repo.recipe_paths() for key in repo.state(p.stem).lines}
     assert {(r["recipe"], r["line"]) for r in rows} == released
     for r in rows:
+        # a Copa refresh leaves an image it had nothing to patch for at its older revision, so an
+        # image's tag is at or below the line's revision; something was published at the revision itself
+        revs = []
         for img in r["images"]:
             repository, tag = img["ref"].rsplit(":", 1)
-            assert tag.endswith(f"-patched.{r['revision']}"), img
+            m = re.search(r"-patched\.(\d+)$", tag)
+            assert m and int(m.group(1)) <= r["revision"], img
+            revs.append(int(m.group(1)))
             assert img["moving"] == f"{repository}:{re.sub(r'\.\d+$', '', tag)}", img
+        assert max(revs) == r["revision"], r
 
 
 def test_the_page_loads_nothing_from_another_site():
