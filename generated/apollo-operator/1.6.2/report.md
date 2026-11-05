@@ -1,20 +1,22 @@
-## ✅ apollo-operator `1.6.1` — success
+## ✅ apollo-operator `1.6.2` — success
 
 Upstream: https://hub.docker.com/r/apollograph/operator @ `n/a` (line `v1`)
 
 > **Not published** (`publish: false` in the recipe): merging records this patch set, but the release workflow pushes no image for this recipe.
+
+> **First release of line `v1`.** The daily merge round leaves it for a person: merge it by hand.
 
 ### Fixable vulnerabilities (critical / high / medium / low)
 
 | Artifact | Before | After | Fixed | New |
 |---|---|---|---|---|
 | source (`trivy fs`) | n/a | n/a | 0 | 0 |
-| image `apollo-operator 1.6.1` | 0 / 35 / 27 / 3 | 0 / 0 / 0 / 0 | 66 | 0 |
+| image `apollo-operator 1.6.2` | 0 / 35 / 27 / 3 | 0 / 0 / 0 / 0 | 66 | 0 |
 | image `apollo-bundle-loader 0.4.3` | 0 / 0 / 0 / 0 | 0 / 0 / 0 / 0 | 0 | 0 |
 
 ### Release gate (reported only (`gate.enforce: false`))
 
-- image `apollo-operator 1.6.1`: ✅ passes
+- image `apollo-operator 1.6.2`: ✅ passes
 - image `apollo-bundle-loader 0.4.3`: ✅ passes
 
 ### Upstream tests
@@ -23,10 +25,10 @@ Not run.
 
 ### Images
 
-| Image | Ref | Smoke | Copa |
-|---|---|---|---|
-| apollo-operator 1.6.1 | `docker.io/apollograph/operator:1.6.1` | - | no fixable OS packages |
-| apollo-bundle-loader 0.4.3 | `docker.io/apollograph/bundle-loader:0.4.3` | - | no fixable OS packages |
+| Image | Ref | Runs as | Smoke | Copa |
+|---|---|---|---|---|
+| apollo-operator 1.6.2 | `docker.io/apollograph/operator:1.6.2` | `1000` | - | no fixable OS packages |
+| apollo-bundle-loader 0.4.3 | `docker.io/apollograph/bundle-loader:0.4.3` | `1000` | - | no fixable OS packages |
 
 ### Bundled components (rebuilt from source and swapped in)
 

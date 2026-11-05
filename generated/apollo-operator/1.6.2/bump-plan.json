@@ -1,0 +1,42 @@
+{
+  "recipe": "apollo-operator",
+  "line": "v1",
+  "tag": "1.6.2",
+  "commit": "n/a",
+  "status": "success",
+  "requires": {},
+  "plan": {},
+  "changes": [],
+  "failures": [],
+  "unresolved": [],
+  "skips": [],
+  "tests": {
+    "configured": false,
+    "ran": false,
+    "passed": false
+  },
+  "gate": {
+    "apollo-operator 1.6.2": {
+      "passed": true,
+      "deny": [],
+      "warn": []
+    },
+    "apollo-bundle-loader 0.4.3": {
+      "passed": true,
+      "deny": [],
+      "warn": []
+    }
+  },
+  "leftovers": {
+    "apollo-operator 1.6.2": [],
+    "apollo-bundle-loader 0.4.3": []
+  },
+  "upstream": {
+    "released": null,
+    "level": "new"
+  },
+  "imageTags": {
+    "apollo-operator": "1.6.2",
+    "apollo-bundle-loader": "0.4.3"
+  }
+}

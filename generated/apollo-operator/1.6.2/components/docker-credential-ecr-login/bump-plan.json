@@ -33,7 +33,8 @@
       "name": "golang.org/x/sys",
       "old": "v0.20.0",
       "new": "v0.44.0",
-      "note": "CVE-2026-39824"
+      "note": "CVE-2026-39824",
+      "level": "minor"
     },
     {
       "ecosystem": "gomod",
@@ -41,10 +42,18 @@
       "name": "go",
       "old": "1.24",
       "new": "1.25.0",
-      "note": "required by a bumped dependency"
+      "note": "required by a bumped dependency",
+      "level": "minor"
     }
   ],
   "failures": [],
   "unresolved": [],
-  "skips": []
+  "skips": [],
+  "tests": {
+    "configured": true,
+    "ran": true,
+    "passed": true
+  },
+  "gate": {},
+  "leftovers": {}
 }
