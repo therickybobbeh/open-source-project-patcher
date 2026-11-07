@@ -1,7 +1,7 @@
 upstreamTag: v8.10.3
 commit: 8fd1238a62e5a6090d826e6d5fc53de6ce5f8a82
-revision: 1
-releasedAt: '2026-11-04T22:16:57Z'
+revision: 2
+releasedAt: '2026-11-07T12:00:44Z'
 platforms:
 - linux/amd64
 - linux/arm64
@@ -11,6 +11,6 @@ images:
   digest: sha256:4a7dfb56025e6e49477ba8e5d18ce08a0d16969bddeb41f1628d0c02f9d6dc61
   knownFixable: []
 - name: redis-alpine
-  ref: ghcr.io/therickybobbeh/redis:8.10.3-alpine-patched.1
-  digest: sha256:f9b0a6cbe7818c58ccbe4eaf8864d5045aa899c1cfbf3e727f071543a61030d6
+  ref: ghcr.io/therickybobbeh/redis:8.10.3-alpine-patched.2
+  digest: sha256:28a27f2bf5b3a9c4af589b0874929a302001cb88de8759349ff6a480a389d781
   knownFixable: []
