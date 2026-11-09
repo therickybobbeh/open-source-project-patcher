@@ -1,12 +1,12 @@
 upstreamTag: 1.3.1
 commit: 555c3e0f07c203911bc3cb7d13ac085bfaa81b50
-revision: 1
-releasedAt: '2026-11-04T16:59:24Z'
+revision: 2
+releasedAt: '2026-11-09T14:27:47Z'
 platforms:
 - linux/amd64
 - linux/arm64
 images:
 - name: strimzi-maven-builder
-  ref: ghcr.io/therickybobbeh/strimzi-maven-builder:1.3.1-patched.1
-  digest: sha256:f8605159d28a5e059f9fd30f431a16aeaacb79819882658be2c8deab1e0230fa
+  ref: ghcr.io/therickybobbeh/strimzi-maven-builder:1.3.1-patched.2
+  digest: sha256:76a47824e0fb5e888a40ce61006edc41d1986420dc65c1e82a68c7821afb0437
   knownFixable: []
