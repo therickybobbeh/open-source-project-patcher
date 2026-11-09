@@ -1,13 +1,13 @@
-upstreamTag: v0.164.0
-commit: bf626fce5c8053ac6ae9c6c5f4c408c8c182740e
-revision: 2
-releasedAt: '2026-11-03T21:29:02Z'
+upstreamTag: v0.165.0
+commit: b9425f263115f328bc3bd4e65b825101b499f144
+revision: 1
+releasedAt: '2026-11-09T16:17:30Z'
 platforms:
 - linux/amd64
 - linux/arm64
 images:
 - name: opentelemetry-collector-contrib
-  ref: ghcr.io/therickybobbeh/opentelemetry-collector-contrib:0.164.0-patched.2
-  digest: sha256:97a4d9e8142a4198b2f5facb0fc25999bee044787e00ff7b9e4face9f5f1154f
+  ref: ghcr.io/therickybobbeh/opentelemetry-collector-contrib:0.165.0-patched.1
+  digest: sha256:014e99894ad90f72f3991e8c37ae4b70c8a02b81fe769835532a3c1c3ed7746e
   knownFixable:
   - GO-2026-5932|golang.org/x/crypto|otelcol-contrib
