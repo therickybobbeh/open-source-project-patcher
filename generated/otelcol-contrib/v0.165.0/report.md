@@ -1,13 +1,15 @@
-## ✅ otelcol-contrib `v0.164.0` — success
+## ✅ otelcol-contrib `v0.165.0` — success
 
-Upstream: https://github.com/open-telemetry/opentelemetry-collector-releases @ `bf626fce5c80` (line `v0`)
+Upstream: https://github.com/open-telemetry/opentelemetry-collector-releases @ `b9425f263115` (line `v0`)
+
+> **Upgrade:** `v0.164.0` → `v0.165.0`, a minor release ([release notes](https://github.com/open-telemetry/opentelemetry-collector-releases/releases/tag/v0.165.0)). The daily merge round leaves it for a person: merge it by hand once you've read what changed.
 
 ### Fixable vulnerabilities (critical / high / medium / low)
 
 | Artifact | Before | After | Fixed | New |
 |---|---|---|---|---|
-| source (`trivy fs`) | 0 / 1 / 0 / 0 | 0 / 0 / 0 / 0 | 3 | 0 |
-| image `opentelemetry-collector-contrib` | 0 / 1 / 0 / 0 | 0 / 0 / 0 / 0 | 3 | 0 |
+| source (`trivy fs`) | 0 / 0 / 0 / 0 | 0 / 0 / 0 / 0 | 0 | 0 |
+| image `opentelemetry-collector-contrib` | 0 / 0 / 0 / 0 | 0 / 0 / 0 / 0 | 0 | 0 |
 
 ### Release gate (reported only (`gate.enforce: false`))
 
@@ -17,9 +19,7 @@ Upstream: https://github.com/open-telemetry/opentelemetry-collector-releases @ `
 
 | Ecosystem | File | Package | From | To | Why |
 |---|---|---|---|---|---|
-| gomod | `distributions/otelcol-contrib/gen/go.mod` | `github.com/go-jose/go-jose/v4` | `v4.1.5` | `v4.1.6` | CVE-2026-116587 |
-| gomod | `distributions/otelcol-contrib/gen/go.mod` | `golang.org/x/net` | `v0.61.0` | `v0.62.0` | CVE-2026-78661, CVE-2026-97045 |
-| dockerfile | `distributions/otelcol-contrib/Dockerfile` | `alpine` | `alpine:3.24@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6` | `alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a` | base image refresh |
+| dockerfile | `distributions/otelcol-contrib/Dockerfile` | `alpine` | `alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a` | `alpine:3.24@sha256:3f4d6b32e26703c6082839234f43769d5046b3ac7c910033911d1e71d8cd630a` | base image refresh |
 
 ### Still fixable after patching
 
@@ -34,9 +34,9 @@ Not run.
 
 ### Images
 
-| Image | Ref | Smoke | Copa |
-|---|---|---|---|
-| opentelemetry-collector-contrib | `patcher.local/opentelemetry-collector-contrib:0.164.0-patched.dev` | ✅ `--version`, ✅ `components`, ✅ `validate --config /etc/otelcol-contrib/config.yaml` | no fixable OS packages |
+| Image | Ref | Runs as | Smoke | Copa |
+|---|---|---|---|---|
+| opentelemetry-collector-contrib | `patcher.local/opentelemetry-collector-contrib:0.165.0-patched.dev` | `10001:10001` | ✅ `--version`, ✅ `components`, ✅ `validate --config /etc/otelcol-contrib/config.yaml` | no fixable OS packages |
 
 ### Notes
 
