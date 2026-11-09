@@ -1,14 +1,14 @@
 upstreamTag: v2.46.1
 commit: 75eb19238e10fc4750e7efb05a4031b254b04029
-revision: 5
-releasedAt: '2026-11-04T21:21:00Z'
+revision: 6
+releasedAt: '2026-11-07T12:00:49Z'
 platforms:
 - linux/amd64
 - linux/arm64
 images:
 - name: dex
-  ref: ghcr.io/therickybobbeh/dex:v2.46.1-patched.5
-  digest: sha256:4e7db4097a23588fe6a4926be27904dd7aa5b1c30b6b710ce9d6cab0a881c787
+  ref: ghcr.io/therickybobbeh/dex:v2.46.1-patched.6
+  digest: sha256:29bded78d022a26ff0c0583fcd964ec55325fc9a132c3a6ff61ee3ee3cbe5f71
   knownFixable:
   - GO-2026-5932|golang.org/x/crypto|usr/local/bin/dex
   - GO-2026-5932|golang.org/x/crypto|usr/local/bin/gomplate
