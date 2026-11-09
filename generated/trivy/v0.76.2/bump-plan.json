@@ -1,40 +1,12 @@
 {
   "recipe": "trivy",
   "line": "v0",
-  "tag": "v0.76.1",
-  "commit": "e713f67f7d54decdcd9b3132c9751833dcced698",
+  "tag": "v0.76.2",
+  "commit": "3f6334d223b52188324af3b9923b4249cd206652",
   "status": "success",
   "requires": {},
   "plan": {
-    "bumps": [
-      {
-        "ecosystem": "gomod",
-        "target": "go.mod",
-        "name": "github.com/go-jose/go-jose/v4",
-        "installed": "v4.1.5",
-        "to": "v4.1.6",
-        "level": "patch",
-        "reasons": [
-          "CVE-2026-116587"
-        ],
-        "direct": false,
-        "dir": "."
-      },
-      {
-        "ecosystem": "gomod",
-        "target": "go.mod",
-        "name": "golang.org/x/net",
-        "installed": "v0.60.0",
-        "to": "v0.62.0",
-        "level": "minor",
-        "reasons": [
-          "CVE-2026-78661",
-          "CVE-2026-97045"
-        ],
-        "direct": true,
-        "dir": "."
-      }
-    ],
+    "bumps": [],
     "unresolved": [
       {
         "ecosystem": "gomod",
@@ -90,7 +62,7 @@
         "ecosystem": "gomod",
         "target": "go.mod",
         "name": "golang.org/x/crypto",
-        "installed": "v0.57.0",
+        "installed": "v0.58.0",
         "vuln_id": "GO-2026-5932",
         "severity": "UNKNOWN",
         "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
@@ -101,30 +73,12 @@
   },
   "changes": [
     {
-      "ecosystem": "gomod",
-      "target": "go.mod",
-      "name": "github.com/go-jose/go-jose/v4",
-      "old": "v4.1.5",
-      "new": "v4.1.6",
-      "note": "CVE-2026-116587",
-      "level": "patch"
-    },
-    {
-      "ecosystem": "gomod",
-      "target": "go.mod",
-      "name": "golang.org/x/net",
-      "old": "v0.60.0",
-      "new": "v0.62.0",
-      "note": "CVE-2026-78661, CVE-2026-97045",
-      "level": "minor"
-    },
-    {
       "ecosystem": "dockerfile",
       "target": "Dockerfile",
       "name": "alpine",
-      "old": "alpine:3.24.2",
-      "new": "alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a",
-      "note": "3.24.2 -> 3.24.3",
+      "old": "alpine:3.24.3",
+      "new": "alpine:3.24.4@sha256:93b41ef40b1677fce8fcc64ff4af09daddfacf5040afde618bc46c1e2d1cc7d4",
+      "note": "3.24.3 -> 3.24.4",
       "level": "patch"
     }
   ],
@@ -201,7 +155,18 @@
     "trivy": {
       "passed": true,
       "deny": [],
-      "warn": []
+      "warn": [
+        "trivy runs as root: give it a numeric non-root user (`user` on the recipe's image), or run it with runAsUser"
+      ]
     }
+  },
+  "leftovers": {
+    "trivy": [
+      "GO-2026-5932|golang.org/x/crypto|usr/local/bin/trivy"
+    ]
+  },
+  "upstream": {
+    "released": "v0.76.1",
+    "level": "patch"
   }
 }

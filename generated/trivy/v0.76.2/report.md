@@ -1,25 +1,24 @@
-## ✅ trivy `v0.76.1` — success
+## ✅ trivy `v0.76.2` — success
 
-Upstream: https://github.com/aquasecurity/trivy @ `e713f67f7d54` (line `v0`)
+Upstream: https://github.com/aquasecurity/trivy @ `3f6334d223b5` (line `v0`)
 
 ### Fixable vulnerabilities (critical / high / medium / low)
 
 | Artifact | Before | After | Fixed | New |
 |---|---|---|---|---|
-| source (`trivy fs`) | 0 / 1 / 1 / 0 | 0 / 0 / 1 / 0 | 3 | 0 |
-| image `trivy` | 1 / 4 / 2 / 22 | 0 / 0 / 0 / 0 | 34 | 0 |
+| source (`trivy fs`) | 0 / 0 / 1 / 0 | 0 / 0 / 1 / 0 | 0 | 0 |
+| image `trivy` | 0 / 0 / 0 / 0 | 0 / 0 / 0 / 0 | 0 | 0 |
 
 ### Release gate (reported only (`gate.enforce: false`))
 
 - image `trivy`: ✅ passes
+  - ⚠️ trivy runs as root: give it a numeric non-root user (`user` on the recipe's image), or run it with runAsUser
 
 ### Changes applied
 
 | Ecosystem | File | Package | From | To | Why |
 |---|---|---|---|---|---|
-| gomod | `go.mod` | `github.com/go-jose/go-jose/v4` | `v4.1.5` | `v4.1.6` | CVE-2026-116587 |
-| gomod | `go.mod` | `golang.org/x/net` | `v0.60.0` | `v0.62.0` | CVE-2026-78661, CVE-2026-97045 |
-| dockerfile | `Dockerfile` | `alpine` | `alpine:3.24.2` | `alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a` | 3.24.2 -> 3.24.3 |
+| dockerfile | `Dockerfile` | `alpine` | `alpine:3.24.3` | `alpine:3.24.4@sha256:93b41ef40b1677fce8fcc64ff4af09daddfacf5040afde618bc46c1e2d1cc7d4` | 3.24.3 -> 3.24.4 |
 
 ### Still fixable after patching
 
@@ -31,13 +30,13 @@ Upstream: https://github.com/aquasecurity/trivy @ `e713f67f7d54` (line `v0`)
 
 ### Upstream tests
 
-✅ passed in 9.8 min — `go tool mage test:unit`
+✅ passed in 11.2 min — `go tool mage test:unit`
 
 ### Images
 
-| Image | Ref | Smoke | Copa |
-|---|---|---|---|
-| trivy | `patcher.local/trivy:0.76.1-patched.dev` | ✅ `--version` | no fixable OS packages |
+| Image | Ref | Runs as | Smoke | Copa |
+|---|---|---|---|---|
+| trivy | `patcher.local/trivy:0.76.2-patched.dev` | root (no `USER`) | ✅ `--version` | no fixable OS packages |
 
 ### VEX suggestions (govulncheck reachability)
 
