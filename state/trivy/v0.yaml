@@ -1,13 +1,13 @@
 upstreamTag: v0.76.1
 commit: e713f67f7d54decdcd9b3132c9751833dcced698
-revision: 5
-releasedAt: '2026-11-03T21:19:44Z'
+revision: 6
+releasedAt: '2026-11-07T12:00:46Z'
 platforms:
 - linux/amd64
 - linux/arm64
 images:
 - name: trivy
-  ref: ghcr.io/therickybobbeh/trivy:0.76.1-patched.5
-  digest: sha256:631107cf9d9bff96291cf528b2cedfaf376a713820f69325c199850d6a54f799
+  ref: ghcr.io/therickybobbeh/trivy:0.76.1-patched.6
+  digest: sha256:f0f37c392e44e9346d0bdca6649de8e56a7fcbc6bc4a9af77b5cf8a8cccf3680
   knownFixable:
   - GO-2026-5932|golang.org/x/crypto|usr/local/bin/trivy
