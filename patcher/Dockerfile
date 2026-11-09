@@ -75,7 +75,7 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 RUN ARCH="${TARGETARCH:-$(dpkg --print-architecture)}" \
- && fetch() { curl -fsSL --retry 3 -o "$2" "$1"; echo "$3  $2" | sha256sum -c -; } \
+ && fetch() { curl -fsSL --retry 3 --retry-all-errors -o "$2" "$1"; echo "$3  $2" | sha256sum -c -; } \
  && pick() { [ "$ARCH" = arm64 ] && echo "$2" || echo "$1"; } \
  && cd /tmp \
  && fetch "https://github.com/jdx/mise/releases/download/v${MISE_VERSION}/mise-v${MISE_VERSION}-linux-$(pick x64 arm64).tar.gz" \
