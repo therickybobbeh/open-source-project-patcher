@@ -1,14 +1,14 @@
 upstreamTag: v0.15.0
 commit: bce7b4305e378558f20420aa2ca48686cec850d0
-revision: 7
-releasedAt: '2026-11-05T13:38:23Z'
+revision: 8
+releasedAt: '2026-11-09T14:27:01Z'
 platforms:
 - linux/amd64
 - linux/arm64
 images:
 - name: copa
-  ref: ghcr.io/therickybobbeh/copa:v0.15.0-patched.7
-  digest: sha256:0f7089c67589d4e60086c86d8e6852a15823feae342e172ba32b3d9453250d10
+  ref: ghcr.io/therickybobbeh/copa:v0.15.0-patched.8
+  digest: sha256:3d49d4f9d965ffb1464d0ea5b85697b4158fe38d7a22194445222e72244d729a
   knownFixable:
   - GO-2026-5932|golang.org/x/crypto|usr/local/bin/copa
 - name: copacetic-frontend
