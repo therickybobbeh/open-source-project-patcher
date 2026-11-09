@@ -49,7 +49,7 @@ jobs:
             x86_64) asset="conftest_${v}_Linux_x86_64.tar.gz" sum=$(arg CONFTEST_SHA256_AMD64) ;;
             *) asset="conftest_${v}_Linux_arm64.tar.gz" sum=$(arg CONFTEST_SHA256_ARM64) ;;
           esac
-          curl -fsSL --retry 3 -o "$RUNNER_TEMP/conftest.tgz" \
+          curl -fsSL --retry 3 --retry-all-errors -o "$RUNNER_TEMP/conftest.tgz" \
             "https://github.com/open-policy-agent/conftest/releases/download/v$v/$asset"
           echo "$sum  $RUNNER_TEMP/conftest.tgz" | sha256sum -c -
           mkdir -p "$RUNNER_TEMP/bin" && tar -xzf "$RUNNER_TEMP/conftest.tgz" -C "$RUNNER_TEMP/bin" conftest

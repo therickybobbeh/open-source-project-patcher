@@ -395,6 +395,8 @@ Notes:
 - `publish` failing with "… exists, but this run's push just took revision N: something else … published it since":
   a Copa refresh of the line published that revision while this run was building. Nothing was published by this
   run; dispatch the release again (`rebuild: true`), and it takes the next revision.
+- `state` failing with "… records revision N of this line, newer than this run's": a later release or Copa refresh of
+  the line was recorded first. Its record is the current one; nothing needs finishing.
 - The [failure alert](#failure-alerts) of a job closes itself when that job passes in the finishing run. A run with
   `rebuild: false` skips `build` and `push`, so close their alerts by hand.
 - **Re-run failed jobs** (`gh run rerun --failed`) only for transient failures (a registry or Sigstore blip). A re-run

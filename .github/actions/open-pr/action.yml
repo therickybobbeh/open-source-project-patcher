@@ -48,7 +48,10 @@ runs:
     # since with workflow changes (merges during an hour-long run), GitHub refuses the token a branch whose
     # workflow files differ from main's ("Resource not accessible by integration" on creating the ref; all six
     # releases of 2026-10-29 failed this way). So the changes move onto the latest commit of the branch first.
-    # The paths each caller commits are written by one run per line at a time, so they don't conflict.
+    # When main changed a file this run also wrote, this run's version wins: each caller writes its paths whole
+    # (a line's patch set, its state file), from what this run built. That happens when a line's Copa refresh is
+    # recorded while its release runs (maven3, 2026-11-05: the release's state PR never opened). The state job
+    # checks first that its record isn't older than main's.
     - shell: bash
       env:
         TOKEN: ${{ steps.app-token.outputs.token || github.token }}
@@ -62,7 +65,14 @@ runs:
         dirty=$(git status --porcelain)
         [ -z "$dirty" ] || git stash push -q --include-untracked
         git checkout -q -B "$branch" FETCH_HEAD
-        [ -z "$dirty" ] || git stash pop -q
+        [ -n "$dirty" ] || exit 0
+        git stash pop -q && exit 0
+        conflicted=$(git diff --name-only --diff-filter=U)
+        [ -n "$conflicted" ] || exit 1  # failed for another reason: the stash is kept
+        echo "::warning::$branch changed what this run also wrote, keeping this run's version of: $conflicted"
+        while IFS= read -r f; do git checkout -q --theirs -- "$f"; done <<<"$conflicted"
+        git reset -q
+        git stash drop -q
     - id: cpr
       uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
       with:
