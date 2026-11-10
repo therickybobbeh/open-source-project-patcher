@@ -1,6 +1,6 @@
 ## ✅ maven `3.10.0` — success
 
-Upstream: https://github.com/carlossg/docker-maven @ `aaa0262cac38` (line `maven3`)
+Upstream: https://github.com/carlossg/docker-maven @ `c6a55d328b24` (line `maven3`)
 
 ### Fixable vulnerabilities (critical / high / medium / low)
 
@@ -35,7 +35,7 @@ Replaced with the fixed release from Maven Central, pinned by sha256 (`jars.json
 
 ### Upstream tests
 
-✅ passed in 1.5 min — `for t in eclipse-temurin-21-noble eclipse-temurin-17-noble; do TAG=$t bats tests/tests.bats ; done`
+✅ passed in 2.1 min — `for t in eclipse-temurin-21-noble eclipse-temurin-17-noble; do TAG=$t bats tests/tests.bats ; done`
 
 ### Images
 
