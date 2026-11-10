@@ -6,7 +6,7 @@ Upstream: https://github.com/danielqsj/kafka_exporter @ `c08240632142` (line `ka
 
 | Artifact | Before | After | Fixed | New |
 |---|---|---|---|---|
-| source (`trivy fs`) | 0 / 0 / 0 / 0 | 0 / 0 / 0 / 0 | 2 | 0 |
+| source (`trivy fs`) | 0 / 1 / 1 / 0 | 0 / 0 / 0 / 0 | 2 | 0 |
 
 ### Changes applied
 
@@ -22,7 +22,7 @@ Upstream: https://github.com/danielqsj/kafka_exporter @ `c08240632142` (line `ka
 
 ### Upstream tests
 
-✅ passed in 0.6 min — `go test -short  ./...`
+✅ passed in 0.3 min — `go test -short  ./...`
 
 ### VEX suggestions (govulncheck reachability)
 
