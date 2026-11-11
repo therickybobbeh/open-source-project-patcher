@@ -51,7 +51,7 @@
       "target": "docker-images/base/Dockerfile",
       "name": "registry.access.redhat.com/ubi9/ubi-minimal",
       "old": "ubi-minimal:latest",
-      "new": "ubi-minimal:latest@sha256:dfa0eb04abc59221544e74862432496add1f491f915c9b531880f91affc0e12c",
+      "new": "ubi-minimal:latest@sha256:f26ef64172ea61f5ac5ba4be8c5c738bf8760b22b3e5148ce7b40f7308ab32db",
       "note": "base image refresh",
       "level": "patch"
     },
@@ -60,7 +60,7 @@
       "target": "docker-images/base/Dockerfile",
       "name": "registry.access.redhat.com/ubi9/ubi-minimal",
       "old": "ubi-minimal:latest",
-      "new": "ubi-minimal:latest@sha256:dfa0eb04abc59221544e74862432496add1f491f915c9b531880f91affc0e12c",
+      "new": "ubi-minimal:latest@sha256:f26ef64172ea61f5ac5ba4be8c5c738bf8760b22b3e5148ce7b40f7308ab32db",
       "note": "base image refresh",
       "level": "patch"
     }
@@ -91,8 +91,44 @@
       "warn": []
     }
   },
+  "leftovers": {
+    "strimzi-kafka": [
+      "CVE-2026-102554|com.google.guava:guava|opt/cruise-control/libs/guava-32.1.3-jre.jar",
+      "CVE-2026-106449|at.yawk.lz4:lz4-java|opt/cruise-control/libs/lz4-java-1.10.2.jar",
+      "CVE-2026-106450|at.yawk.lz4:lz4-java|opt/cruise-control/libs/lz4-java-1.10.2.jar",
+      "CVE-2026-106451|at.yawk.lz4:lz4-java|opt/cruise-control/libs/lz4-java-1.10.2.jar",
+      "CVE-2026-106452|at.yawk.lz4:lz4-java|opt/cruise-control/libs/lz4-java-1.10.2.jar",
+      "CVE-2026-106453|at.yawk.lz4:lz4-java|opt/cruise-control/libs/lz4-java-1.10.2.jar",
+      "CVE-2026-108106|org.xerial.snappy:snappy-java|opt/cruise-control/libs/snappy-java-1.1.10.5.jar",
+      "CVE-2026-116590|org.xerial.snappy:snappy-java|opt/cruise-control/libs/snappy-java-1.1.10.5.jar",
+      "CVE-2026-118259|io.opentelemetry:opentelemetry-api|opt/kafka/libs/opentelemetry-api-1.63.0.jar",
+      "CVE-2026-19032|com.fasterxml.jackson.core:jackson-databind|opt/cruise-control/libs/jackson-databind-2.21.1.jar",
+      "CVE-2026-49844|org.apache.logging.log4j:log4j-api|opt/cruise-control/libs/log4j-api-2.25.4.jar",
+      "CVE-2026-54512|com.fasterxml.jackson.core:jackson-databind|opt/cruise-control/libs/jackson-databind-2.21.1.jar",
+      "CVE-2026-54513|com.fasterxml.jackson.core:jackson-databind|opt/cruise-control/libs/jackson-databind-2.21.1.jar",
+      "CVE-2026-54514|com.fasterxml.jackson.core:jackson-databind|opt/cruise-control/libs/jackson-databind-2.21.1.jar",
+      "CVE-2026-54515|com.fasterxml.jackson.core:jackson-databind|opt/cruise-control/libs/jackson-databind-2.21.1.jar",
+      "CVE-2026-54516|com.fasterxml.jackson.core:jackson-databind|opt/cruise-control/libs/jackson-databind-2.21.1.jar",
+      "CVE-2026-54517|com.fasterxml.jackson.core:jackson-databind|opt/cruise-control/libs/jackson-databind-2.21.1.jar",
+      "CVE-2026-54518|com.fasterxml.jackson.core:jackson-databind|opt/cruise-control/libs/jackson-databind-2.21.1.jar",
+      "CVE-2026-59171|org.json:json|opt/cruise-control/libs/json-20231013.jar",
+      "CVE-2026-59888|com.fasterxml.jackson.core:jackson-databind|opt/cruise-control/libs/jackson-databind-2.21.1.jar",
+      "CVE-2026-59889|com.fasterxml.jackson.core:jackson-databind|opt/cruise-control/libs/jackson-databind-2.21.1.jar",
+      "CVE-2026-59949|at.yawk.lz4:lz4-java|opt/cruise-control/libs/lz4-java-1.10.2.jar",
+      "CVE-2026-68497|com.fasterxml.jackson.core:jackson-databind|opt/cruise-control/libs/jackson-databind-2.21.1.jar",
+      "CVE-2026-77310|com.fasterxml.jackson.core:jackson-databind|opt/cruise-control/libs/jackson-databind-2.21.1.jar",
+      "CVE-2026-83557|com.fasterxml.jackson.core:jackson-databind|opt/cruise-control/libs/jackson-databind-2.21.1.jar",
+      "CVE-2026-89407|com.fasterxml.jackson.core:jackson-core|opt/cruise-control/libs/jackson-core-2.21.6.jar",
+      "CVE-2026-89425|com.fasterxml.jackson.core:jackson-core|opt/cruise-control/libs/jackson-core-2.21.6.jar",
+      "CVE-2026-91776|com.fasterxml.jackson.core:jackson-databind|opt/cruise-control/libs/jackson-databind-2.21.1.jar",
+      "CVE-2026-91777|com.fasterxml.jackson.core:jackson-databind|opt/cruise-control/libs/jackson-databind-2.21.1.jar",
+      "CVE-2026-93451|org.xerial.snappy:snappy-java|opt/cruise-control/libs/snappy-java-1.1.10.5.jar",
+      "GHSA-mhm7-754m-9p8w|com.fasterxml.jackson.core:jackson-databind|opt/cruise-control/libs/jackson-databind-2.21.1.jar",
+      "GO-2026-5932|golang.org/x/crypto|opt/kafka-exporter/kafka_exporter"
+    ]
+  },
   "upstream": {
-    "released": null,
-    "level": "new"
+    "released": "1.3.1",
+    "level": "same"
   }
 }

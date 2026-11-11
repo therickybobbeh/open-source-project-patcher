@@ -21,7 +21,7 @@ index ce90dff..c21a12a 100644
          <!-- Support for the new JsonTemplateLayout as appender type -->
          <dependency>
 diff --git a/docker-images/base/Dockerfile b/docker-images/base/Dockerfile
-index 80fc7a5..8bf9f2b 100644
+index 80fc7a5..34627f4 100644
 --- a/docker-images/base/Dockerfile
 +++ b/docker-images/base/Dockerfile
 @@ -1,7 +1,7 @@
@@ -29,7 +29,7 @@ index 80fc7a5..8bf9f2b 100644
  # Build the helper container image for downloading prerequisites
  #####
 -FROM registry.access.redhat.com/ubi9/ubi-minimal:latest AS downloader
-+FROM registry.access.redhat.com/ubi9/ubi-minimal:latest@sha256:dfa0eb04abc59221544e74862432496add1f491f915c9b531880f91affc0e12c AS downloader
++FROM registry.access.redhat.com/ubi9/ubi-minimal:latest@sha256:f26ef64172ea61f5ac5ba4be8c5c738bf8760b22b3e5148ce7b40f7308ab32db AS downloader
  
  ARG TARGETOS
  ARG TARGETARCH
@@ -38,7 +38,7 @@ index 80fc7a5..8bf9f2b 100644
  # Build the main container image
  #####
 -FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
-+FROM registry.access.redhat.com/ubi9/ubi-minimal:latest@sha256:dfa0eb04abc59221544e74862432496add1f491f915c9b531880f91affc0e12c
++FROM registry.access.redhat.com/ubi9/ubi-minimal:latest@sha256:f26ef64172ea61f5ac5ba4be8c5c738bf8760b22b3e5148ce7b40f7308ab32db
  
  LABEL org.opencontainers.image.source='https://github.com/strimzi/strimzi-kafka-operator'
  
