@@ -408,18 +408,22 @@ jobs:
           base64 -d <<<"$RELEASE" > "$RUNNER_TEMP/release.json"
           git status --short
       # main may have recorded this line since the run started (a Copa refresh). open-pr keeps this run's file, so
-      # refuse a record older than main's
+      # refuse a record older than main's. Revisions only order records of the same upstream tag: a release of a
+      # newer tag restarts at revision 1 and still supersedes the old tag's refreshes (trivy v0.76.2, 2026-11-09)
       - env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           TO: state/${{ needs.plan.outputs.recipe }}/${{ needs.plan.outputs.line }}.yaml
         run: |
-          revision_of() { sed -n 's/^revision: *//p'; }
-          main=$(gh api "repos/$GH_REPO/contents/$TO?ref=$GITHUB_REF_NAME" -H 'Accept: application/vnd.github.raw' \
-            2>/dev/null | revision_of) || main=0  # not recorded yet
-          ours=$(revision_of < "$TO")
-          echo "revision: this run $ours, $GITHUB_REF_NAME ${main:-none}"
-          if [ "${main:-0}" -gt "$ours" ]; then
+          field() { sed -n "s/^$1: *//p" "$2"; }
+          gh api "repos/$GH_REPO/contents/$TO?ref=$GITHUB_REF_NAME" -H 'Accept: application/vnd.github.raw' \
+            > "$RUNNER_TEMP/state-main.yaml" 2>/dev/null || : > "$RUNNER_TEMP/state-main.yaml"  # not recorded yet
+          main=$(field revision "$RUNNER_TEMP/state-main.yaml")
+          main_tag=$(field upstreamTag "$RUNNER_TEMP/state-main.yaml")
+          ours=$(field revision "$TO")
+          ours_tag=$(field upstreamTag "$TO")
+          echo "this run: $ours_tag revision $ours; $GITHUB_REF_NAME: ${main_tag:-none} revision ${main:-none}"
+          if [ "$main_tag" = "$ours_tag" ] && [ "${main:-0}" -gt "$ours" ]; then
             echo "::error::$GITHUB_REF_NAME records revision $main of this line, newer than this run's $ours: not recording it"
             exit 1
           fi
