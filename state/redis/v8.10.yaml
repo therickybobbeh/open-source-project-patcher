@@ -1,14 +1,14 @@
 upstreamTag: v8.10.3
 commit: 8fd1238a62e5a6090d826e6d5fc53de6ce5f8a82
-revision: 2
-releasedAt: '2026-11-07T12:00:44Z'
+revision: 3
+releasedAt: '2026-11-10T13:51:50Z'
 platforms:
 - linux/amd64
 - linux/arm64
 images:
 - name: redis
-  ref: ghcr.io/therickybobbeh/redis:8.10.3-patched.1
-  digest: sha256:4a7dfb56025e6e49477ba8e5d18ce08a0d16969bddeb41f1628d0c02f9d6dc61
+  ref: ghcr.io/therickybobbeh/redis:8.10.3-patched.3
+  digest: sha256:943b6846dc863675157caf3ffb2180a566f8636c1038bb898b90dc484063afa5
   knownFixable: []
 - name: redis-alpine
   ref: ghcr.io/therickybobbeh/redis:8.10.3-alpine-patched.2
