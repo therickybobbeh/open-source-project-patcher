@@ -2,7 +2,7 @@
   "recipe": "maven",
   "line": "maven3",
   "tag": "3.10.0",
-  "commit": "aaa0262cac383f60d12b1f7e154a63b3e468b4a7",
+  "commit": "c6a55d328b2427432a791fcd0ea0650a878c657b",
   "status": "success",
   "requires": {},
   "plan": {
