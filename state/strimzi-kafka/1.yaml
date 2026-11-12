@@ -1,14 +1,14 @@
 upstreamTag: 1.3.1
 commit: 555c3e0f07c203911bc3cb7d13ac085bfaa81b50
-revision: 2
-releasedAt: '2026-11-09T14:27:17Z'
+revision: 3
+releasedAt: '2026-11-11T04:56:02Z'
 platforms:
 - linux/amd64
 - linux/arm64
 images:
 - name: strimzi-kafka
-  ref: ghcr.io/therickybobbeh/strimzi-kafka:1.3.1-kafka-4.3.2-patched.2
-  digest: sha256:85b9f565ec302a42f09dde34e9d84a94b82954d3f5be231ae94eb9892ce33fb7
+  ref: ghcr.io/therickybobbeh/strimzi-kafka:1.3.1-kafka-4.3.2-patched.3
+  digest: sha256:fd62b80b5f4733bb6af0d49e82a64436e08eb31569b94f5cf912d11a90065969
   knownFixable:
   - CVE-2026-102554|com.google.guava:guava|opt/cruise-control/libs/guava-32.1.3-jre.jar
   - CVE-2026-106449|at.yawk.lz4:lz4-java|opt/cruise-control/libs/lz4-java-1.10.2.jar
@@ -28,6 +28,7 @@ images:
   - CVE-2026-54516|com.fasterxml.jackson.core:jackson-databind|opt/cruise-control/libs/jackson-databind-2.21.1.jar
   - CVE-2026-54517|com.fasterxml.jackson.core:jackson-databind|opt/cruise-control/libs/jackson-databind-2.21.1.jar
   - CVE-2026-54518|com.fasterxml.jackson.core:jackson-databind|opt/cruise-control/libs/jackson-databind-2.21.1.jar
+  - CVE-2026-59171|org.json:json|opt/cruise-control/libs/json-20231013.jar
   - CVE-2026-59888|com.fasterxml.jackson.core:jackson-databind|opt/cruise-control/libs/jackson-databind-2.21.1.jar
   - CVE-2026-59889|com.fasterxml.jackson.core:jackson-databind|opt/cruise-control/libs/jackson-databind-2.21.1.jar
   - CVE-2026-59949|at.yawk.lz4:lz4-java|opt/cruise-control/libs/lz4-java-1.10.2.jar
