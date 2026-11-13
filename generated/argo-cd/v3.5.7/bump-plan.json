@@ -202,6 +202,19 @@
       {
         "ecosystem": "pnpm",
         "target": "ui/pnpm-lock.yaml",
+        "name": "fast-xml-parser",
+        "installed": "5.8.0",
+        "to": "5.12.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-126066"
+        ],
+        "direct": false,
+        "dir": "ui"
+      },
+      {
+        "ecosystem": "pnpm",
+        "target": "ui/pnpm-lock.yaml",
         "name": "form-data",
         "installed": "4.0.5",
         "to": "4.0.6",
@@ -310,7 +323,8 @@
         "vuln_id": "GO-2026-5932",
         "severity": "UNKNOWN",
         "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+        "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
+        "eligible": "2026-11-18T07:23:42+00:00"
       },
       {
         "ecosystem": "pnpm",
@@ -340,26 +354,6 @@
         "vuln_id": "CVE-2026-59887",
         "severity": "HIGH",
         "fixed": "5.0.2",
-        "why": "needs-human: fix requires a bump beyond the `minor` policy"
-      },
-      {
-        "ecosystem": "pnpm",
-        "target": "ui/pnpm-lock.yaml",
-        "name": "minimatch",
-        "installed": "3.1.5",
-        "vuln_id": "CVE-2026-118764",
-        "severity": "MEDIUM",
-        "fixed": "11.0.1",
-        "why": "needs-human: fix requires a bump beyond the `minor` policy"
-      },
-      {
-        "ecosystem": "pnpm",
-        "target": "ui/pnpm-lock.yaml",
-        "name": "minimatch",
-        "installed": "5.1.9",
-        "vuln_id": "CVE-2026-118764",
-        "severity": "MEDIUM",
-        "fixed": "11.0.1",
         "why": "needs-human: fix requires a bump beyond the `minor` policy"
       },
       {
@@ -497,6 +491,15 @@
     {
       "ecosystem": "pnpm",
       "target": "ui/pnpm-lock.yaml",
+      "name": "fast-xml-parser",
+      "old": "5.8.0",
+      "new": "5.12.0",
+      "note": "CVE-2026-126066",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "pnpm",
+      "target": "ui/pnpm-lock.yaml",
       "name": "form-data",
       "old": "4.0.5",
       "new": "4.0.6",
@@ -544,8 +547,8 @@
       "target": "Dockerfile",
       "name": "docker.io/library/golang",
       "old": "golang:1.26.10@sha256:5c3f3f28a273c9b61698b2d34f18375929790ab1f1d3835d032d21e2b31eae0c",
-      "new": "golang:1.26.10@sha256:670bb5aa5349ae03b8516764718486f4f16399134bdc9acd0c46a23f043ab05c",
-      "note": "base image refresh",
+      "new": "golang:1.26.11@sha256:957952ae74dc010608717144399a59a2c6e82ea03d63be1c7ff6577c5a135f93",
+      "note": "1.26.10 -> 1.26.11",
       "level": "patch"
     },
     {
@@ -553,7 +556,7 @@
       "target": "Dockerfile",
       "name": "ARG BASE_IMAGE",
       "old": "ubuntu:26.04@sha256:f3d28607ddd78734bb7f71f117f3c6706c666b8b76cbff7c9ff6e5718d46ff64",
-      "new": "ubuntu:26.04@sha256:6a06111c3b0a8600feadb270aec771dc239bf407b25625f93f44ab00e11f4d3c",
+      "new": "ubuntu:26.04@sha256:065aa8626841f16057b78b027b464cd59c4fac36c204c72dcbf48d66f5fa8a96",
       "note": "base image refresh",
       "level": "patch"
     },
@@ -562,8 +565,8 @@
       "target": "Dockerfile",
       "name": "docker.io/library/golang",
       "old": "golang:1.26.10@sha256:5c3f3f28a273c9b61698b2d34f18375929790ab1f1d3835d032d21e2b31eae0c",
-      "new": "golang:1.26.10@sha256:670bb5aa5349ae03b8516764718486f4f16399134bdc9acd0c46a23f043ab05c",
-      "note": "base image refresh",
+      "new": "golang:1.26.11@sha256:957952ae74dc010608717144399a59a2c6e82ea03d63be1c7ff6577c5a135f93",
+      "note": "1.26.10 -> 1.26.11",
       "level": "patch"
     }
   ],
@@ -572,24 +575,24 @@
       "ecosystem": "dockerfile",
       "target": "Dockerfile",
       "name": "docker.io/library/golang",
-      "wanted": "1.27.3",
-      "error": "newer tag 1.27.3 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)",
+      "wanted": "1.27.4",
+      "error": "newer tag 1.27.4 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)",
       "hint": true
     },
     {
       "ecosystem": "dockerfile",
       "target": "Dockerfile",
       "name": "docker.io/library/node",
-      "wanted": "24.22.2",
-      "error": "newer tag 24.22.2 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)",
+      "wanted": "24.22.3",
+      "error": "newer tag 24.22.3 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)",
       "hint": true
     },
     {
       "ecosystem": "dockerfile",
       "target": "Dockerfile",
       "name": "docker.io/library/golang",
-      "wanted": "1.27.3",
-      "error": "newer tag 1.27.3 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)",
+      "wanted": "1.27.4",
+      "error": "newer tag 1.27.4 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)",
       "hint": true
     }
   ],
@@ -632,7 +635,8 @@
       "vuln_id": "GO-2026-5932",
       "severity": "UNKNOWN",
       "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
+      "eligible": "2026-11-18T07:23:42+00:00"
     },
     {
       "ecosystem": "pnpm",
@@ -662,26 +666,6 @@
       "vuln_id": "CVE-2026-59887",
       "severity": "HIGH",
       "fixed": "5.0.2",
-      "why": "needs-human: fix requires a bump beyond the `minor` policy"
-    },
-    {
-      "ecosystem": "pnpm",
-      "target": "ui/pnpm-lock.yaml",
-      "name": "minimatch",
-      "installed": "3.1.5",
-      "vuln_id": "CVE-2026-118764",
-      "severity": "MEDIUM",
-      "fixed": "11.0.1",
-      "why": "needs-human: fix requires a bump beyond the `minor` policy"
-    },
-    {
-      "ecosystem": "pnpm",
-      "target": "ui/pnpm-lock.yaml",
-      "name": "minimatch",
-      "installed": "5.1.9",
-      "vuln_id": "CVE-2026-118764",
-      "severity": "MEDIUM",
-      "fixed": "11.0.1",
       "why": "needs-human: fix requires a bump beyond the `minor` policy"
     },
     {
@@ -739,6 +723,16 @@
       "deny": [],
       "warn": []
     }
+  },
+  "leftovers": {
+    "argocd": [
+      "CVE-2026-56851|golang.org/x/text|usr/local/bin/kustomize",
+      "CVE-2026-56852|golang.org/x/text|usr/local/bin/kustomize",
+      "CVE-2026-97054|stdlib|usr/bin/pebble",
+      "GO-2026-5932|golang.org/x/crypto|usr/local/bin/argocd",
+      "GO-2026-5932|golang.org/x/crypto|usr/local/bin/git-lfs",
+      "GO-2026-5932|golang.org/x/crypto|usr/local/bin/helm"
+    ]
   },
   "upstream": {
     "released": "v3.5.7",

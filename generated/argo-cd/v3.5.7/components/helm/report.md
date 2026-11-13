@@ -6,7 +6,7 @@ Upstream: https://github.com/helm/helm @ `d591a19b953b` (line `helm-4.2.1`)
 
 | Artifact | Before | After | Fixed | New |
 |---|---|---|---|---|
-| source (`trivy fs`) | 0 / 13 / 11 / 4 | 0 / 0 / 0 / 0 | 30 | 0 |
+| source (`trivy fs`) | 0 / 14 / 12 / 4 | 0 / 0 / 0 / 0 | 30 | 0 |
 
 ### Changes applied
 
@@ -31,11 +31,11 @@ Upstream: https://github.com/helm/helm @ `d591a19b953b` (line `helm-4.2.1`)
 
 | Severity | Vulnerability | Package | Installed | Fixed in | Where | Reason |
 |---|---|---|---|---|---|---|
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | source (`trivy fs`): `go.mod` | untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | source (`trivy fs`): `go.mod` | cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18) |
 
 ### Upstream tests
 
-✅ passed in 2.6 min — `go test  ./...`
+✅ passed in 1.8 min — `go test  ./...`
 
 ### VEX suggestions (govulncheck reachability)
 

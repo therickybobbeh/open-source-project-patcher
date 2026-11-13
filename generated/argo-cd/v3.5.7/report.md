@@ -6,8 +6,8 @@ Upstream: https://github.com/argoproj/argo-cd @ `6d732962f61a` (line `v3.5`)
 
 | Artifact | Before | After | Fixed | New |
 |---|---|---|---|---|
-| source (`trivy fs`) | 1 / 22 / 22 / 6 | 0 / 2 / 3 / 0 | 48 | 0 |
-| image `argocd` | 2 / 121 / 130 / 10 | 0 / 2 / 0 / 0 | 271 | 0 |
+| source (`trivy fs`) | 1 / 24 / 24 / 7 | 0 / 2 / 3 / 0 | 49 | 0 |
+| image `argocd` | 2 / 127 / 156 / 10 | 0 / 2 / 0 / 0 | 299 | 0 |
 
 - `CVE-2026-116585` is still in source (`trivy fs`) (`go.mod`), in `github.com/go-jose/go-jose/v3` v3.0.5 (no fix): not counted as fixed
 - `CVE-2026-116586` is still in source (`trivy fs`) (`go.mod`), in `github.com/go-jose/go-jose/v3` v3.0.5 (no fix): not counted as fixed
@@ -33,14 +33,15 @@ Upstream: https://github.com/argoproj/argo-cd @ `6d732962f61a` (line `v3.5`)
 | pnpm | `ui/pnpm-lock.yaml` | `brace-expansion` | `1.1.14` | `1.1.21` | CVE-2026-102276, CVE-2026-102277, CVE-2026-102278, CVE-2026-13149, CVE-2026-14257, CVE-2026-69152 |
 | pnpm | `ui/pnpm-lock.yaml` | `brace-expansion` | `2.1.0` | `2.1.7` | CVE-2026-102276, CVE-2026-102277, CVE-2026-102278, CVE-2026-13149, CVE-2026-14257, CVE-2026-69152 |
 | pnpm | `ui/pnpm-lock.yaml` | `dompurify` | `3.4.13` | `3.4.17` | GHSA-6688-9rhm-gjv2, GHSA-c6gr-qvv4-5v3f, GHSA-cg2g-xh64-v4q7, GHSA-mrv2-3pqr-j5jr, GHSA-p98j-92pf-mc4p |
+| pnpm | `ui/pnpm-lock.yaml` | `fast-xml-parser` | `5.8.0` | `5.12.0` | CVE-2026-126066 |
 | pnpm | `ui/pnpm-lock.yaml` | `form-data` | `4.0.5` | `4.0.6` | CVE-2026-12143 |
 | pnpm | `ui/pnpm-lock.yaml` | `js-yaml` | `4.1.1` | `4.3.2` | CVE-2026-53550, CVE-2026-59869, CVE-2026-84375, GHSA-5p4m-2wfm-xmqj |
 | pnpm | `ui/pnpm-lock.yaml` | `js-yaml` | `4.3.0` | `4.3.2` | CVE-2026-84375, GHSA-5p4m-2wfm-xmqj |
 | pnpm | `ui/pnpm-lock.yaml` | `moment` | `2.30.1` | `2.31.0` | CVE-2026-17495 |
 | pnpm | `ui/pnpm-lock.yaml` | `qs` | `6.15.2` | `6.16.1` | CVE-2026-110816, CVE-2026-82417, CVE-2026-82562 |
-| dockerfile | `Dockerfile` | `docker.io/library/golang` | `golang:1.26.10@sha256:5c3f3f28a273c9b61698b2d34f18375929790ab1f1d3835d032d21e2b31eae0c` | `golang:1.26.10@sha256:670bb5aa5349ae03b8516764718486f4f16399134bdc9acd0c46a23f043ab05c` | base image refresh |
-| dockerfile | `Dockerfile` | `ARG BASE_IMAGE` | `ubuntu:26.04@sha256:f3d28607ddd78734bb7f71f117f3c6706c666b8b76cbff7c9ff6e5718d46ff64` | `ubuntu:26.04@sha256:6a06111c3b0a8600feadb270aec771dc239bf407b25625f93f44ab00e11f4d3c` | base image refresh |
-| dockerfile | `Dockerfile` | `docker.io/library/golang` | `golang:1.26.10@sha256:5c3f3f28a273c9b61698b2d34f18375929790ab1f1d3835d032d21e2b31eae0c` | `golang:1.26.10@sha256:670bb5aa5349ae03b8516764718486f4f16399134bdc9acd0c46a23f043ab05c` | base image refresh |
+| dockerfile | `Dockerfile` | `docker.io/library/golang` | `golang:1.26.10@sha256:5c3f3f28a273c9b61698b2d34f18375929790ab1f1d3835d032d21e2b31eae0c` | `golang:1.26.11@sha256:957952ae74dc010608717144399a59a2c6e82ea03d63be1c7ff6577c5a135f93` | 1.26.10 -> 1.26.11 |
+| dockerfile | `Dockerfile` | `ARG BASE_IMAGE` | `ubuntu:26.04@sha256:f3d28607ddd78734bb7f71f117f3c6706c666b8b76cbff7c9ff6e5718d46ff64` | `ubuntu:26.04@sha256:065aa8626841f16057b78b027b464cd59c4fac36c204c72dcbf48d66f5fa8a96` | base image refresh |
+| dockerfile | `Dockerfile` | `docker.io/library/golang` | `golang:1.26.10@sha256:5c3f3f28a273c9b61698b2d34f18375929790ab1f1d3835d032d21e2b31eae0c` | `golang:1.26.11@sha256:957952ae74dc010608717144399a59a2c6e82ea03d63be1c7ff6577c5a135f93` | 1.26.10 -> 1.26.11 |
 
 ### Still fixable after patching
 
@@ -53,19 +54,20 @@ Upstream: https://github.com/argoproj/argo-cd @ `6d732962f61a` (line `v3.5`)
 | MEDIUM | GHSA-67mh-4wv8-2f99 | `esbuild` | `0.18.20` | `0.25.0` | source (`trivy fs`): `ui/pnpm-lock.yaml` | needs-human: fix requires a bump beyond the `minor` policy |
 | MEDIUM | CVE-2026-118764 | `minimatch` | `9.0.9` | `11.0.1` | source (`trivy fs`): `ui/pnpm-lock.yaml` | needs-human: fix requires a bump beyond the `minor` policy |
 | MEDIUM | CVE-2026-41907 | `uuid` | `9.0.1` | `11.1.1, 12.0.1, 13.0.1` | source (`trivy fs`): `ui/pnpm-lock.yaml` | needs-human: fix requires a bump beyond the `minor` policy |
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | source (`trivy fs`): `go.mod` | untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one |
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `argocd` | untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one |
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `argocd` | component `git-lfs` (rebuilt from source): untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after i |
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `argocd` | component `helm` (rebuilt from source): untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it i |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | source (`trivy fs`): `go.mod` | cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18) |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `argocd` | cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18) |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `argocd` | component `git-lfs` (rebuilt from source): cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18) |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `argocd` | component `helm` (rebuilt from source): cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18) |
+| UNKNOWN | CVE-2026-97054 | `stdlib` | `v1.27.3` | `1.26.11, 1.27.4` | image `argocd` | in bundled artifact `usr/bin/pebble` (not built from this source) |
 
 ### Newer releases beyond the policy (not applied)
 
-- `docker.io/library/golang` → `1.27.3` in `Dockerfile`: newer tag 1.27.3 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)
-- `docker.io/library/node` → `24.22.2` in `Dockerfile`: newer tag 24.22.2 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)
+- `docker.io/library/golang` → `1.27.4` in `Dockerfile`: newer tag 1.27.4 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)
+- `docker.io/library/node` → `24.22.3` in `Dockerfile`: newer tag 24.22.3 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)
 
 ### Upstream tests
 
-✅ passed in 12.0 min — `make test-local`
+✅ passed in 7.9 min — `make test-local`
 
 Skipped tests (from `skips/argo-cd.yaml`):
 
@@ -77,9 +79,9 @@ Skipped tests (from `skips/argo-cd.yaml`):
 
 ### Images
 
-| Image | Ref | Smoke | Copa |
-|---|---|---|---|
-| argocd | `patcher.local/argocd:v3.5.7-patched.dev` | ✅ `argocd version --client` | no fixable OS packages |
+| Image | Ref | Runs as | Smoke | Copa |
+|---|---|---|---|---|
+| argocd | `patcher.local/argocd:v3.5.7-patched.dev` | `999` | ✅ `argocd version --client` | no fixable OS packages |
 
 ### VEX suggestions (govulncheck reachability)
 
