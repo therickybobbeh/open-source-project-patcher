@@ -1,17 +1,17 @@
 diff --git a/Dockerfile b/Dockerfile
-index 0a23d17..b4ad498 100644
+index 0a23d17..af80195 100644
 --- a/Dockerfile
 +++ b/Dockerfile
 @@ -1,10 +1,10 @@
 -ARG BASE_IMAGE=docker.io/library/ubuntu:26.04@sha256:f3d28607ddd78734bb7f71f117f3c6706c666b8b76cbff7c9ff6e5718d46ff64
-+ARG BASE_IMAGE=docker.io/library/ubuntu:26.04@sha256:6a06111c3b0a8600feadb270aec771dc239bf407b25625f93f44ab00e11f4d3c
++ARG BASE_IMAGE=docker.io/library/ubuntu:26.04@sha256:065aa8626841f16057b78b027b464cd59c4fac36c204c72dcbf48d66f5fa8a96
  ####################################################################################################
  # Builder image
  # Initial stage which pulls prepares build dependencies and CLI tooling we need for our final image
  # Also used as the image in CI jobs so needs all dependencies
  ####################################################################################################
 -FROM docker.io/library/golang:1.26.10@sha256:5c3f3f28a273c9b61698b2d34f18375929790ab1f1d3835d032d21e2b31eae0c AS builder
-+FROM docker.io/library/golang:1.26.10@sha256:670bb5aa5349ae03b8516764718486f4f16399134bdc9acd0c46a23f043ab05c AS builder
++FROM docker.io/library/golang:1.26.11@sha256:957952ae74dc010608717144399a59a2c6e82ea03d63be1c7ff6577c5a135f93 AS builder
  
  WORKDIR /tmp
  
@@ -20,7 +20,7 @@ index 0a23d17..b4ad498 100644
  # Argo CD UI stage
  ####################################################################################################
 -FROM --platform=$BUILDPLATFORM docker.io/library/node:23.0.0@sha256:9d09fa506f5b8465c5221cbd6f980e29ae0ce9a3119e2b9bc0842e6a3f37bb59 AS argocd-ui
-+FROM --platform=$BUILDPLATFORM docker.io/library/node:24.22.2@sha256:e7add2a490bb17d97b485b8641bd88455fff7839ade0f5eba493c3508124d413 AS argocd-ui
++FROM --platform=$BUILDPLATFORM docker.io/library/node:24.22.3@sha256:9d266751ca3d7fdbe651c878ffd5ad0a42fed49a18c283509267c97f025b7496 AS argocd-ui
  
  WORKDIR /src
  COPY ["ui/package.json", "ui/yarn.lock", "./"]
@@ -29,7 +29,7 @@ index 0a23d17..b4ad498 100644
  # Argo CD Build stage which performs the actual build of Argo CD binaries
  ####################################################################################################
 -FROM --platform=$BUILDPLATFORM docker.io/library/golang:1.26.10@sha256:5c3f3f28a273c9b61698b2d34f18375929790ab1f1d3835d032d21e2b31eae0c AS argocd-build
-+FROM --platform=$BUILDPLATFORM docker.io/library/golang:1.26.10@sha256:670bb5aa5349ae03b8516764718486f4f16399134bdc9acd0c46a23f043ab05c AS argocd-build
++FROM --platform=$BUILDPLATFORM docker.io/library/golang:1.26.11@sha256:957952ae74dc010608717144399a59a2c6e82ea03d63be1c7ff6577c5a135f93 AS argocd-build
  
  WORKDIR /go/src/github.com/argoproj/argo-cd
  

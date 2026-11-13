@@ -6,8 +6,8 @@ Upstream: https://github.com/argoproj/argo-cd @ `83ad9cd88fa0` (line `v3.4`)
 
 | Artifact | Before | After | Fixed | New |
 |---|---|---|---|---|
-| source (`trivy fs`) | 1 / 24 / 31 / 8 | 1 / 8 / 7 / 4 | 44 | 0 |
-| image `argocd` | 4 / 153 / 155 / 12 | 0 / 5 / 4 / 1 | 326 | 1 |
+| source (`trivy fs`) | 1 / 26 / 32 / 9 | 1 / 8 / 6 / 5 | 44 | 0 |
+| image `argocd` | 4 / 159 / 181 / 12 | 0 / 5 / 4 / 1 | 354 | 1 |
 
 - `CVE-2026-116585` is still in source (`trivy fs`) (`go.mod`), in `github.com/go-jose/go-jose/v3` v3.0.5 (no fix): not counted as fixed
 - `CVE-2026-116586` is still in source (`trivy fs`) (`go.mod`), in `github.com/go-jose/go-jose/v3` v3.0.5 (no fix): not counted as fixed
@@ -50,10 +50,10 @@ Upstream: https://github.com/argoproj/argo-cd @ `83ad9cd88fa0` (line `v3.4`)
 | yarn | `ui/yarn.lock` | `dompurify` | `3.4.13` | `3.4.17` | GHSA-6688-9rhm-gjv2, GHSA-c6gr-qvv4-5v3f, GHSA-cg2g-xh64-v4q7, GHSA-mrv2-3pqr-j5jr, GHSA-p98j-92pf-mc4p |
 | yarn | `ui/yarn.lock` | `lodash-es` | `4.17.23` | `4.18.1` | CVE-2026-2950, CVE-2026-4800 |
 | yarn | `ui/yarn.lock` | `moment` | `2.29.4` | `2.31.0` | CVE-2026-17495 |
-| dockerfile | `Dockerfile` | `docker.io/library/golang` | `golang:1.26.10@sha256:5c3f3f28a273c9b61698b2d34f18375929790ab1f1d3835d032d21e2b31eae0c` | `golang:1.26.10@sha256:670bb5aa5349ae03b8516764718486f4f16399134bdc9acd0c46a23f043ab05c` | base image refresh |
-| dockerfile | `Dockerfile` | `ARG BASE_IMAGE` | `ubuntu:26.04@sha256:f3d28607ddd78734bb7f71f117f3c6706c666b8b76cbff7c9ff6e5718d46ff64` | `ubuntu:26.04@sha256:6a06111c3b0a8600feadb270aec771dc239bf407b25625f93f44ab00e11f4d3c` | base image refresh |
-| dockerfile | `Dockerfile` | `docker.io/library/node` | `node:23.0.0@sha256:9d09fa506f5b8465c5221cbd6f980e29ae0ce9a3119e2b9bc0842e6a3f37bb59` | `node:24.22.2@sha256:e7add2a490bb17d97b485b8641bd88455fff7839ade0f5eba493c3508124d413` | 23.0.0 -> 24.22.2 (minVersions: the 24 line) |
-| dockerfile | `Dockerfile` | `docker.io/library/golang` | `golang:1.26.10@sha256:5c3f3f28a273c9b61698b2d34f18375929790ab1f1d3835d032d21e2b31eae0c` | `golang:1.26.10@sha256:670bb5aa5349ae03b8516764718486f4f16399134bdc9acd0c46a23f043ab05c` | base image refresh |
+| dockerfile | `Dockerfile` | `docker.io/library/golang` | `golang:1.26.10@sha256:5c3f3f28a273c9b61698b2d34f18375929790ab1f1d3835d032d21e2b31eae0c` | `golang:1.26.11@sha256:957952ae74dc010608717144399a59a2c6e82ea03d63be1c7ff6577c5a135f93` | 1.26.10 -> 1.26.11 |
+| dockerfile | `Dockerfile` | `ARG BASE_IMAGE` | `ubuntu:26.04@sha256:f3d28607ddd78734bb7f71f117f3c6706c666b8b76cbff7c9ff6e5718d46ff64` | `ubuntu:26.04@sha256:065aa8626841f16057b78b027b464cd59c4fac36c204c72dcbf48d66f5fa8a96` | base image refresh |
+| dockerfile | `Dockerfile` | `docker.io/library/node` | `node:23.0.0@sha256:9d09fa506f5b8465c5221cbd6f980e29ae0ce9a3119e2b9bc0842e6a3f37bb59` | `node:24.22.3@sha256:9d266751ca3d7fdbe651c878ffd5ad0a42fed49a18c283509267c97f025b7496` | 23.0.0 -> 24.22.3 (minVersions: the 24 line) |
+| dockerfile | `Dockerfile` | `docker.io/library/golang` | `golang:1.26.10@sha256:5c3f3f28a273c9b61698b2d34f18375929790ab1f1d3835d032d21e2b31eae0c` | `golang:1.26.11@sha256:957952ae74dc010608717144399a59a2c6e82ea03d63be1c7ff6577c5a135f93` | 1.26.10 -> 1.26.11 |
 
 ### Still fixable after patching
 
@@ -78,7 +78,6 @@ Upstream: https://github.com/argoproj/argo-cd @ `83ad9cd88fa0` (line `v3.4`)
 | MEDIUM | CVE-2026-41650 | `fast-xml-parser` | `4.5.6` | `5.7.0` | source (`trivy fs`): `ui/yarn.lock` | needs-human: fix requires a bump beyond the `minor` policy |
 | MEDIUM | CVE-2026-35206 | `helm.sh/helm/v3` | `v3.19.4` | `3.20.2` | image `argocd` | component `helm` (rebuilt from source): not fixed there, see `components/helm/report.md` |
 | MEDIUM | CVE-2026-2950 | `lodash-es` | `4.17.23` | `4.18.1` | source (`trivy fs`): `ui/yarn.lock` | not addressed - investigate |
-| MEDIUM | CVE-2026-118764 | `minimatch` | `5.1.6` | `11.0.1` | source (`trivy fs`): `ui/yarn.lock` | needs-human: fix requires a bump beyond the `minor` policy |
 | MEDIUM | CVE-2026-17495 | `moment` | `2.29.4` | `2.31.0` | source (`trivy fs`): `ui/yarn.lock` | not addressed - investigate |
 | MEDIUM | CVE-2026-50162 | `oras.land/oras-go/v2` | `v2.6.0` | `2.6.1` | image `argocd` | component `helm` (rebuilt from source): held: helm 3's registry login fails with oras-go 2.6.1+ (TestRegistryLogin); helm 4 is not held |
 | MEDIUM | CVE-2026-85732 | `oras.land/oras-go/v2` | `v2.6.0` | `2.6.2` | image `argocd` | component `helm` (rebuilt from source): held: helm 3's registry login fails with oras-go 2.6.1+ (TestRegistryLogin); helm 4 is not held |
@@ -88,11 +87,13 @@ Upstream: https://github.com/argoproj/argo-cd @ `83ad9cd88fa0` (line `v3.4`)
 | LOW | GHSA-6688-9rhm-gjv2 | `dompurify` | `3.4.13` | `3.4.16` | source (`trivy fs`): `ui/yarn.lock` | not addressed - investigate |
 | LOW | GHSA-c6gr-qvv4-5v3f | `dompurify` | `3.4.13` | `3.4.17` | source (`trivy fs`): `ui/yarn.lock` | not addressed - investigate |
 | LOW | GHSA-p98j-92pf-mc4p | `dompurify` | `3.4.13` | `3.4.16` | source (`trivy fs`): `ui/yarn.lock` | not addressed - investigate |
+| LOW | CVE-2026-126066 | `fast-xml-parser` | `4.5.6` | `5.12.0` | source (`trivy fs`): `ui/yarn.lock` | needs-human: fix requires a bump beyond the `minor` policy |
 | LOW | CVE-2026-48978 | `oras.land/oras-go/v2` | `v2.6.0` | `2.6.1` | image `argocd` | component `helm` (rebuilt from source): held: helm 3's registry login fails with oras-go 2.6.1+ (TestRegistryLogin); helm 4 is not held |
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | source (`trivy fs`): `go.mod` | untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one |
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `argocd` | untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one |
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `argocd` | component `git-lfs` (rebuilt from source): untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after i |
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `argocd` | component `helm` (rebuilt from source): untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it i |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | source (`trivy fs`): `go.mod` | cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18) |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `argocd` | cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18) |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `argocd` | component `git-lfs` (rebuilt from source): cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18) |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `argocd` | component `helm` (rebuilt from source): cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18) |
+| UNKNOWN | CVE-2026-97054 | `stdlib` | `v1.27.3` | `1.26.11, 1.27.4` | image `argocd` | in bundled artifact `usr/bin/pebble` (not built from this source) |
 
 ### Bumps that could not be applied
 
@@ -103,11 +104,11 @@ Upstream: https://github.com/argoproj/argo-cd @ `83ad9cd88fa0` (line `v3.4`)
 
 ### Newer releases beyond the policy (not applied)
 
-- `docker.io/library/golang` → `1.27.3` in `Dockerfile`: newer tag 1.27.3 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)
+- `docker.io/library/golang` → `1.27.4` in `Dockerfile`: newer tag 1.27.4 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)
 
 ### Upstream tests
 
-✅ passed in 9.6 min — `make test-local`
+✅ passed in 11.8 min — `make test-local`
 
 Skipped tests (from `skips/argo-cd.yaml`):
 
@@ -119,9 +120,9 @@ Skipped tests (from `skips/argo-cd.yaml`):
 
 ### Images
 
-| Image | Ref | Smoke | Copa |
-|---|---|---|---|
-| argocd | `patcher.local/argocd:v3.4.13-patched.dev` | ✅ `argocd version --client` | no fixable OS packages |
+| Image | Ref | Runs as | Smoke | Copa |
+|---|---|---|---|---|
+| argocd | `patcher.local/argocd:v3.4.13-patched.dev` | `999` | ✅ `argocd version --client` | no fixable OS packages |
 
 ### VEX suggestions (govulncheck reachability)
 
