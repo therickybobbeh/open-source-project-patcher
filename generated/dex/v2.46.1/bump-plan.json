@@ -83,7 +83,8 @@
         "vuln_id": "GO-2026-5932",
         "severity": "UNKNOWN",
         "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+        "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
+        "eligible": "2026-11-18T07:23:42+00:00"
       }
     ],
     "toolchain": {}
@@ -139,8 +140,8 @@
       "target": "Dockerfile",
       "name": "golang",
       "old": "golang:1.27.3-alpine3.24@sha256:f2c872bcee949b7be9c490efd02b48a8a2fbf947cdf533f1c58525ec9d8170fd",
-      "new": "golang:1.27.3-alpine3.24@sha256:d200d2dd76b03a99b52651fd1325aff7dcd35422c35c01bac56571b0507f3deb",
-      "note": "base image refresh",
+      "new": "golang:1.27.4-alpine3.24@sha256:0a5f7fe796599ff487605987432e7619ae45beeb2fba4c2ce0b907879932aebf",
+      "note": "1.27.3-alpine3.24 -> 1.27.4-alpine3.24",
       "level": "patch"
     },
     {
@@ -148,8 +149,8 @@
       "target": "Dockerfile",
       "name": "alpine",
       "old": "alpine:3.24.2@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6",
-      "new": "alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a",
-      "note": "3.24.2 -> 3.24.3",
+      "new": "alpine:3.24.4@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf",
+      "note": "3.24.2 -> 3.24.4",
       "level": "patch"
     },
     {
@@ -157,8 +158,8 @@
       "target": "Dockerfile",
       "name": "alpine",
       "old": "alpine:3.24.2@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6",
-      "new": "alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a",
-      "note": "3.24.2 -> 3.24.3",
+      "new": "alpine:3.24.4@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf",
+      "note": "3.24.2 -> 3.24.4",
       "level": "patch"
     },
     {
@@ -166,7 +167,7 @@
       "target": "Dockerfile",
       "name": "gcr.io/distroless/static-debian13",
       "old": "static-debian13:nonroot@sha256:e2e927ec666bae08560abb3c55d0659eceabb657f56b6782ab500a9fc7f555e3",
-      "new": "static-debian13:nonroot@sha256:25ac8f0c3b2334a9eb05452266bd4697864a8c8ef0ef71e5e6480d7f92868329",
+      "new": "static-debian13:nonroot@sha256:aafe993665bf6200db38a02c11a9351e782a84b6a45e7f33b6695638c88e3931",
       "note": "base image refresh",
       "level": "patch"
     }
@@ -198,7 +199,8 @@
       "vuln_id": "GO-2026-5932",
       "severity": "UNKNOWN",
       "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
+      "eligible": "2026-11-18T07:23:42+00:00"
     }
   ],
   "skips": [],
@@ -218,6 +220,16 @@
       "deny": [],
       "warn": []
     }
+  },
+  "leftovers": {
+    "dex": [
+      "GO-2026-5932|golang.org/x/crypto|usr/local/bin/dex",
+      "GO-2026-5932|golang.org/x/crypto|usr/local/bin/gomplate"
+    ],
+    "dex-distroless": [
+      "GO-2026-5932|golang.org/x/crypto|usr/local/bin/dex",
+      "GO-2026-5932|golang.org/x/crypto|usr/local/bin/gomplate"
+    ]
   },
   "upstream": {
     "released": "v2.46.1",
