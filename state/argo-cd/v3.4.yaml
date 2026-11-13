@@ -1,14 +1,14 @@
 upstreamTag: v3.4.13
 commit: 83ad9cd88fa03ec152b267b371e03ad670c4dd81
-revision: 3
-releasedAt: '2026-11-04T20:36:30Z'
+revision: 4
+releasedAt: '2026-11-13T14:20:18Z'
 platforms:
 - linux/amd64
 - linux/arm64
 images:
 - name: argocd
-  ref: ghcr.io/therickybobbeh/argocd:v3.4.13-patched.3
-  digest: sha256:1c5a9bcccb4b89e2559beb43ec38f836c8638c3cf223931c84bcb7470275ca5c
+  ref: ghcr.io/therickybobbeh/argocd:v3.4.13-patched.4
+  digest: sha256:93de567be611983c78ee26d872b8a7de96c9d183a0d73431314a65c6566f4ea1
   knownFixable:
   - CVE-2026-35206|helm.sh/helm/v3|usr/local/bin/helm
   - CVE-2026-48978|oras.land/oras-go/v2|usr/local/bin/helm
@@ -19,6 +19,7 @@ images:
   - CVE-2026-56852|golang.org/x/text|usr/local/bin/kustomize
   - CVE-2026-85731|oras.land/oras-go/v2|usr/local/bin/helm
   - CVE-2026-85732|oras.land/oras-go/v2|usr/local/bin/helm
+  - CVE-2026-97054|stdlib|usr/bin/pebble
   - GHSA-vh4v-2xq2-g5cg|oras.land/oras-go/v2|usr/local/bin/helm
   - GO-2026-5932|golang.org/x/crypto|usr/local/bin/argocd
   - GO-2026-5932|golang.org/x/crypto|usr/local/bin/git-lfs
