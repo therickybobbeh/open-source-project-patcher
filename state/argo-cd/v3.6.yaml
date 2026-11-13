@@ -1,15 +1,18 @@
 upstreamTag: v3.6.1
 commit: 94037c4d4e1af4bd0651d37a179fbd9e347e668c
-revision: 1
-releasedAt: '2026-11-04T20:39:42Z'
+revision: 2
+releasedAt: '2026-11-13T14:21:24Z'
 platforms:
 - linux/amd64
 - linux/arm64
 images:
 - name: argocd
-  ref: ghcr.io/therickybobbeh/argocd:v3.6.1-patched.1
-  digest: sha256:3ae4b444768d010592b7b74b868e123a2f21f0b82b3a50787a7aaab47fd3fdf6
+  ref: ghcr.io/therickybobbeh/argocd:v3.6.1-patched.2
+  digest: sha256:9a1fe26a8287c352110415332b78cffa7f064a7800fe9759e5cbcb5b0e124c9f
   knownFixable:
+  - CVE-2026-78661|golang.org/x/net|usr/local/bin/helm
+  - CVE-2026-97045|golang.org/x/net|usr/local/bin/helm
+  - CVE-2026-97054|stdlib|usr/bin/pebble
   - GO-2026-5932|golang.org/x/crypto|usr/local/bin/argocd
   - GO-2026-5932|golang.org/x/crypto|usr/local/bin/git-lfs
   - GO-2026-5932|golang.org/x/crypto|usr/local/bin/helm
