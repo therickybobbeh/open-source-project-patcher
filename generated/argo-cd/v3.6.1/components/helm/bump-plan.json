@@ -38,20 +38,6 @@
       {
         "ecosystem": "gomod",
         "target": "go.mod",
-        "name": "golang.org/x/net",
-        "installed": "v0.60.0",
-        "to": "v0.62.0",
-        "level": "minor",
-        "reasons": [
-          "CVE-2026-78661",
-          "CVE-2026-97045"
-        ],
-        "direct": false,
-        "dir": "."
-      },
-      {
-        "ecosystem": "gomod",
-        "target": "go.mod",
         "name": "google.golang.org/grpc",
         "installed": "v1.83.1",
         "to": "v1.83.2",
@@ -72,7 +58,27 @@
         "vuln_id": "GO-2026-5932",
         "severity": "UNKNOWN",
         "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.60.0",
+        "vuln_id": "CVE-2026-78661",
+        "severity": "HIGH",
+        "fixed": "0.62.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.60.0",
+        "vuln_id": "CVE-2026-97045",
+        "severity": "MEDIUM",
+        "fixed": "0.62.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
       }
     ],
     "toolchain": {}
@@ -104,15 +110,6 @@
       "new": "v1.83.2",
       "note": "CVE-2026-84445",
       "level": "patch"
-    },
-    {
-      "ecosystem": "gomod",
-      "target": "go.mod",
-      "name": "golang.org/x/net",
-      "old": "v0.60.0",
-      "new": "v0.62.0",
-      "note": "CVE-2026-78661, CVE-2026-97045",
-      "level": "minor"
     }
   ],
   "failures": [],
@@ -125,7 +122,27 @@
       "vuln_id": "GO-2026-5932",
       "severity": "UNKNOWN",
       "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.60.0",
+      "vuln_id": "CVE-2026-78661",
+      "severity": "HIGH",
+      "fixed": "0.62.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.60.0",
+      "vuln_id": "CVE-2026-97045",
+      "severity": "MEDIUM",
+      "fixed": "0.62.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
     }
   ],
   "skips": [],
@@ -134,5 +151,6 @@
     "ran": true,
     "passed": true
   },
-  "gate": {}
+  "gate": {},
+  "leftovers": {}
 }
