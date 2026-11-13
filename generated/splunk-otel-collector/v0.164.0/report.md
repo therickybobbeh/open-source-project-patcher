@@ -30,16 +30,16 @@ Upstream: https://github.com/signalfx/splunk-otel-collector @ `370a0a68ebf6` (li
 
 | Severity | Vulnerability | Package | Installed | Fixed in | Where | Reason |
 |---|---|---|---|---|---|---|
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | source (`trivy fs`): `baseline/go.mod` | cooldown: v0.59.0 released 1 day(s) ago (eligible 2026-11-18) |
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | source (`trivy fs`): `go.mod` | cooldown: v0.59.0 released 1 day(s) ago (eligible 2026-11-18) |
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | source (`trivy fs`): `internal/signalfx-agent/go.mod` | cooldown: v0.59.0 released 1 day(s) ago (eligible 2026-11-18) |
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | source (`trivy fs`): `pkg/receiver/smartagentreceiver/go.mod` | cooldown: v0.59.0 released 1 day(s) ago (eligible 2026-11-18) |
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | source (`trivy fs`): `pkg/splunkta/go.mod` | cooldown: v0.59.0 released 1 day(s) ago (eligible 2026-11-18) |
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `splunk-otel-collector` | cooldown: v0.59.0 released 1 day(s) ago (eligible 2026-11-18) |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | source (`trivy fs`): `baseline/go.mod` | cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18) |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | source (`trivy fs`): `go.mod` | cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18) |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | source (`trivy fs`): `internal/signalfx-agent/go.mod` | cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18) |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | source (`trivy fs`): `pkg/receiver/smartagentreceiver/go.mod` | cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18) |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | source (`trivy fs`): `pkg/splunkta/go.mod` | cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18) |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `splunk-otel-collector` | cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18) |
 
 ### Upstream tests
 
-✅ passed in 24.2 min — `make test-all`
+✅ passed in 24.8 min — `make test-all`
 
 ### Images
 
