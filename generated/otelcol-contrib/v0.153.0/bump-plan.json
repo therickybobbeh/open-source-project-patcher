@@ -325,7 +325,8 @@
         "vuln_id": "GO-2026-5932",
         "severity": "UNKNOWN",
         "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+        "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
+        "eligible": "2026-11-18T07:23:42+00:00"
       }
     ],
     "toolchain": {}
@@ -525,7 +526,7 @@
       "target": "distributions/otelcol-contrib/Dockerfile",
       "name": "alpine",
       "old": "alpine:3.23@sha256:5b10f432ef3da1b8d4c7eb6c487f2f5a8f096bc91145e68878dd4a5019afde11",
-      "new": "alpine:3.23@sha256:ff7f0c727dd796aa36787bfcd9a64bf35a6ce72a73451b3359fde849b6703d63",
+      "new": "alpine:3.23@sha256:469c9ea410b9215eaee7976ba6c0639039b444be8e5d638f7abbada189971eb2",
       "note": "base image refresh",
       "level": "patch"
     }
@@ -569,7 +570,8 @@
       "vuln_id": "GO-2026-5932",
       "severity": "UNKNOWN",
       "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
+      "eligible": "2026-11-18T07:23:42+00:00"
     }
   ],
   "skips": [],
@@ -584,5 +586,16 @@
       "deny": [],
       "warn": []
     }
+  },
+  "leftovers": {
+    "opentelemetry-collector-contrib": [
+      "CVE-2026-81871|go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc|otelcol-contrib",
+      "CVE-2026-81872|go.opentelemetry.io/otel/sdk/log|otelcol-contrib",
+      "GO-2026-5932|golang.org/x/crypto|otelcol-contrib"
+    ]
+  },
+  "upstream": {
+    "released": "v0.153.0",
+    "level": "same"
   }
 }

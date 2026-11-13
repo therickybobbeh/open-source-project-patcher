@@ -6,8 +6,8 @@ Upstream: https://github.com/open-telemetry/opentelemetry-collector-releases @ `
 
 | Artifact | Before | After | Fixed | New |
 |---|---|---|---|---|
-| source (`trivy fs`) | 3 / 20 / 17 / 6 | 0 / 0 / 2 / 0 | 46 | 0 |
-| image `opentelemetry-collector-contrib` | 3 / 35 / 28 / 7 | 0 / 0 / 2 / 0 | 73 | 0 |
+| source (`trivy fs`) | 3 / 21 / 18 / 6 | 0 / 0 / 2 / 0 | 46 | 0 |
+| image `opentelemetry-collector-contrib` | 3 / 36 / 29 / 7 | 0 / 0 / 2 / 0 | 74 | 0 |
 
 ### Release gate (reported only (`gate.enforce: false`))
 
@@ -38,7 +38,7 @@ Upstream: https://github.com/open-telemetry/opentelemetry-collector-releases @ `
 | gomod | `distributions/otelcol-contrib/gen/go.mod` | `go.opentelemetry.io/ebpf-profiler` | `v0.0.202618` | `v0.0.202622` | CVE-2026-48496 |
 | gomod | `distributions/otelcol-contrib/gen/go.mod` | `go.opentelemetry.io/otel/schema` | `v0.0.16` | `v0.0.17` | CVE-2026-45287 |
 | gomod | `distributions/otelcol-contrib/gen/go.mod` | `go` | `1.25.0` | `1.26.0` | required by a bumped dependency |
-| dockerfile | `distributions/otelcol-contrib/Dockerfile` | `alpine` | `alpine:3.23@sha256:5b10f432ef3da1b8d4c7eb6c487f2f5a8f096bc91145e68878dd4a5019afde11` | `alpine:3.23@sha256:ff7f0c727dd796aa36787bfcd9a64bf35a6ce72a73451b3359fde849b6703d63` | base image refresh |
+| dockerfile | `distributions/otelcol-contrib/Dockerfile` | `alpine` | `alpine:3.23@sha256:5b10f432ef3da1b8d4c7eb6c487f2f5a8f096bc91145e68878dd4a5019afde11` | `alpine:3.23@sha256:469c9ea410b9215eaee7976ba6c0639039b444be8e5d638f7abbada189971eb2` | base image refresh |
 
 ### Still fixable after patching
 
@@ -48,8 +48,8 @@ Upstream: https://github.com/open-telemetry/opentelemetry-collector-releases @ `
 | MEDIUM | CVE-2026-81871 | `go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc` | `v0.19.0` | `0.21.0` | image `opentelemetry-collector-contrib` | held: same lockstep as go.opentelemetry.io/otel/sdk/log |
 | MEDIUM | CVE-2026-81872 | `go.opentelemetry.io/otel/sdk/log` | `v0.19.0` | `0.21.0` | source (`trivy fs`): `distributions/otelcol-contrib/gen/go.mod` | held: moves in lockstep with the log exporters and bridges; bumped alone it breaks the build (fixed in newer collector releases) |
 | MEDIUM | CVE-2026-81872 | `go.opentelemetry.io/otel/sdk/log` | `v0.19.0` | `0.21.0` | image `opentelemetry-collector-contrib` | held: moves in lockstep with the log exporters and bridges; bumped alone it breaks the build (fixed in newer collector releases) |
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | source (`trivy fs`): `distributions/otelcol-contrib/gen/go.mod` | untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one |
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `opentelemetry-collector-contrib` | untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | source (`trivy fs`): `distributions/otelcol-contrib/gen/go.mod` | cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18) |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `opentelemetry-collector-contrib` | cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18) |
 
 ### Newer releases beyond the policy (not applied)
 
@@ -61,9 +61,9 @@ Not run.
 
 ### Images
 
-| Image | Ref | Smoke | Copa |
-|---|---|---|---|
-| opentelemetry-collector-contrib | `patcher.local/opentelemetry-collector-contrib:0.153.0-patched.dev` | ✅ `--version`, ✅ `components`, ✅ `validate --config /etc/otelcol-contrib/config.yaml` | no fixable OS packages |
+| Image | Ref | Runs as | Smoke | Copa |
+|---|---|---|---|---|
+| opentelemetry-collector-contrib | `patcher.local/opentelemetry-collector-contrib:0.153.0-patched.dev` | `10001:10001` | ✅ `--version`, ✅ `components`, ✅ `validate --config /etc/otelcol-contrib/config.yaml` | no fixable OS packages |
 
 ### Notes
 

@@ -1,10 +1,10 @@
 diff --git a/distributions/otelcol-contrib/Dockerfile b/distributions/otelcol-contrib/Dockerfile
-index 0aced06..190962d 100644
+index 0aced06..d22a724 100644
 --- a/distributions/otelcol-contrib/Dockerfile
 +++ b/distributions/otelcol-contrib/Dockerfile
 @@ -1,4 +1,4 @@
 -FROM alpine:3.23@sha256:5b10f432ef3da1b8d4c7eb6c487f2f5a8f096bc91145e68878dd4a5019afde11 as certs
-+FROM alpine:3.23@sha256:ff7f0c727dd796aa36787bfcd9a64bf35a6ce72a73451b3359fde849b6703d63 as certs
++FROM alpine:3.23@sha256:469c9ea410b9215eaee7976ba6c0639039b444be8e5d638f7abbada189971eb2 as certs
  RUN apk --update add ca-certificates
  
  FROM scratch
