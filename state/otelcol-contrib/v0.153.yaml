@@ -1,14 +1,14 @@
 upstreamTag: v0.153.0
 commit: 6c0352ec0d8e3c9c01107449f2474ce70883443c
-revision: 2
-releasedAt: '2026-11-03T21:25:12Z'
+revision: 3
+releasedAt: '2026-11-13T14:22:24Z'
 platforms:
 - linux/amd64
 - linux/arm64
 images:
 - name: opentelemetry-collector-contrib
-  ref: ghcr.io/therickybobbeh/opentelemetry-collector-contrib:0.153.0-patched.2
-  digest: sha256:e231d2d70cb32ecfada533865962ff29b19b6cde591e4735c630b2a217307099
+  ref: ghcr.io/therickybobbeh/opentelemetry-collector-contrib:0.153.0-patched.3
+  digest: sha256:fcc141abb9ce5e69472d3211de2a1f97eeced382f9c55c3f2f2e68d8e2ac5980
   knownFixable:
   - CVE-2026-81871|go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc|otelcol-contrib
   - CVE-2026-81872|go.opentelemetry.io/otel/sdk/log|otelcol-contrib
