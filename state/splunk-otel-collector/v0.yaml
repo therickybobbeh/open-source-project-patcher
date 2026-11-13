@@ -1,13 +1,13 @@
 upstreamTag: v0.164.0
 commit: 370a0a68ebf661de554e9b9f28077959dc6033d8
-revision: 2
-releasedAt: '2026-11-04T21:22:46Z'
+revision: 3
+releasedAt: '2026-11-13T14:19:18Z'
 platforms:
 - linux/amd64
 - linux/arm64
 images:
 - name: splunk-otel-collector
-  ref: ghcr.io/therickybobbeh/splunk-otel-collector:0.164.0-patched.2
-  digest: sha256:e766407d83e423d062ff3e50d30e83de9a2790a4b43af947e12be58576fdf331
+  ref: ghcr.io/therickybobbeh/splunk-otel-collector:0.164.0-patched.3
+  digest: sha256:a7db711e3ebce24c2c70a36791da00a30d8c52ac829e7b81e0acc118a8749433
   knownFixable:
   - GO-2026-5932|golang.org/x/crypto|otelcol
