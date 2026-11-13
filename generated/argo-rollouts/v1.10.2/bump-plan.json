@@ -201,7 +201,8 @@
         "vuln_id": "GO-2026-5932",
         "severity": "UNKNOWN",
         "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+        "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
+        "eligible": "2026-11-18T07:23:42+00:00"
       },
       {
         "ecosystem": "pnpm",
@@ -349,7 +350,7 @@
       "target": "Dockerfile",
       "name": "golang",
       "old": "golang:1.26",
-      "new": "golang:1.26@sha256:c2af3746d2f3a488078d4acd21fb67c6fe801333dec6542fb1548467d408a812",
+      "new": "golang:1.26@sha256:978e0a4e3d953662577d784471db27742f543ab09eead06839a838188c73314b",
       "note": "base image refresh",
       "level": "patch"
     },
@@ -358,7 +359,7 @@
       "target": "Dockerfile",
       "name": "docker.io/library/node",
       "old": "node:22",
-      "new": "node:22@sha256:18a6d90fd60542269850c80ca03b29b1d9b14d6b221ac7ee8e35b0d33ef904bd",
+      "new": "node:22@sha256:e13726ca604184d7a91fcacab1fc09eefd642dc28e79ac34e85540dd93b78cfb",
       "note": "base image refresh",
       "level": "patch"
     },
@@ -367,7 +368,7 @@
       "target": "Dockerfile",
       "name": "golang",
       "old": "golang:1.26",
-      "new": "golang:1.26@sha256:c2af3746d2f3a488078d4acd21fb67c6fe801333dec6542fb1548467d408a812",
+      "new": "golang:1.26@sha256:978e0a4e3d953662577d784471db27742f543ab09eead06839a838188c73314b",
       "note": "base image refresh",
       "level": "patch"
     }
@@ -399,7 +400,8 @@
       "vuln_id": "GO-2026-5932",
       "severity": "UNKNOWN",
       "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
+      "eligible": "2026-11-18T07:23:42+00:00"
     },
     {
       "ecosystem": "pnpm",
@@ -457,7 +459,7 @@
     ]
   },
   "upstream": {
-    "released": "v1.10.1",
-    "level": "patch"
+    "released": "v1.10.2",
+    "level": "same"
   }
 }

@@ -6,9 +6,9 @@ Upstream: https://github.com/argoproj/argo-rollouts @ `be8a6221c6c9` (line `v1.1
 
 | Artifact | Before | After | Fixed | New |
 |---|---|---|---|---|
-| source (`trivy fs`) | 0 / 15 / 12 / 1 | 0 / 1 / 1 / 0 | 28 | 0 |
-| image `argo-rollouts` | 0 / 9 / 7 / 0 | 0 / 0 / 0 / 0 | 22 | 4 |
-| image `kubectl-argo-rollouts` | 0 / 9 / 7 / 0 | 0 / 0 / 0 / 0 | 22 | 4 |
+| source (`trivy fs`) | 0 / 16 / 13 / 1 | 0 / 1 / 1 / 0 | 28 | 0 |
+| image `argo-rollouts` | 0 / 10 / 8 / 0 | 0 / 0 / 0 / 0 | 23 | 4 |
+| image `kubectl-argo-rollouts` | 0 / 10 / 8 / 0 | 0 / 0 / 0 / 0 | 23 | 4 |
 
 ### Release gate (reported only (`gate.enforce: false`))
 
@@ -32,9 +32,9 @@ Upstream: https://github.com/argoproj/argo-rollouts @ `be8a6221c6c9` (line `v1.1
 | pnpm | `ui/pnpm-lock.yaml` | `min-document` | `2.19.0` | `2.19.1` | CVE-2025-57352 |
 | pnpm | `ui/pnpm-lock.yaml` | `moment` | `2.29.4` | `2.31.0` | CVE-2026-17495 |
 | pnpm | `ui/pnpm-lock.yaml` | `path-to-regexp` | `1.8.0` | `1.9.0` | CVE-2024-45296 |
-| dockerfile | `Dockerfile` | `golang` | `golang:1.26` | `golang:1.26@sha256:c2af3746d2f3a488078d4acd21fb67c6fe801333dec6542fb1548467d408a812` | base image refresh |
-| dockerfile | `Dockerfile` | `docker.io/library/node` | `node:22` | `node:22@sha256:18a6d90fd60542269850c80ca03b29b1d9b14d6b221ac7ee8e35b0d33ef904bd` | base image refresh |
-| dockerfile | `Dockerfile` | `golang` | `golang:1.26` | `golang:1.26@sha256:c2af3746d2f3a488078d4acd21fb67c6fe801333dec6542fb1548467d408a812` | base image refresh |
+| dockerfile | `Dockerfile` | `golang` | `golang:1.26` | `golang:1.26@sha256:978e0a4e3d953662577d784471db27742f543ab09eead06839a838188c73314b` | base image refresh |
+| dockerfile | `Dockerfile` | `docker.io/library/node` | `node:22` | `node:22@sha256:e13726ca604184d7a91fcacab1fc09eefd642dc28e79ac34e85540dd93b78cfb` | base image refresh |
+| dockerfile | `Dockerfile` | `golang` | `golang:1.26` | `golang:1.26@sha256:978e0a4e3d953662577d784471db27742f543ab09eead06839a838188c73314b` | base image refresh |
 
 ### Still fixable after patching
 
@@ -44,9 +44,9 @@ Upstream: https://github.com/argoproj/argo-rollouts @ `be8a6221c6c9` (line `v1.1
 | MEDIUM | CVE-2026-41907 | `uuid` | `9.0.1` | `11.1.1, 12.0.1, 13.0.1` | source (`trivy fs`): `ui/pnpm-lock.yaml` | needs-human: fix requires a bump beyond the `minor` policy |
 | UNKNOWN | DLA-4845-1 | `ca-certificates` | `20250419~deb12u1` | `20250419~deb12u2` | image `argo-rollouts` | OS package not patched (Copa: disabled) |
 | UNKNOWN | DLA-4845-1 | `ca-certificates` | `20250419~deb12u1` | `20250419~deb12u2` | image `kubectl-argo-rollouts` | OS package not patched (Copa: disabled) |
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | source (`trivy fs`): `go.mod` | untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one |
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `argo-rollouts` | untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one |
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `kubectl-argo-rollouts` | untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | source (`trivy fs`): `go.mod` | cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18) |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `argo-rollouts` | cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18) |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `kubectl-argo-rollouts` | cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18) |
 | UNKNOWN | DLA-4792-1 | `tzdata` | `2026b-0+deb12u1` | `2026c-0+deb12u1` | image `argo-rollouts` | OS package not patched (Copa: disabled) |
 | UNKNOWN | DLA-4854-1 | `tzdata` | `2026b-0+deb12u1` | `2026e-0+deb12u1` | image `argo-rollouts` | OS package not patched (Copa: disabled) |
 | UNKNOWN | DLA-4867-1 | `tzdata` | `2026b-0+deb12u1` | `2026f-0+deb12u1` | image `argo-rollouts` | OS package not patched (Copa: disabled) |
@@ -60,7 +60,7 @@ Upstream: https://github.com/argoproj/argo-rollouts @ `be8a6221c6c9` (line `v1.1
 
 ### Upstream tests
 
-✅ passed in 5.4 min — `go run gotest.tools/gotestsum@v1.13.0 --junitfile junit-unit-test.xml --format testname -- $(go list ./... | grep -v ./test/cmd/metrics-plugin-sample) -cover `
+✅ passed in 4.6 min — `go run gotest.tools/gotestsum@v1.13.0 --junitfile junit-unit-test.xml --format testname -- $(go list ./... | grep -v ./test/cmd/metrics-plugin-sample) -cover `
 
 ### Images
 
