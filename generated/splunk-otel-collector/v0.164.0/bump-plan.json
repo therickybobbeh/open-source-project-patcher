@@ -87,7 +87,7 @@
         "vuln_id": "GO-2026-5932",
         "severity": "UNKNOWN",
         "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-        "why": "cooldown: v0.59.0 released 1 day(s) ago (eligible 2026-11-18)",
+        "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
         "eligible": "2026-11-18T07:23:42+00:00"
       },
       {
@@ -98,7 +98,7 @@
         "vuln_id": "GO-2026-5932",
         "severity": "UNKNOWN",
         "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-        "why": "cooldown: v0.59.0 released 1 day(s) ago (eligible 2026-11-18)",
+        "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
         "eligible": "2026-11-18T07:23:42+00:00"
       },
       {
@@ -109,7 +109,7 @@
         "vuln_id": "GO-2026-5932",
         "severity": "UNKNOWN",
         "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-        "why": "cooldown: v0.59.0 released 1 day(s) ago (eligible 2026-11-18)",
+        "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
         "eligible": "2026-11-18T07:23:42+00:00"
       },
       {
@@ -120,7 +120,7 @@
         "vuln_id": "GO-2026-5932",
         "severity": "UNKNOWN",
         "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-        "why": "cooldown: v0.59.0 released 1 day(s) ago (eligible 2026-11-18)",
+        "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
         "eligible": "2026-11-18T07:23:42+00:00"
       },
       {
@@ -131,7 +131,7 @@
         "vuln_id": "GO-2026-5932",
         "severity": "UNKNOWN",
         "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-        "why": "cooldown: v0.59.0 released 1 day(s) ago (eligible 2026-11-18)",
+        "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
         "eligible": "2026-11-18T07:23:42+00:00"
       }
     ],
@@ -221,7 +221,7 @@
       "vuln_id": "GO-2026-5932",
       "severity": "UNKNOWN",
       "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-      "why": "cooldown: v0.59.0 released 1 day(s) ago (eligible 2026-11-18)",
+      "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
       "eligible": "2026-11-18T07:23:42+00:00"
     },
     {
@@ -232,7 +232,7 @@
       "vuln_id": "GO-2026-5932",
       "severity": "UNKNOWN",
       "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-      "why": "cooldown: v0.59.0 released 1 day(s) ago (eligible 2026-11-18)",
+      "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
       "eligible": "2026-11-18T07:23:42+00:00"
     },
     {
@@ -243,7 +243,7 @@
       "vuln_id": "GO-2026-5932",
       "severity": "UNKNOWN",
       "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-      "why": "cooldown: v0.59.0 released 1 day(s) ago (eligible 2026-11-18)",
+      "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
       "eligible": "2026-11-18T07:23:42+00:00"
     },
     {
@@ -254,7 +254,7 @@
       "vuln_id": "GO-2026-5932",
       "severity": "UNKNOWN",
       "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-      "why": "cooldown: v0.59.0 released 1 day(s) ago (eligible 2026-11-18)",
+      "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
       "eligible": "2026-11-18T07:23:42+00:00"
     },
     {
@@ -265,7 +265,7 @@
       "vuln_id": "GO-2026-5932",
       "severity": "UNKNOWN",
       "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-      "why": "cooldown: v0.59.0 released 1 day(s) ago (eligible 2026-11-18)",
+      "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
       "eligible": "2026-11-18T07:23:42+00:00"
     }
   ],
