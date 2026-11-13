@@ -1,13 +1,13 @@
 upstreamTag: v0.36.1
 commit: b40091af2bfba4c90b109fc0817d6c3f49bfc9a4
-revision: 2
-releasedAt: '2026-11-07T12:00:49Z'
+revision: 3
+releasedAt: '2026-11-13T14:15:28Z'
 platforms:
 - linux/amd64
 - linux/arm64
 images:
 - name: trivy-operator
-  ref: ghcr.io/therickybobbeh/trivy-operator:0.36.1-patched.2
-  digest: sha256:6738bd570fd2a55aa23d6c69c517c9af4162b951a9dbcaff6f35c206ad2a956d
+  ref: ghcr.io/therickybobbeh/trivy-operator:0.36.1-patched.3
+  digest: sha256:44db2b263d750649dc3c6756f47d054e5bcd79a0cdf37a5b717bd0949592edf4
   knownFixable:
   - GO-2026-5932|golang.org/x/crypto|usr/local/bin/trivy-operator
