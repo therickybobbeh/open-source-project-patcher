@@ -16,7 +16,8 @@
         "vuln_id": "GO-2026-5932",
         "severity": "UNKNOWN",
         "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+        "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
+        "eligible": "2026-11-18T07:23:42+00:00"
       }
     ],
     "toolchain": {}
@@ -27,8 +28,9 @@
       "target": "build/trivy-operator/Dockerfile",
       "name": "alpine",
       "old": "alpine:3.24.2",
-      "new": "alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a",
-      "note": "3.24.2 -> 3.24.3"
+      "new": "alpine:3.24.4@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf",
+      "note": "3.24.2 -> 3.24.4",
+      "level": "patch"
     }
   ],
   "failures": [],
@@ -41,8 +43,30 @@
       "vuln_id": "GO-2026-5932",
       "severity": "UNKNOWN",
       "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
+      "eligible": "2026-11-18T07:23:42+00:00"
     }
   ],
-  "skips": []
+  "skips": [],
+  "tests": {
+    "configured": true,
+    "ran": true,
+    "passed": true
+  },
+  "gate": {
+    "trivy-operator": {
+      "passed": true,
+      "deny": [],
+      "warn": []
+    }
+  },
+  "leftovers": {
+    "trivy-operator": [
+      "GO-2026-5932|golang.org/x/crypto|usr/local/bin/trivy-operator"
+    ]
+  },
+  "upstream": {
+    "released": "v0.36.1",
+    "level": "same"
+  }
 }
