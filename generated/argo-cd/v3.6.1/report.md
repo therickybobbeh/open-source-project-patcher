@@ -2,14 +2,12 @@
 
 Upstream: https://github.com/argoproj/argo-cd @ `94037c4d4e1a` (line `v3.6`)
 
-> **First release of line `v3.6`.** The daily merge round leaves it for a person: merge it by hand.
-
 ### Fixable vulnerabilities (critical / high / medium / low)
 
 | Artifact | Before | After | Fixed | New |
 |---|---|---|---|---|
-| source (`trivy fs`) | 0 / 10 / 11 / 0 | 0 / 2 / 2 / 0 | 19 | 0 |
-| image `argocd` | 0 / 20 / 24 / 2 | 0 / 0 / 0 / 0 | 50 | 0 |
+| source (`trivy fs`) | 0 / 11 / 12 / 0 | 0 / 2 / 2 / 0 | 19 | 0 |
+| image `argocd` | 0 / 24 / 48 / 2 | 0 / 1 / 1 / 0 | 76 | 0 |
 
 ### Release gate (reported only (`gate.enforce: false`))
 
@@ -27,31 +25,34 @@ Upstream: https://github.com/argoproj/argo-cd @ `94037c4d4e1a` (line `v3.6`)
 | pnpm | `ui/pnpm-lock.yaml` | `moment` | `2.30.1` | `2.31.0` | CVE-2026-17495 |
 | pnpm | `ui/pnpm-lock.yaml` | `qs` | `6.15.2` | `6.16.1` | CVE-2026-110816, CVE-2026-82417, CVE-2026-82562 |
 | pnpm | `ui/pnpm-lock.yaml` | `source-map-js` | `1.2.1` | `1.2.2` | CVE-2026-93749 |
-| dockerfile | `Dockerfile` | `docker.io/library/golang` | `golang:1.27.3@sha256:957861185dbf29d93668ace41e011d091c6e779953d47f0316ef2cc58e28fe2b` | `golang:1.27.3@sha256:2920bb124f1a2e12a1d39f0cab756ae0068441ee1da7655dec7f5e374944095b` | base image refresh |
-| dockerfile | `Dockerfile` | `ARG BASE_IMAGE` | `ubuntu:26.04@sha256:2260313b31c8c011cd2eebe728008efac1b3982be73eb71348ea2648d2c0e09b` | `ubuntu:26.04@sha256:6a06111c3b0a8600feadb270aec771dc239bf407b25625f93f44ab00e11f4d3c` | base image refresh |
+| dockerfile | `Dockerfile` | `docker.io/library/golang` | `golang:1.27.3@sha256:957861185dbf29d93668ace41e011d091c6e779953d47f0316ef2cc58e28fe2b` | `golang:1.27.4@sha256:5e8afd493a7124a8586e134d9b532731161d4b9becf9dee5a5956b107426f93d` | 1.27.3 -> 1.27.4 |
+| dockerfile | `Dockerfile` | `ARG BASE_IMAGE` | `ubuntu:26.04@sha256:2260313b31c8c011cd2eebe728008efac1b3982be73eb71348ea2648d2c0e09b` | `ubuntu:26.04@sha256:065aa8626841f16057b78b027b464cd59c4fac36c204c72dcbf48d66f5fa8a96` | base image refresh |
 | dockerfile | `Dockerfile` | `docker.io/library/node` | `node:24.17.0@sha256:032e78d7e54e352129831743737e3a83171d9cc5b5896f411649c597ce0b11ea` | `node:24.17.0@sha256:733e1c06ada118ed9f6133a31aa1290be6929664026fb28821500437c61f2c6f` | base image refresh |
-| dockerfile | `Dockerfile` | `docker.io/library/golang` | `golang:1.27.3@sha256:957861185dbf29d93668ace41e011d091c6e779953d47f0316ef2cc58e28fe2b` | `golang:1.27.3@sha256:2920bb124f1a2e12a1d39f0cab756ae0068441ee1da7655dec7f5e374944095b` | base image refresh |
+| dockerfile | `Dockerfile` | `docker.io/library/golang` | `golang:1.27.3@sha256:957861185dbf29d93668ace41e011d091c6e779953d47f0316ef2cc58e28fe2b` | `golang:1.27.4@sha256:5e8afd493a7124a8586e134d9b532731161d4b9becf9dee5a5956b107426f93d` | 1.27.3 -> 1.27.4 |
 
 ### Still fixable after patching
 
 | Severity | Vulnerability | Package | Installed | Fixed in | Where | Reason |
 |---|---|---|---|---|---|---|
+| HIGH | CVE-2026-78661 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | image `argocd` | component `helm` (rebuilt from source): needs-human: fix requires a bump beyond the `patch` policy |
 | HIGH | CVE-2026-48801 | `linkify-it` | `3.0.3` | `5.0.1` | source (`trivy fs`): `ui/pnpm-lock.yaml` | needs-human: fix requires a bump beyond the `minor` policy |
 | HIGH | CVE-2026-59887 | `linkify-it` | `3.0.3` | `5.0.2` | source (`trivy fs`): `ui/pnpm-lock.yaml` | needs-human: fix requires a bump beyond the `minor` policy |
+| MEDIUM | CVE-2026-97045 | `golang.org/x/net` | `v0.60.0` | `0.62.0` | image `argocd` | component `helm` (rebuilt from source): needs-human: fix requires a bump beyond the `patch` policy |
 | MEDIUM | CVE-2026-118764 | `minimatch` | `9.0.9` | `11.0.1` | source (`trivy fs`): `ui/pnpm-lock.yaml` | needs-human: fix requires a bump beyond the `minor` policy |
 | MEDIUM | CVE-2026-41907 | `uuid` | `9.0.1` | `11.1.1, 12.0.1, 13.0.1` | source (`trivy fs`): `ui/pnpm-lock.yaml` | needs-human: fix requires a bump beyond the `minor` policy |
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | source (`trivy fs`): `go.mod` | untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one |
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `argocd` | untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one |
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `argocd` | component `git-lfs` (rebuilt from source): untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after i |
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `argocd` | component `helm` (rebuilt from source): untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it i |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | source (`trivy fs`): `go.mod` | cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18) |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `argocd` | cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18) |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `argocd` | component `git-lfs` (rebuilt from source): cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18) |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `argocd` | component `helm` (rebuilt from source): needs-human: fix requires a bump beyond the `patch` policy |
+| UNKNOWN | CVE-2026-97054 | `stdlib` | `v1.27.3` | `1.26.11, 1.27.4` | image `argocd` | in bundled artifact `usr/bin/pebble` (not built from this source) |
 
 ### Newer releases beyond the policy (not applied)
 
-- `docker.io/library/node` → `24.22.2` in `Dockerfile`: newer tag 24.22.2 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)
+- `docker.io/library/node` → `24.22.3` in `Dockerfile`: newer tag 24.22.3 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)
 
 ### Upstream tests
 
-✅ passed in 12.9 min — `make test-local`
+✅ passed in 9.6 min — `make test-local`
 
 Skipped tests (from `skips/argo-cd.yaml`):
 
@@ -63,9 +64,9 @@ Skipped tests (from `skips/argo-cd.yaml`):
 
 ### Images
 
-| Image | Ref | Smoke | Copa |
-|---|---|---|---|
-| argocd | `patcher.local/argocd:v3.6.1-patched.dev` | ✅ `argocd version --client` | no fixable OS packages |
+| Image | Ref | Runs as | Smoke | Copa |
+|---|---|---|---|---|
+| argocd | `patcher.local/argocd:v3.6.1-patched.dev` | `999` | ✅ `argocd version --client` | no fixable OS packages |
 
 ### VEX suggestions (govulncheck reachability)
 
@@ -79,7 +80,7 @@ Draft statements in `vex-suggestions.yaml`; review, then copy what you accept in
 
 | Image | Component | Path | Version | Status | Bumps | Tests | Notes |
 |---|---|---|---|---|---|---|---|
-| argocd | helm | `/usr/local/bin/helm` | 4.3.1 | success | 4 | passed | version from hack/tool-versions.sh |
+| argocd | helm | `/usr/local/bin/helm` | 4.3.1 | success | 3 | passed | version from hack/tool-versions.sh |
 | argocd | kustomize | `/usr/local/bin/kustomize` | 5.8.3 | no-changes | 0 | passed | version from hack/tool-versions.sh |
 | argocd | git-lfs | `/usr/local/bin/git-lfs` | 3.8.1 | success | 4 | passed | version from hack/tool-versions.sh |
 
