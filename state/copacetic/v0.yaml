@@ -1,26 +1,26 @@
 upstreamTag: v0.15.0
 commit: bce7b4305e378558f20420aa2ca48686cec850d0
-revision: 8
-releasedAt: '2026-11-09T14:27:01Z'
+revision: 9
+releasedAt: '2026-11-13T14:16:57Z'
 platforms:
 - linux/amd64
 - linux/arm64
 images:
 - name: copa
-  ref: ghcr.io/therickybobbeh/copa:v0.15.0-patched.8
-  digest: sha256:3d49d4f9d965ffb1464d0ea5b85697b4158fe38d7a22194445222e72244d729a
+  ref: ghcr.io/therickybobbeh/copa:v0.15.0-patched.9
+  digest: sha256:a22cdb048a73ce07e2ad3b85cb6bfc3c2d36bf2b241a2774ca0d596268335fc7
   knownFixable:
   - GO-2026-5932|golang.org/x/crypto|usr/local/bin/copa
 - name: copacetic-frontend
-  ref: ghcr.io/therickybobbeh/copacetic-frontend:v0.15.0-patched.6
-  digest: sha256:5c5a982a025aa534c6f2bbb2575692fb8995ee0723cd30994849a86d8df2daa0
+  ref: ghcr.io/therickybobbeh/copacetic-frontend:v0.15.0-patched.9
+  digest: sha256:25a8677d6f7cc03818623fe5e7ed138c3777fc18d77748cd74d10776ea72ca6a
   knownFixable:
-  - DLA-4792-1|tzdata|ghcr.io/therickybobbeh/copacetic-frontend@sha256:5c5a982a025aa534c6f2bbb2575692fb8995ee0723cd30994849a86d8df2daa0
+  - DLA-4792-1|tzdata|ghcr.io/therickybobbeh/copacetic-frontend@sha256:25a8677d6f7cc03818623fe5e7ed138c3777fc18d77748cd74d10776ea72ca6a
     (debian 12.15)
-  - DLA-4845-1|ca-certificates|ghcr.io/therickybobbeh/copacetic-frontend@sha256:5c5a982a025aa534c6f2bbb2575692fb8995ee0723cd30994849a86d8df2daa0
+  - DLA-4845-1|ca-certificates|ghcr.io/therickybobbeh/copacetic-frontend@sha256:25a8677d6f7cc03818623fe5e7ed138c3777fc18d77748cd74d10776ea72ca6a
     (debian 12.15)
-  - DLA-4854-1|tzdata|ghcr.io/therickybobbeh/copacetic-frontend@sha256:5c5a982a025aa534c6f2bbb2575692fb8995ee0723cd30994849a86d8df2daa0
+  - DLA-4854-1|tzdata|ghcr.io/therickybobbeh/copacetic-frontend@sha256:25a8677d6f7cc03818623fe5e7ed138c3777fc18d77748cd74d10776ea72ca6a
     (debian 12.15)
-  - DLA-4867-1|tzdata|ghcr.io/therickybobbeh/copacetic-frontend@sha256:5c5a982a025aa534c6f2bbb2575692fb8995ee0723cd30994849a86d8df2daa0
+  - DLA-4867-1|tzdata|ghcr.io/therickybobbeh/copacetic-frontend@sha256:25a8677d6f7cc03818623fe5e7ed138c3777fc18d77748cd74d10776ea72ca6a
     (debian 12.15)
   - GO-2026-5932|golang.org/x/crypto|copa-frontend
