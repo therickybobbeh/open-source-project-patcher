@@ -190,7 +190,8 @@
         "vuln_id": "GO-2026-5932",
         "severity": "UNKNOWN",
         "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+        "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
+        "eligible": "2026-11-18T07:23:42+00:00"
       }
     ],
     "toolchain": {}
@@ -300,8 +301,8 @@
       "target": "frontend.Dockerfile",
       "name": "ARG GO_VERSION",
       "old": "1.25.13",
-      "new": "1.26.10",
-      "note": "golang:1.25.13-alpine3.23 -> 1.26.10-alpine3.23 (minVersions: the 1.26 line)",
+      "new": "1.26.11",
+      "note": "golang:1.25.13-alpine3.23 -> 1.26.11-alpine3.23 (minVersions: the 1.26 line)",
       "level": "minor"
     },
     {
@@ -316,9 +317,18 @@
     {
       "ecosystem": "dockerfile",
       "target": "Dockerfile.copa",
+      "name": "ARG GO_VERSION",
+      "old": "1.26.10",
+      "new": "1.26.11",
+      "note": "golang:1.26.10-trixie -> 1.26.11-trixie",
+      "level": "patch"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "Dockerfile.copa",
       "name": "debian",
       "old": "debian:13-slim",
-      "new": "debian:13-slim@sha256:f6b08b09a05725f9431502d3b5714f5c4576e82c1a84fa1debe0c24a7e0c3ec4",
+      "new": "debian:13-slim@sha256:a72b4433de1cf7d6bae0c4cee74d0547f58601a643b3375f070c51600d63b6b2",
       "note": "base image refresh",
       "level": "patch"
     }
@@ -373,7 +383,8 @@
       "vuln_id": "GO-2026-5932",
       "severity": "UNKNOWN",
       "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
+      "eligible": "2026-11-18T07:23:42+00:00"
     }
   ],
   "skips": [],
@@ -386,12 +397,30 @@
     "copa": {
       "passed": true,
       "deny": [],
-      "warn": []
+      "warn": [
+        "copa runs as root: give it a numeric non-root user (`user` on the recipe's image), or run it with runAsUser"
+      ]
     },
     "copacetic-frontend": {
       "passed": true,
       "deny": [],
       "warn": []
     }
+  },
+  "leftovers": {
+    "copa": [
+      "GO-2026-5932|golang.org/x/crypto|usr/local/bin/copa"
+    ],
+    "copacetic-frontend": [
+      "DLA-4792-1|tzdata|",
+      "DLA-4845-1|ca-certificates|",
+      "DLA-4854-1|tzdata|",
+      "DLA-4867-1|tzdata|",
+      "GO-2026-5932|golang.org/x/crypto|copa-frontend"
+    ]
+  },
+  "upstream": {
+    "released": "v0.15.0",
+    "level": "same"
   }
 }
