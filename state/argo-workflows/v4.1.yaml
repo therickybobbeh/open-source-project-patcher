@@ -1,28 +1,28 @@
 upstreamTag: v4.1.6
 commit: 43021573c5a35cbafae009043c132dfcef43a112
-revision: 6
-releasedAt: '2026-11-04T21:23:06Z'
+revision: 7
+releasedAt: '2026-11-13T14:20:17Z'
 platforms:
 - linux/amd64
 - linux/arm64
 images:
 - name: workflow-controller
-  ref: ghcr.io/therickybobbeh/workflow-controller:v4.1.6-patched.6
-  digest: sha256:8c81f2ef1cf3927d08b52b8bbe851a35abc1b1f43b251aa0e8aa2d7ac71ae448
+  ref: ghcr.io/therickybobbeh/workflow-controller:v4.1.6-patched.7
+  digest: sha256:c10d82100eed6ac15aa4cc7c8ab3e8bda4d6ed1f4d35fb2abc539f08136071c5
   knownFixable:
   - GO-2026-5932|golang.org/x/crypto|usr/bin/workflow-controller
 - name: argocli
-  ref: ghcr.io/therickybobbeh/argocli:v4.1.6-patched.6
-  digest: sha256:99ab25912d862f248bb202faf5c6e67a7da9a54f783462669e3449b3f603a60f
+  ref: ghcr.io/therickybobbeh/argocli:v4.1.6-patched.7
+  digest: sha256:5bbea3869454bc5bd287d86427923ce0757f5130b11d623087540f1ad2dd4867
   knownFixable:
   - GO-2026-5932|golang.org/x/crypto|usr/bin/argo
 - name: argoexec
-  ref: ghcr.io/therickybobbeh/argoexec:v4.1.6-patched.6
-  digest: sha256:76135dc775c3333a8da92574d8558a2d52d0dafb0abd9f89db808001d3561f3f
+  ref: ghcr.io/therickybobbeh/argoexec:v4.1.6-patched.7
+  digest: sha256:e77049ee30a957cefc1a147a783f1b16269a09fc491b97f2773194ae778d5673
   knownFixable:
   - GO-2026-5932|golang.org/x/crypto|usr/bin/argoexec
 - name: argoexec-nonroot
-  ref: ghcr.io/therickybobbeh/argoexec:v4.1.6-nonroot-patched.6
-  digest: sha256:01e2afafc1bd84083d4a3d9a7e52800eba2eef54373e5880d8cbadb0b096feed
+  ref: ghcr.io/therickybobbeh/argoexec:v4.1.6-nonroot-patched.7
+  digest: sha256:2ad42db2b75b7ba5990d9ae4f553cc9ba5c861c7071b3af4cf3759f0f4ed88d0
   knownFixable:
   - GO-2026-5932|golang.org/x/crypto|usr/bin/argoexec
