@@ -1,5 +1,5 @@
 diff --git a/Dockerfile b/Dockerfile
-index 3cefd9e..d15d2b9 100644
+index 3cefd9e..e0737b4 100644
 --- a/Dockerfile
 +++ b/Dockerfile
 @@ -3,7 +3,7 @@ ARG GIT_COMMIT=unknown
@@ -7,7 +7,7 @@ index 3cefd9e..d15d2b9 100644
  ARG GIT_TREE_STATE=unknown
  
 -FROM golang:1.26.10-alpine3.23 AS builder
-+FROM golang:1.26.10-alpine3.23@sha256:34414731924cf2263160f0021f5cf6e1807382d85248f7cb419d4187b96d5e43 AS builder
++FROM golang:1.26.11-alpine3.23@sha256:db99415e2625ce0ee03eed09edf7f32ae8c58dc399f28cc602a87fe7238119e4 AS builder
  
  # libc-dev to build openapi-gen
  RUN apk update && apk add --no-cache \
@@ -16,7 +16,7 @@ index 3cefd9e..d15d2b9 100644
  ####################################################################################################
  
 -FROM node:20-alpine AS argo-ui
-+FROM node:24-alpine@sha256:8a32c8cf649a49915a66e81e7a609223c708d0adabf288ee3f4077d765542f85 AS argo-ui
++FROM node:24-alpine@sha256:116b800c3754b440ee0aa3ed2f20f5bf3d99a554bfd9adeea09ea8017f6e85f5 AS argo-ui
  
  RUN apk update && apk add --no-cache git
  
@@ -25,7 +25,7 @@ index 3cefd9e..d15d2b9 100644
  ####################################################################################################
  
 -FROM gcr.io/distroless/static-debian13:latest@sha256:034df5c1737e8241f6ed6423a12e720ee0f6d6f088609ee172f98f6f2166ef5d AS argoexec-base
-+FROM gcr.io/distroless/static-debian13:latest@sha256:448810357cc8e67b7208988abdba0f5ec3d3aebee0a5b13eb624979792cffc0f AS argoexec-base
++FROM gcr.io/distroless/static-debian13:latest@sha256:1a64f46364620465ef9e9a8f5413757dfdf22695e050bbfd7303eeaf17a59383 AS argoexec-base
  
  COPY --from=argoexec-build /etc/mime.types /etc/mime.types
  COPY hack/ssh_known_hosts /etc/ssh/
@@ -34,7 +34,7 @@ index 3cefd9e..d15d2b9 100644
  ####################################################################################################
  
 -FROM gcr.io/distroless/static-debian13:latest@sha256:034df5c1737e8241f6ed6423a12e720ee0f6d6f088609ee172f98f6f2166ef5d AS workflow-controller
-+FROM gcr.io/distroless/static-debian13:latest@sha256:448810357cc8e67b7208988abdba0f5ec3d3aebee0a5b13eb624979792cffc0f AS workflow-controller
++FROM gcr.io/distroless/static-debian13:latest@sha256:1a64f46364620465ef9e9a8f5413757dfdf22695e050bbfd7303eeaf17a59383 AS workflow-controller
  
  USER 8737
  
@@ -43,7 +43,7 @@ index 3cefd9e..d15d2b9 100644
  ####################################################################################################
  
 -FROM gcr.io/distroless/static-debian13:latest@sha256:034df5c1737e8241f6ed6423a12e720ee0f6d6f088609ee172f98f6f2166ef5d AS argocli
-+FROM gcr.io/distroless/static-debian13:latest@sha256:448810357cc8e67b7208988abdba0f5ec3d3aebee0a5b13eb624979792cffc0f AS argocli
++FROM gcr.io/distroless/static-debian13:latest@sha256:1a64f46364620465ef9e9a8f5413757dfdf22695e050bbfd7303eeaf17a59383 AS argocli
  
  USER 8737
  
@@ -61,7 +61,7 @@ index 3cefd9e..d15d2b9 100644
  # rebuilds these (trivial COPY) and recreates the pod.
  
 -FROM alpine:3.24 AS workflow-controller-dev
-+FROM alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a AS workflow-controller-dev
++FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS workflow-controller-dev
  RUN apk add --no-cache ca-certificates
  COPY hack/ssh_known_hosts /etc/ssh/
  COPY hack/nsswitch.conf /etc/
@@ -70,7 +70,7 @@ index 3cefd9e..d15d2b9 100644
  ####################################################################################################
  
 -FROM alpine:3.24 AS argocli-dev
-+FROM alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a AS argocli-dev
++FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS argocli-dev
  RUN apk add --no-cache ca-certificates
  WORKDIR /home/argo
  COPY hack/ssh_known_hosts /etc/ssh/
@@ -79,7 +79,7 @@ index 3cefd9e..d15d2b9 100644
  ####################################################################################################
  
 -FROM alpine:3.24 AS argoexec-dev
-+FROM alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a AS argoexec-dev
++FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS argoexec-dev
  RUN apk add --no-cache ca-certificates mailcap
  COPY hack/ssh_known_hosts /etc/ssh/
  COPY hack/nsswitch.conf /etc/
