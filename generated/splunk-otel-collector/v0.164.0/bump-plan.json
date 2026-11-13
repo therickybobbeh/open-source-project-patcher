@@ -87,7 +87,8 @@
         "vuln_id": "GO-2026-5932",
         "severity": "UNKNOWN",
         "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+        "why": "cooldown: v0.59.0 released 1 day(s) ago (eligible 2026-11-18)",
+        "eligible": "2026-11-18T07:23:42+00:00"
       },
       {
         "ecosystem": "gomod",
@@ -97,7 +98,8 @@
         "vuln_id": "GO-2026-5932",
         "severity": "UNKNOWN",
         "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+        "why": "cooldown: v0.59.0 released 1 day(s) ago (eligible 2026-11-18)",
+        "eligible": "2026-11-18T07:23:42+00:00"
       },
       {
         "ecosystem": "gomod",
@@ -107,7 +109,8 @@
         "vuln_id": "GO-2026-5932",
         "severity": "UNKNOWN",
         "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+        "why": "cooldown: v0.59.0 released 1 day(s) ago (eligible 2026-11-18)",
+        "eligible": "2026-11-18T07:23:42+00:00"
       },
       {
         "ecosystem": "gomod",
@@ -117,7 +120,8 @@
         "vuln_id": "GO-2026-5932",
         "severity": "UNKNOWN",
         "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+        "why": "cooldown: v0.59.0 released 1 day(s) ago (eligible 2026-11-18)",
+        "eligible": "2026-11-18T07:23:42+00:00"
       },
       {
         "ecosystem": "gomod",
@@ -127,7 +131,8 @@
         "vuln_id": "GO-2026-5932",
         "severity": "UNKNOWN",
         "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+        "why": "cooldown: v0.59.0 released 1 day(s) ago (eligible 2026-11-18)",
+        "eligible": "2026-11-18T07:23:42+00:00"
       }
     ],
     "toolchain": {}
@@ -183,7 +188,7 @@
       "target": "cmd/otelcol/Dockerfile",
       "name": "docker.io/alpine",
       "old": "alpine:3.24",
-      "new": "alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a",
+      "new": "alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf",
       "note": "base image refresh",
       "level": "patch"
     },
@@ -192,8 +197,8 @@
       "target": "cmd/otelcol/Dockerfile",
       "name": "docker.io/alpine",
       "old": "alpine:3.17.0",
-      "new": "alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a",
-      "note": "3.17.0 -> 3.24.3 (minVersions: the 3.24 line)",
+      "new": "alpine:3.24.4@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf",
+      "note": "3.17.0 -> 3.24.4 (minVersions: the 3.24 line)",
       "level": "patch"
     },
     {
@@ -201,7 +206,7 @@
       "target": "cmd/otelcol/Dockerfile",
       "name": "docker.io/debian",
       "old": "debian:13",
-      "new": "debian:13@sha256:2dc419c6d7fe3dad0a2f9fd469c34cc90b0f9ba642d8fde837fe3d7d34a0e7f1",
+      "new": "debian:13@sha256:9c6e381421d0f48d1b8133e573f33c185ee16cbf505eda9c4a8a4791b25ea8a6",
       "note": "base image refresh",
       "level": "patch"
     }
@@ -216,7 +221,8 @@
       "vuln_id": "GO-2026-5932",
       "severity": "UNKNOWN",
       "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      "why": "cooldown: v0.59.0 released 1 day(s) ago (eligible 2026-11-18)",
+      "eligible": "2026-11-18T07:23:42+00:00"
     },
     {
       "ecosystem": "gomod",
@@ -226,7 +232,8 @@
       "vuln_id": "GO-2026-5932",
       "severity": "UNKNOWN",
       "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      "why": "cooldown: v0.59.0 released 1 day(s) ago (eligible 2026-11-18)",
+      "eligible": "2026-11-18T07:23:42+00:00"
     },
     {
       "ecosystem": "gomod",
@@ -236,7 +243,8 @@
       "vuln_id": "GO-2026-5932",
       "severity": "UNKNOWN",
       "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      "why": "cooldown: v0.59.0 released 1 day(s) ago (eligible 2026-11-18)",
+      "eligible": "2026-11-18T07:23:42+00:00"
     },
     {
       "ecosystem": "gomod",
@@ -246,7 +254,8 @@
       "vuln_id": "GO-2026-5932",
       "severity": "UNKNOWN",
       "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      "why": "cooldown: v0.59.0 released 1 day(s) ago (eligible 2026-11-18)",
+      "eligible": "2026-11-18T07:23:42+00:00"
     },
     {
       "ecosystem": "gomod",
@@ -256,7 +265,8 @@
       "vuln_id": "GO-2026-5932",
       "severity": "UNKNOWN",
       "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      "why": "cooldown: v0.59.0 released 1 day(s) ago (eligible 2026-11-18)",
+      "eligible": "2026-11-18T07:23:42+00:00"
     }
   ],
   "skips": [],
@@ -271,6 +281,11 @@
       "deny": [],
       "warn": []
     }
+  },
+  "leftovers": {
+    "splunk-otel-collector": [
+      "GO-2026-5932|golang.org/x/crypto|otelcol"
+    ]
   },
   "upstream": {
     "released": "v0.164.0",
