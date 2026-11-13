@@ -1,5 +1,5 @@
 diff --git a/Dockerfile b/Dockerfile
-index 6ee2bde..e9dda11 100644
+index 6ee2bde..f566eca 100644
 --- a/Dockerfile
 +++ b/Dockerfile
 @@ -3,7 +3,7 @@
@@ -7,7 +7,7 @@ index 6ee2bde..e9dda11 100644
  # Also used as the image in CI jobs so needs all dependencies
  ####################################################################################################
 -FROM --platform=$BUILDPLATFORM golang:1.26 AS builder
-+FROM --platform=$BUILDPLATFORM golang:1.26@sha256:c2af3746d2f3a488078d4acd21fb67c6fe801333dec6542fb1548467d408a812 AS builder
++FROM --platform=$BUILDPLATFORM golang:1.26@sha256:978e0a4e3d953662577d784471db27742f543ab09eead06839a838188c73314b AS builder
  
  RUN apt-get update && apt-get install -y \
      wget \
@@ -16,7 +16,7 @@ index 6ee2bde..e9dda11 100644
  # UI build stage
  ####################################################################################################
 -FROM --platform=$BUILDPLATFORM docker.io/library/node:22 AS argo-rollouts-ui
-+FROM --platform=$BUILDPLATFORM docker.io/library/node:22@sha256:18a6d90fd60542269850c80ca03b29b1d9b14d6b221ac7ee8e35b0d33ef904bd AS argo-rollouts-ui
++FROM --platform=$BUILDPLATFORM docker.io/library/node:22@sha256:e13726ca604184d7a91fcacab1fc09eefd642dc28e79ac34e85540dd93b78cfb AS argo-rollouts-ui
  
  WORKDIR /src
  RUN npm install -g corepack@0.34.6 && corepack enable
@@ -25,7 +25,7 @@ index 6ee2bde..e9dda11 100644
  # Rollout Controller Build stage which performs the actual build of argo-rollouts binaries
  ####################################################################################################
 -FROM --platform=$BUILDPLATFORM golang:1.26 AS argo-rollouts-build
-+FROM --platform=$BUILDPLATFORM golang:1.26@sha256:c2af3746d2f3a488078d4acd21fb67c6fe801333dec6542fb1548467d408a812 AS argo-rollouts-build
++FROM --platform=$BUILDPLATFORM golang:1.26@sha256:978e0a4e3d953662577d784471db27742f543ab09eead06839a838188c73314b AS argo-rollouts-build
  
  WORKDIR /go/src/github.com/argoproj/argo-rollouts
  
