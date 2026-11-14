@@ -6,7 +6,34 @@
   "status": "success",
   "requires": {},
   "plan": {
-    "bumps": [],
+    "bumps": [
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/sdk",
+        "installed": "v1.46.0",
+        "to": "v1.47.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-128085"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/trace",
+        "installed": "v1.46.0",
+        "to": "v1.47.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-128085"
+        ],
+        "direct": false,
+        "dir": "."
+      }
+    ],
     "unresolved": [
       {
         "ecosystem": "gomod",
@@ -66,18 +93,37 @@
         "vuln_id": "GO-2026-5932",
         "severity": "UNKNOWN",
         "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+        "why": "cooldown: v0.59.0 released 3 day(s) ago (eligible 2026-11-18)",
+        "eligible": "2026-11-18T07:23:42+00:00"
       }
     ],
     "toolchain": {}
   },
   "changes": [
     {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/sdk",
+      "old": "v1.46.0",
+      "new": "v1.47.0",
+      "note": "CVE-2026-128085",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/trace",
+      "old": "v1.46.0",
+      "new": "v1.47.0",
+      "note": "CVE-2026-128085",
+      "level": "minor"
+    },
+    {
       "ecosystem": "dockerfile",
       "target": "Dockerfile",
       "name": "alpine",
       "old": "alpine:3.24.3",
-      "new": "alpine:3.24.4@sha256:93b41ef40b1677fce8fcc64ff4af09daddfacf5040afde618bc46c1e2d1cc7d4",
+      "new": "alpine:3.24.4@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf",
       "note": "3.24.3 -> 3.24.4",
       "level": "patch"
     }
@@ -142,7 +188,8 @@
       "vuln_id": "GO-2026-5932",
       "severity": "UNKNOWN",
       "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      "why": "cooldown: v0.59.0 released 3 day(s) ago (eligible 2026-11-18)",
+      "eligible": "2026-11-18T07:23:42+00:00"
     }
   ],
   "skips": [],
@@ -166,7 +213,7 @@
     ]
   },
   "upstream": {
-    "released": "v0.76.1",
-    "level": "patch"
+    "released": "v0.76.2",
+    "level": "same"
   }
 }

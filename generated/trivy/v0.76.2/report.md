@@ -6,8 +6,8 @@ Upstream: https://github.com/aquasecurity/trivy @ `3f6334d223b5` (line `v0`)
 
 | Artifact | Before | After | Fixed | New |
 |---|---|---|---|---|
-| source (`trivy fs`) | 0 / 0 / 1 / 0 | 0 / 0 / 1 / 0 | 0 | 0 |
-| image `trivy` | 0 / 0 / 0 / 0 | 0 / 0 / 0 / 0 | 0 | 0 |
+| source (`trivy fs`) | 0 / 0 / 3 / 0 | 0 / 0 / 1 / 0 | 2 | 0 |
+| image `trivy` | 0 / 6 / 9 / 0 | 0 / 0 / 0 / 0 | 16 | 0 |
 
 ### Release gate (reported only (`gate.enforce: false`))
 
@@ -18,25 +18,27 @@ Upstream: https://github.com/aquasecurity/trivy @ `3f6334d223b5` (line `v0`)
 
 | Ecosystem | File | Package | From | To | Why |
 |---|---|---|---|---|---|
-| dockerfile | `Dockerfile` | `alpine` | `alpine:3.24.3` | `alpine:3.24.4@sha256:93b41ef40b1677fce8fcc64ff4af09daddfacf5040afde618bc46c1e2d1cc7d4` | 3.24.3 -> 3.24.4 |
+| gomod | `go.mod` | `go.opentelemetry.io/otel/sdk` | `v1.46.0` | `v1.47.0` | CVE-2026-128085 |
+| gomod | `go.mod` | `go.opentelemetry.io/otel/trace` | `v1.46.0` | `v1.47.0` | CVE-2026-128085 |
+| dockerfile | `Dockerfile` | `alpine` | `alpine:3.24.3` | `alpine:3.24.4@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf` | 3.24.3 -> 3.24.4 |
 
 ### Still fixable after patching
 
 | Severity | Vulnerability | Package | Installed | Fixed in | Where | Reason |
 |---|---|---|---|---|---|---|
 | MEDIUM | CVE-2026-33997 | `github.com/docker/docker` | `v28.5.2+incompatible` | `29.3.1` | source (`trivy fs`): `go.mod` | needs-human: fix requires a bump beyond the `minor` policy |
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | source (`trivy fs`): `go.mod` | untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one |
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `trivy` | untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | source (`trivy fs`): `go.mod` | cooldown: v0.59.0 released 3 day(s) ago (eligible 2026-11-18) |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `trivy` | cooldown: v0.59.0 released 3 day(s) ago (eligible 2026-11-18) |
 
 ### Upstream tests
 
-✅ passed in 11.2 min — `go tool mage test:unit`
+✅ passed in 10.6 min — `go tool mage test:unit`
 
 ### Images
 
 | Image | Ref | Runs as | Smoke | Copa |
 |---|---|---|---|---|
-| trivy | `patcher.local/trivy:0.76.2-patched.dev` | root (no `USER`) | ✅ `--version` | no fixable OS packages |
+| trivy | `patcher.local/trivy:0.76.2-patched.dev-copa` | root (no `USER`) | ✅ `--version` | patched (OS): 1 total, 1 patched, 0 skipped |
 
 ### VEX suggestions (govulncheck reachability)
 
