@@ -18,11 +18,11 @@ Upstream: https://github.com/danielqsj/kafka_exporter @ `c08240632142` (line `ka
 
 | Severity | Vulnerability | Package | Installed | Fixed in | Where | Reason |
 |---|---|---|---|---|---|---|
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | source (`trivy fs`): `go.mod` | untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one |
+| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | source (`trivy fs`): `go.mod` | cooldown: v0.59.0 released 3 day(s) ago (eligible 2026-11-18) |
 
 ### Upstream tests
 
-✅ passed in 0.3 min — `go test -short  ./...`
+✅ passed in 0.4 min — `go test -short  ./...`
 
 ### VEX suggestions (govulncheck reachability)
 
