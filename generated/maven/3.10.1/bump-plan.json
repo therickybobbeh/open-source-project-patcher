@@ -1,0 +1,56 @@
+{
+  "recipe": "maven",
+  "line": "maven3",
+  "tag": "3.10.1",
+  "commit": "df38874f9f3e752a3a67bfd6283c4eb09042dad9",
+  "status": "build-failed",
+  "requires": {},
+  "plan": {
+    "bumps": [],
+    "unresolved": [],
+    "toolchain": {}
+  },
+  "changes": [
+    {
+      "ecosystem": "dockerfile",
+      "target": "eclipse-temurin-17-noble/Dockerfile",
+      "name": "eclipse-temurin",
+      "old": "eclipse-temurin:17-jdk-noble",
+      "new": "eclipse-temurin:17-jdk-noble@sha256:1bedb04434bd275ef072355e9caec2a22be5240fbe82ad51a59323f2bbcab4a6",
+      "note": "base image refresh",
+      "level": "patch"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "eclipse-temurin-17-noble/Dockerfile",
+      "name": "eclipse-temurin",
+      "old": "eclipse-temurin:17-jdk-noble",
+      "new": "eclipse-temurin:17-jdk-noble@sha256:1bedb04434bd275ef072355e9caec2a22be5240fbe82ad51a59323f2bbcab4a6",
+      "note": "base image refresh",
+      "level": "patch"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "eclipse-temurin-21-noble/Dockerfile",
+      "name": "eclipse-temurin",
+      "old": "eclipse-temurin:21-jdk-noble",
+      "new": "eclipse-temurin:21-jdk-noble@sha256:06c1f157dacf6b68198bd9a4186dd4c34ef24e65d7bbbe2a0cf8e62571ad38c9",
+      "note": "base image refresh",
+      "level": "patch"
+    }
+  ],
+  "failures": [],
+  "unresolved": [],
+  "skips": [],
+  "tests": {
+    "configured": true,
+    "ran": true,
+    "passed": true
+  },
+  "gate": {},
+  "leftovers": {},
+  "upstream": {
+    "released": "3.10.0",
+    "level": "patch"
+  }
+}
