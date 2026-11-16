@@ -1,13 +1,13 @@
-## ✅ apollo-router `v2.19.0` — success
+## ✅ apollo-router `v2.19.1` — success
 
-Upstream: https://github.com/apollographql/router @ `95383e1e952e` (line `v2`)
+Upstream: https://github.com/apollographql/router @ `c8843a46d657` (line `v2`)
 
 ### Fixable vulnerabilities (critical / high / medium / low)
 
 | Artifact | Before | After | Fixed | New |
 |---|---|---|---|---|
 | source (`trivy fs`) | 0 / 2 / 2 / 1 | 0 / 0 / 1 / 0 | 4 | 0 |
-| image `router` | 0 / 2 / 8 / 2 | 0 / 0 / 0 / 0 | 16 | 0 |
+| image `router` | 0 / 0 / 0 / 0 | 0 / 0 / 0 / 0 | 0 | 0 |
 
 ### Release gate (reported only (`gate.enforce: false`))
 
@@ -21,8 +21,8 @@ Upstream: https://github.com/apollographql/router @ `95383e1e952e` (line `v2`)
 | cargo | `Cargo.lock` | `quinn-proto` | `0.11.12` | `0.11.15` | CVE-2026-31812, GHSA-4w2j-m93h-cj5j |
 | cargo | `Cargo.lock` | `rand` | `0.8.5` | `0.8.6` | GHSA-cq8v-f236-94qc |
 | cargo | `Cargo.lock` | `rand` | `0.9.2` | `0.9.3` | GHSA-cq8v-f236-94qc |
-| dockerfile | `dockerfiles/diy/dockerfiles/Dockerfile.repo` | `rust` | `rust:1.99.0-slim-bookworm` | `rust:1.99.1-slim-bookworm@sha256:ed2c95ca377d6571b124b05e75e01207973ded639dce7d5542eb7bcd797e32aa` | 1.99.0-slim-bookworm -> 1.99.1-slim-bookworm |
-| dockerfile | `dockerfiles/diy/dockerfiles/Dockerfile.repo` | `debian` | `debian:bookworm-slim` | `debian:bookworm-slim@sha256:99c0b25c46d0214d5a2091092e7908907dcaecd6a962cde0ac700acee222b6f3` | base image refresh |
+| dockerfile | `dockerfiles/diy/dockerfiles/Dockerfile.repo` | `rust` | `rust:1.99.0-slim-bookworm` | `rust:1.99.1-slim-bookworm@sha256:f2c004e3d2d8b547e8cf7ffbc29205385f4e71d23e53e4e383065db5e9f822cd` | 1.99.0-slim-bookworm -> 1.99.1-slim-bookworm |
+| dockerfile | `dockerfiles/diy/dockerfiles/Dockerfile.repo` | `debian` | `debian:bookworm-slim` | `debian:bookworm-slim@sha256:734a72b3d6142a71993b4bc580ca01d8ca687f77a2c422d96a961d3376b179bc` | base image refresh |
 
 ### Still fixable after patching
 
@@ -30,9 +30,13 @@ Upstream: https://github.com/apollographql/router @ `95383e1e952e` (line `v2`)
 |---|---|---|---|---|---|---|
 | MEDIUM | CVE-2026-48504 | `opentelemetry_sdk` | `0.31.0` | `0.32.1` | source (`trivy fs`): `Cargo.lock` | needs-human: fix requires a bump beyond the `minor` policy |
 
+### Newer releases beyond the policy (not applied)
+
+- `rust` → `1.100.0-slim-bookworm` in `dockerfiles/diy/dockerfiles/Dockerfile.repo`: newer tag 1.100.0-slim-bookworm exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)
+
 ### Upstream tests
 
-✅ passed in 16.7 min — `cargo nextest run --locked --no-fail-fast --workspace --features ci,snapshot --profile ci -E 'not ((test(/integration::connectors::authentication::test_aws_sig_v4_signing$/)))'`
+✅ passed in 10.1 min — `cargo nextest run --locked --no-fail-fast --workspace --features ci,snapshot --profile ci -E 'not ((test(/integration::connectors::authentication::test_aws_sig_v4_signing$/)))'`
 
 Skipped tests (from `skips/apollo-router.yaml`):
 
@@ -44,7 +48,7 @@ Skipped tests (from `skips/apollo-router.yaml`):
 
 | Image | Ref | Runs as | Smoke | Copa |
 |---|---|---|---|---|
-| router | `patcher.local/router:v2.19.0-patched.dev-copa` | `1000:1000` | ✅ `--version` | patched (OS): 3 total, 3 patched, 0 skipped |
+| router | `patcher.local/router:v2.19.1-patched.dev` | `1000:1000` | ✅ `--version` | no fixable OS packages |
 
 ### Notes
 

@@ -1,8 +1,8 @@
 {
   "recipe": "apollo-router",
   "line": "v2",
-  "tag": "v2.19.0",
-  "commit": "95383e1e952ea7e924dab5d29585d1687f737207",
+  "tag": "v2.19.1",
+  "commit": "c8843a46d65770b0c876c7e3085c1c48ad5fbe06",
   "status": "success",
   "requires": {},
   "plan": {
@@ -117,7 +117,7 @@
       "target": "dockerfiles/diy/dockerfiles/Dockerfile.repo",
       "name": "rust",
       "old": "rust:1.99.0-slim-bookworm",
-      "new": "rust:1.99.1-slim-bookworm@sha256:ed2c95ca377d6571b124b05e75e01207973ded639dce7d5542eb7bcd797e32aa",
+      "new": "rust:1.99.1-slim-bookworm@sha256:f2c004e3d2d8b547e8cf7ffbc29205385f4e71d23e53e4e383065db5e9f822cd",
       "note": "1.99.0-slim-bookworm -> 1.99.1-slim-bookworm",
       "level": "patch"
     },
@@ -126,12 +126,21 @@
       "target": "dockerfiles/diy/dockerfiles/Dockerfile.repo",
       "name": "debian",
       "old": "debian:bookworm-slim",
-      "new": "debian:bookworm-slim@sha256:99c0b25c46d0214d5a2091092e7908907dcaecd6a962cde0ac700acee222b6f3",
+      "new": "debian:bookworm-slim@sha256:734a72b3d6142a71993b4bc580ca01d8ca687f77a2c422d96a961d3376b179bc",
       "note": "base image refresh",
       "level": "patch"
     }
   ],
-  "failures": [],
+  "failures": [
+    {
+      "ecosystem": "dockerfile",
+      "target": "dockerfiles/diy/dockerfiles/Dockerfile.repo",
+      "name": "rust",
+      "wanted": "1.100.0-slim-bookworm",
+      "error": "newer tag 1.100.0-slim-bookworm exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)",
+      "hint": true
+    }
+  ],
   "unresolved": [
     {
       "ecosystem": "cargo",
@@ -165,8 +174,11 @@
       "warn": []
     }
   },
+  "leftovers": {
+    "router": []
+  },
   "upstream": {
     "released": "v2.19.0",
-    "level": "same"
+    "level": "patch"
   }
 }
