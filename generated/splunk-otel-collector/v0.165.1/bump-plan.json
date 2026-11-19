@@ -1,0 +1,148 @@
+{
+  "recipe": "splunk-otel-collector",
+  "line": "v0",
+  "tag": "v0.165.1",
+  "commit": "ea2445c6e13a87a7c1ac35c84ddc399dedae50a9",
+  "status": "success",
+  "requires": {},
+  "plan": {
+    "bumps": [],
+    "unresolved": [
+      {
+        "ecosystem": "gomod",
+        "target": "baseline/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "internal/signalfx-agent/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "pkg/receiver/smartagentreceiver/go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.58.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      }
+    ],
+    "toolchain": {}
+  },
+  "changes": [
+    {
+      "ecosystem": "dockerfile",
+      "target": "cmd/otelcol/Dockerfile",
+      "name": "docker.io/alpine",
+      "old": "alpine:3.24",
+      "new": "alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf",
+      "note": "base image refresh",
+      "level": "patch"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "cmd/otelcol/Dockerfile",
+      "name": "docker.io/alpine",
+      "old": "alpine:3.17.0",
+      "new": "alpine:3.24.4@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf",
+      "note": "3.17.0 -> 3.24.4 (minVersions: the 3.24 line)",
+      "level": "patch"
+    },
+    {
+      "ecosystem": "dockerfile",
+      "target": "cmd/otelcol/Dockerfile",
+      "name": "docker.io/debian",
+      "old": "debian:13",
+      "new": "debian:13@sha256:9c6e381421d0f48d1b8133e573f33c185ee16cbf505eda9c4a8a4791b25ea8a6",
+      "note": "base image refresh",
+      "level": "patch"
+    }
+  ],
+  "failures": [],
+  "unresolved": [
+    {
+      "ecosystem": "gomod",
+      "target": "baseline/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "internal/signalfx-agent/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "pkg/receiver/smartagentreceiver/go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.58.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    }
+  ],
+  "skips": [],
+  "tests": {
+    "configured": true,
+    "ran": true,
+    "passed": true
+  },
+  "gate": {
+    "splunk-otel-collector": {
+      "passed": true,
+      "deny": [],
+      "warn": []
+    }
+  },
+  "leftovers": {
+    "splunk-otel-collector": [
+      "GO-2026-5932|golang.org/x/crypto|otelcol"
+    ]
+  },
+  "upstream": {
+    "released": "v0.164.0",
+    "level": "minor"
+  }
+}
