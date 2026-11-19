@@ -10,4 +10,4 @@ Upstream: https://github.com/kubernetes-sigs/kustomize @ `6e4452f7b136` (line `k
 
 ### Upstream tests
 
-✅ passed in 0.6 min — `cd kustomize && go test  ./...`
+✅ passed in 0.4 min — `cd kustomize && go test  ./...`
