@@ -90,9 +90,10 @@
         "target": "go.mod",
         "name": "go.opentelemetry.io/otel/sdk",
         "installed": "v1.43.0",
-        "to": "v1.45.0",
+        "to": "v1.47.0",
         "level": "minor",
         "reasons": [
+          "CVE-2026-128085",
           "CVE-2026-81870"
         ],
         "direct": false,
@@ -114,14 +115,28 @@
       {
         "ecosystem": "gomod",
         "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/trace",
+        "installed": "v1.43.0",
+        "to": "v1.47.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-128085"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
         "name": "golang.org/x/crypto",
         "installed": "v0.53.0",
-        "to": "v0.56.0",
+        "to": "v0.59.0",
         "level": "minor",
         "reasons": [
           "CVE-2026-56854",
           "CVE-2026-56855",
-          "CVE-2026-78662"
+          "CVE-2026-78662",
+          "GO-2026-5932"
         ],
         "direct": true,
         "dir": "."
@@ -210,13 +225,12 @@
       {
         "ecosystem": "gomod",
         "target": "go.mod",
-        "name": "golang.org/x/crypto",
-        "installed": "v0.53.0",
-        "vuln_id": "GO-2026-5932",
-        "severity": "UNKNOWN",
-        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-        "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
-        "eligible": "2026-11-18T07:23:42+00:00"
+        "name": "go.opentelemetry.io/otel/sdk/log",
+        "installed": "v0.19.0",
+        "vuln_id": "CVE-2026-128085",
+        "severity": "MEDIUM",
+        "fixed": "1.47.0",
+        "why": "needs-human: fix requires a bump beyond the `minor` policy"
       }
     ],
     "toolchain": {}
@@ -252,6 +266,24 @@
     {
       "ecosystem": "gomod",
       "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/sdk",
+      "old": "v1.43.0",
+      "new": "v1.47.0",
+      "note": "CVE-2026-128085, CVE-2026-81870",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/trace",
+      "old": "v1.43.0",
+      "new": "v1.47.0",
+      "note": "CVE-2026-128085",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
       "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace",
       "old": "v1.43.0",
       "new": "v1.45.0",
@@ -271,15 +303,6 @@
       "ecosystem": "gomod",
       "target": "go.mod",
       "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp",
-      "old": "v1.43.0",
-      "new": "v1.45.0",
-      "note": "CVE-2026-81870",
-      "level": "minor"
-    },
-    {
-      "ecosystem": "gomod",
-      "target": "go.mod",
-      "name": "go.opentelemetry.io/otel/sdk",
       "old": "v1.43.0",
       "new": "v1.45.0",
       "note": "CVE-2026-81870",
@@ -308,8 +331,8 @@
       "target": "go.mod",
       "name": "golang.org/x/crypto",
       "old": "v0.53.0",
-      "new": "v0.56.0",
-      "note": "CVE-2026-56854, CVE-2026-56855, CVE-2026-78662",
+      "new": "v0.59.0",
+      "note": "CVE-2026-56854, CVE-2026-56855, CVE-2026-78662, GO-2026-5932",
       "level": "minor"
     },
     {
@@ -354,13 +377,12 @@
     {
       "ecosystem": "gomod",
       "target": "go.mod",
-      "name": "golang.org/x/crypto",
-      "installed": "v0.58.0",
-      "vuln_id": "GO-2026-5932",
-      "severity": "UNKNOWN",
-      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-      "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
-      "eligible": "2026-11-18T07:23:42+00:00"
+      "name": "go.opentelemetry.io/otel/sdk/log",
+      "installed": "v0.21.0",
+      "vuln_id": "CVE-2026-128085",
+      "severity": "MEDIUM",
+      "fixed": "1.47.0",
+      "why": "needs-human: fix requires a bump beyond the `minor` policy"
     }
   ],
   "skips": [],
