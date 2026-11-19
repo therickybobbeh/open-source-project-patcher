@@ -1,8 +1,8 @@
 {
   "recipe": "argo-cd",
   "line": "v3.4",
-  "tag": "v3.4.13",
-  "commit": "83ad9cd88fa03ec152b267b371e03ad670c4dd81",
+  "tag": "v3.4.14",
+  "commit": "887d45a9616537cf230147092a7f4e67e4ac8211",
   "status": "success",
   "requires": {},
   "plan": {
@@ -29,6 +29,19 @@
         "level": "minor",
         "reasons": [
           "CVE-2026-29181"
+        ],
+        "direct": false,
+        "dir": "gitops-engine"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "gitops-engine/go.mod",
+        "name": "go.opentelemetry.io/otel/trace",
+        "installed": "v1.38.0",
+        "to": "v1.47.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-128085"
         ],
         "direct": false,
         "dir": "gitops-engine"
@@ -107,21 +120,6 @@
       {
         "ecosystem": "gomod",
         "target": "go.mod",
-        "name": "github.com/go-jose/go-jose/v4",
-        "installed": "v4.1.4",
-        "to": "v4.1.6",
-        "level": "patch",
-        "reasons": [
-          "CVE-2026-116585",
-          "CVE-2026-116586",
-          "CVE-2026-116587"
-        ],
-        "direct": true,
-        "dir": "."
-      },
-      {
-        "ecosystem": "gomod",
-        "target": "go.mod",
         "name": "github.com/klauspost/compress",
         "installed": "v1.18.0",
         "to": "v1.18.7",
@@ -176,10 +174,37 @@
         "target": "go.mod",
         "name": "go.opentelemetry.io/otel/sdk",
         "installed": "v1.44.0",
-        "to": "v1.45.0",
+        "to": "v1.47.0",
         "level": "minor",
         "reasons": [
+          "CVE-2026-128085",
           "CVE-2026-81870"
+        ],
+        "direct": true,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/trace",
+        "installed": "v1.44.0",
+        "to": "v1.47.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-128085"
+        ],
+        "direct": true,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.57.0",
+        "to": "v0.59.0",
+        "level": "minor",
+        "reasons": [
+          "GO-2026-5932"
         ],
         "direct": true,
         "dir": "."
@@ -246,6 +271,19 @@
           "GHSA-cg2g-xh64-v4q7",
           "GHSA-mrv2-3pqr-j5jr",
           "GHSA-p98j-92pf-mc4p"
+        ],
+        "direct": false,
+        "dir": "ui"
+      },
+      {
+        "ecosystem": "yarn",
+        "target": "ui/yarn.lock",
+        "name": "fast-xml-parser",
+        "installed": "4.5.6",
+        "to": "4.5.7",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-41650"
         ],
         "direct": false,
         "dir": "ui"
@@ -407,17 +445,6 @@
         "why": "no fixed version"
       },
       {
-        "ecosystem": "gomod",
-        "target": "go.mod",
-        "name": "golang.org/x/crypto",
-        "installed": "v0.57.0",
-        "vuln_id": "GO-2026-5932",
-        "severity": "UNKNOWN",
-        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-        "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
-        "eligible": "2026-11-18T07:23:42+00:00"
-      },
-      {
         "ecosystem": "yarn",
         "target": "ui/yarn.lock",
         "name": "diff",
@@ -452,16 +479,6 @@
         "target": "ui/yarn.lock",
         "name": "fast-xml-parser",
         "installed": "4.5.6",
-        "vuln_id": "CVE-2026-41650",
-        "severity": "MEDIUM",
-        "fixed": "5.7.0",
-        "why": "needs-human: fix requires a bump beyond the `minor` policy"
-      },
-      {
-        "ecosystem": "yarn",
-        "target": "ui/yarn.lock",
-        "name": "fast-xml-parser",
-        "installed": "4.5.6",
         "vuln_id": "CVE-2026-126066",
         "severity": "LOW",
         "fixed": "5.12.0",
@@ -484,20 +501,29 @@
     {
       "ecosystem": "gomod",
       "target": "go.mod",
-      "name": "github.com/go-jose/go-jose/v4",
-      "old": "v4.1.4",
-      "new": "v4.1.6",
-      "note": "CVE-2026-116585, CVE-2026-116586, CVE-2026-116587",
-      "level": "patch"
-    },
-    {
-      "ecosystem": "gomod",
-      "target": "go.mod",
       "name": "github.com/go-jose/go-jose/v3",
       "old": "v3.0.1",
       "new": "v3.0.5",
       "note": "CVE-2024-28180, CVE-2025-27144, CVE-2026-34986",
       "level": "patch"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/sdk",
+      "old": "v1.44.0",
+      "new": "v1.47.0",
+      "note": "CVE-2026-128085, CVE-2026-81870",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/trace",
+      "old": "v1.44.0",
+      "new": "v1.47.0",
+      "note": "CVE-2026-128085",
+      "level": "minor"
     },
     {
       "ecosystem": "gomod",
@@ -512,15 +538,6 @@
       "ecosystem": "gomod",
       "target": "go.mod",
       "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc",
-      "old": "v1.44.0",
-      "new": "v1.45.0",
-      "note": "CVE-2026-81870",
-      "level": "minor"
-    },
-    {
-      "ecosystem": "gomod",
-      "target": "go.mod",
-      "name": "go.opentelemetry.io/otel/sdk",
       "old": "v1.44.0",
       "new": "v1.45.0",
       "note": "CVE-2026-81870",
@@ -547,10 +564,28 @@
     {
       "ecosystem": "gomod",
       "target": "go.mod",
+      "name": "golang.org/x/crypto",
+      "old": "v0.57.0",
+      "new": "v0.59.0",
+      "note": "GO-2026-5932",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
       "name": "github.com/slack-go/slack",
       "old": "v0.16.0",
       "new": "v0.23.1",
       "note": "GHSA-gxhx-2686-5h9g",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "gitops-engine/go.mod",
+      "name": "go.opentelemetry.io/otel/trace",
+      "old": "v1.38.0",
+      "new": "v1.47.0",
+      "note": "CVE-2026-128085",
       "level": "minor"
     },
     {
@@ -605,6 +640,15 @@
       "old": "3.4.13",
       "new": "3.4.17",
       "note": "GHSA-6688-9rhm-gjv2, GHSA-c6gr-qvv4-5v3f, GHSA-cg2g-xh64-v4q7, GHSA-mrv2-3pqr-j5jr, GHSA-p98j-92pf-mc4p",
+      "level": "patch"
+    },
+    {
+      "ecosystem": "yarn",
+      "target": "ui/yarn.lock",
+      "name": "fast-xml-parser",
+      "old": "4.5.6",
+      "new": "4.5.7",
+      "note": "CVE-2026-41650",
       "level": "patch"
     },
     {
@@ -728,9 +772,9 @@
       "ecosystem": "dockerfile",
       "target": "Dockerfile",
       "name": "docker.io/library/golang",
-      "old": "golang:1.26.10@sha256:5c3f3f28a273c9b61698b2d34f18375929790ab1f1d3835d032d21e2b31eae0c",
-      "new": "golang:1.26.11@sha256:957952ae74dc010608717144399a59a2c6e82ea03d63be1c7ff6577c5a135f93",
-      "note": "1.26.10 -> 1.26.11",
+      "old": "golang:1.26.11@sha256:7af425da11f4fc1a9308eb704369e3f6d1c44e35bac0f874a59ade3f20fdc07e",
+      "new": "golang:1.26.11@sha256:4165ee6bf3b7811fd7b40373290405c83d0167dcb87ee5f29c427cdcef45ff8f",
+      "note": "base image refresh",
       "level": "patch"
     },
     {
@@ -738,7 +782,7 @@
       "target": "Dockerfile",
       "name": "ARG BASE_IMAGE",
       "old": "ubuntu:26.04@sha256:f3d28607ddd78734bb7f71f117f3c6706c666b8b76cbff7c9ff6e5718d46ff64",
-      "new": "ubuntu:26.04@sha256:065aa8626841f16057b78b027b464cd59c4fac36c204c72dcbf48d66f5fa8a96",
+      "new": "ubuntu:26.04@sha256:d66b366dac61b575bee2aef07e9c26e8070096fbe84a3d4d3eb0da069b5d76db",
       "note": "base image refresh",
       "level": "patch"
     },
@@ -755,9 +799,9 @@
       "ecosystem": "dockerfile",
       "target": "Dockerfile",
       "name": "docker.io/library/golang",
-      "old": "golang:1.26.10@sha256:5c3f3f28a273c9b61698b2d34f18375929790ab1f1d3835d032d21e2b31eae0c",
-      "new": "golang:1.26.11@sha256:957952ae74dc010608717144399a59a2c6e82ea03d63be1c7ff6577c5a135f93",
-      "note": "1.26.10 -> 1.26.11",
+      "old": "golang:1.26.11@sha256:7af425da11f4fc1a9308eb704369e3f6d1c44e35bac0f874a59ade3f20fdc07e",
+      "new": "golang:1.26.11@sha256:4165ee6bf3b7811fd7b40373290405c83d0167dcb87ee5f29c427cdcef45ff8f",
+      "note": "base image refresh",
       "level": "patch"
     }
   ],
@@ -907,17 +951,6 @@
       "why": "no fixed version"
     },
     {
-      "ecosystem": "gomod",
-      "target": "go.mod",
-      "name": "golang.org/x/crypto",
-      "installed": "v0.58.0",
-      "vuln_id": "GO-2026-5932",
-      "severity": "UNKNOWN",
-      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-      "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
-      "eligible": "2026-11-18T07:23:42+00:00"
-    },
-    {
       "ecosystem": "yarn",
       "target": "ui/yarn.lock",
       "name": "diff",
@@ -951,17 +984,7 @@
       "ecosystem": "yarn",
       "target": "ui/yarn.lock",
       "name": "fast-xml-parser",
-      "installed": "4.5.6",
-      "vuln_id": "CVE-2026-41650",
-      "severity": "MEDIUM",
-      "fixed": "5.7.0",
-      "why": "needs-human: fix requires a bump beyond the `minor` policy"
-    },
-    {
-      "ecosystem": "yarn",
-      "target": "ui/yarn.lock",
-      "name": "fast-xml-parser",
-      "installed": "4.5.6",
+      "installed": "4.5.7",
       "vuln_id": "CVE-2026-126066",
       "severity": "LOW",
       "fixed": "5.12.0",
@@ -1065,14 +1088,11 @@
       "CVE-2026-85731|oras.land/oras-go/v2|usr/local/bin/helm",
       "CVE-2026-85732|oras.land/oras-go/v2|usr/local/bin/helm",
       "CVE-2026-97054|stdlib|usr/bin/pebble",
-      "GHSA-vh4v-2xq2-g5cg|oras.land/oras-go/v2|usr/local/bin/helm",
-      "GO-2026-5932|golang.org/x/crypto|usr/local/bin/argocd",
-      "GO-2026-5932|golang.org/x/crypto|usr/local/bin/git-lfs",
-      "GO-2026-5932|golang.org/x/crypto|usr/local/bin/helm"
+      "GHSA-vh4v-2xq2-g5cg|oras.land/oras-go/v2|usr/local/bin/helm"
     ]
   },
   "upstream": {
     "released": "v3.4.13",
-    "level": "same"
+    "level": "patch"
   }
 }
