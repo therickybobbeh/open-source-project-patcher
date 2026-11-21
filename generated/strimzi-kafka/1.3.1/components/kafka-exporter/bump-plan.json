@@ -12,6 +12,19 @@
       {
         "ecosystem": "gomod",
         "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.57.0",
+        "to": "v0.59.0",
+        "level": "minor",
+        "reasons": [
+          "GO-2026-5932"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
         "name": "golang.org/x/net",
         "installed": "v0.60.0",
         "to": "v0.62.0",
@@ -24,18 +37,7 @@
         "dir": "."
       }
     ],
-    "unresolved": [
-      {
-        "ecosystem": "gomod",
-        "target": "go.mod",
-        "name": "golang.org/x/crypto",
-        "installed": "v0.57.0",
-        "vuln_id": "GO-2026-5932",
-        "severity": "UNKNOWN",
-        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-        "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
-      }
-    ],
+    "unresolved": [],
     "toolchain": {}
   },
   "changes": [
@@ -47,21 +49,19 @@
       "new": "v0.62.0",
       "note": "CVE-2026-78661, CVE-2026-97045",
       "level": "minor"
-    }
-  ],
-  "failures": [],
-  "unresolved": [
+    },
     {
       "ecosystem": "gomod",
       "target": "go.mod",
       "name": "golang.org/x/crypto",
-      "installed": "v0.58.0",
-      "vuln_id": "GO-2026-5932",
-      "severity": "UNKNOWN",
-      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-      "why": "untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release after it is applied once there is one"
+      "old": "v0.57.0",
+      "new": "v0.59.0",
+      "note": "GO-2026-5932",
+      "level": "minor"
     }
   ],
+  "failures": [],
+  "unresolved": [],
   "skips": [],
   "tests": {
     "configured": true,
