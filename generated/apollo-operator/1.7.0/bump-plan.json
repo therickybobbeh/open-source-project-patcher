@@ -1,7 +1,7 @@
 {
   "recipe": "apollo-operator",
   "line": "v1",
-  "tag": "1.6.2",
+  "tag": "1.7.0",
   "commit": "n/a",
   "status": "success",
   "requires": {},
@@ -16,7 +16,7 @@
     "passed": false
   },
   "gate": {
-    "apollo-operator 1.6.2": {
+    "apollo-operator 1.7.0": {
       "passed": true,
       "deny": [],
       "warn": []
@@ -28,7 +28,7 @@
     }
   },
   "leftovers": {
-    "apollo-operator 1.6.2": [],
+    "apollo-operator 1.7.0": [],
     "apollo-bundle-loader 0.4.3": []
   },
   "upstream": {
@@ -36,7 +36,7 @@
     "level": "new"
   },
   "imageTags": {
-    "apollo-operator": "1.6.2",
+    "apollo-operator": "1.7.0",
     "apollo-bundle-loader": "0.4.3"
   }
 }

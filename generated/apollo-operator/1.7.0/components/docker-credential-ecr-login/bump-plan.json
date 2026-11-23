@@ -1,8 +1,8 @@
 {
   "recipe": "docker-credential-ecr-login",
-  "line": "docker-credential-ecr-login-0.12.0",
-  "tag": "v0.12.0",
-  "commit": "7ff7d6bd7a06408ddb9646c9ebccf97dbd190d55",
+  "line": "docker-credential-ecr-login-0.13.0",
+  "tag": "v0.13.0",
+  "commit": "9740915f670dbec943182038382331c2a3164e89",
   "status": "success",
   "requires": {
     "go": "1.25.0"
