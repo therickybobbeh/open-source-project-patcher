@@ -1,4 +1,4 @@
-## ✅ apollo-operator `1.6.2` — success
+## ✅ apollo-operator `1.7.0` — success
 
 Upstream: https://hub.docker.com/r/apollograph/operator @ `n/a` (line `v1`)
 
@@ -11,12 +11,12 @@ Upstream: https://hub.docker.com/r/apollograph/operator @ `n/a` (line `v1`)
 | Artifact | Before | After | Fixed | New |
 |---|---|---|---|---|
 | source (`trivy fs`) | n/a | n/a | 0 | 0 |
-| image `apollo-operator 1.6.2` | 0 / 35 / 27 / 3 | 0 / 0 / 0 / 0 | 66 | 0 |
+| image `apollo-operator 1.7.0` | 0 / 16 / 20 / 2 | 0 / 0 / 0 / 0 | 39 | 0 |
 | image `apollo-bundle-loader 0.4.3` | 0 / 0 / 0 / 0 | 0 / 0 / 0 / 0 | 0 | 0 |
 
 ### Release gate (reported only (`gate.enforce: false`))
 
-- image `apollo-operator 1.6.2`: ✅ passes
+- image `apollo-operator 1.7.0`: ✅ passes
 - image `apollo-bundle-loader 0.4.3`: ✅ passes
 
 ### Upstream tests
@@ -27,14 +27,14 @@ Not run.
 
 | Image | Ref | Runs as | Smoke | Copa |
 |---|---|---|---|---|
-| apollo-operator 1.6.2 | `docker.io/apollograph/operator:1.6.2` | `1000` | - | no fixable OS packages |
+| apollo-operator 1.7.0 | `docker.io/apollograph/operator:1.7.0` | `1000` | - | no fixable OS packages |
 | apollo-bundle-loader 0.4.3 | `docker.io/apollograph/bundle-loader:0.4.3` | `1000` | - | no fixable OS packages |
 
 ### Bundled components (rebuilt from source and swapped in)
 
 | Image | Component | Path | Version | Status | Bumps | Tests | Notes |
 |---|---|---|---|---|---|---|---|
-| apollo-operator | docker-credential-ecr-login | `/usr/bin/docker-credential-ecr-login` | 0.12.0 | success | 2 | passed | version from `/usr/bin/docker-credential-ecr-login version` |
+| apollo-operator | docker-credential-ecr-login | `/usr/bin/docker-credential-ecr-login` | 0.13.0 | success | 2 | passed | version from `/usr/bin/docker-credential-ecr-login version` |
 | apollo-operator | docker-credential-gcr | `/usr/bin/docker-credential-gcr` | 2.2.1 | no-changes | 0 | passed | version from Go build info |
 
 ### Notes

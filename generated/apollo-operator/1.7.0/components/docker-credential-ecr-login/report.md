@@ -1,6 +1,6 @@
-## ✅ docker-credential-ecr-login `v0.12.0` — success
+## ✅ docker-credential-ecr-login `v0.13.0` — success
 
-Upstream: https://github.com/awslabs/amazon-ecr-credential-helper @ `7ff7d6bd7a06` (line `docker-credential-ecr-login-0.12.0`)
+Upstream: https://github.com/awslabs/amazon-ecr-credential-helper @ `9740915f670d` (line `docker-credential-ecr-login-0.13.0`)
 
 ### Fixable vulnerabilities (critical / high / medium / low)
 
