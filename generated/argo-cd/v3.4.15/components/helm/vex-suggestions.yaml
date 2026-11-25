@@ -1,0 +1,94 @@
+# Draft VEX statements from govulncheck reachability. Review each one, then copy the ones you
+# accept into vex/helm.yaml. Nothing here is applied automatically.
+statements:
+- vulnerability: CVE-2026-39883
+  status: not_affected
+  justification: vulnerable_code_not_in_execute_path
+  impact: 'govulncheck (v1.9.0): go.opentelemetry.io/otel/sdk is imported but the
+    vulnerable function is never called'
+  packages:
+  - go.opentelemetry.io/otel/sdk
+- vulnerability: CVE-2026-56854
+  status: not_affected
+  justification: vulnerable_code_not_present
+  impact: 'govulncheck (v1.9.0): the vulnerable package of golang.org/x/crypto is
+    not imported'
+  packages:
+  - golang.org/x/crypto
+- vulnerability: CVE-2026-56855
+  status: not_affected
+  justification: vulnerable_code_not_present
+  impact: 'govulncheck (v1.9.0): the vulnerable package of golang.org/x/crypto is
+    not imported'
+  packages:
+  - golang.org/x/crypto
+- vulnerability: CVE-2026-78662
+  status: not_affected
+  justification: vulnerable_code_not_present
+  impact: 'govulncheck (v1.9.0): the vulnerable package of golang.org/x/crypto is
+    not imported'
+  packages:
+  - golang.org/x/crypto
+- vulnerability: CVE-2026-46600
+  status: not_affected
+  justification: vulnerable_code_not_present
+  impact: 'govulncheck (v1.9.0): the vulnerable package of golang.org/x/net is not
+    imported'
+  packages:
+  - golang.org/x/net
+- vulnerability: CVE-2026-78661
+  status: not_affected
+  justification: vulnerable_code_not_in_execute_path
+  impact: 'govulncheck (v1.9.0): golang.org/x/net is imported but the vulnerable function
+    is never called'
+  packages:
+  - golang.org/x/net
+- vulnerability: CVE-2026-97045
+  status: not_affected
+  justification: vulnerable_code_not_in_execute_path
+  impact: 'govulncheck (v1.9.0): golang.org/x/net is imported but the vulnerable function
+    is never called'
+  packages:
+  - golang.org/x/net
+- vulnerability: CVE-2026-56851
+  status: not_affected
+  justification: vulnerable_code_not_present
+  impact: 'govulncheck (v1.9.0): the vulnerable package of golang.org/x/text is not
+    imported'
+  packages:
+  - golang.org/x/text
+- vulnerability: CVE-2026-33186
+  status: not_affected
+  justification: vulnerable_code_not_in_execute_path
+  impact: 'govulncheck (v1.9.0): google.golang.org/grpc is imported but the vulnerable
+    function is never called'
+  packages:
+  - google.golang.org/grpc
+- vulnerability: CVE-2026-84445
+  status: not_affected
+  justification: vulnerable_code_not_in_execute_path
+  impact: 'govulncheck (v1.9.0): google.golang.org/grpc is imported but the vulnerable
+    function is never called'
+  packages:
+  - google.golang.org/grpc
+- vulnerability: CVE-2026-84303
+  status: not_affected
+  justification: vulnerable_code_not_present
+  impact: 'govulncheck (v1.9.0): the vulnerable package of google.golang.org/grpc
+    is not imported'
+  packages:
+  - google.golang.org/grpc
+- vulnerability: CVE-2026-50163
+  status: not_affected
+  justification: vulnerable_code_not_present
+  impact: 'govulncheck (v1.9.0): the vulnerable package of oras.land/oras-go/v2 is
+    not imported'
+  packages:
+  - oras.land/oras-go/v2
+- vulnerability: CVE-2026-50162
+  status: not_affected
+  justification: vulnerable_code_not_present
+  impact: 'govulncheck (v1.9.0): the vulnerable package of oras.land/oras-go/v2 is
+    not imported'
+  packages:
+  - oras.land/oras-go/v2
