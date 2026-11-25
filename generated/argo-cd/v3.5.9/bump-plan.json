@@ -1,12 +1,25 @@
 {
   "recipe": "argo-cd",
   "line": "v3.5",
-  "tag": "v3.5.7",
-  "commit": "6d732962f61a99c2a0f221fd26b9aac7c83bcf18",
+  "tag": "v3.5.9",
+  "commit": "70204ad7508c42758f196a6fdbf81e6e798ad51a",
   "status": "success",
   "requires": {},
   "plan": {
     "bumps": [
+      {
+        "ecosystem": "gomod",
+        "target": "gitops-engine/go.mod",
+        "name": "go.opentelemetry.io/otel/trace",
+        "installed": "v1.41.0",
+        "to": "v1.47.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-128085"
+        ],
+        "direct": false,
+        "dir": "gitops-engine"
+      },
       {
         "ecosystem": "gomod",
         "target": "gitops-engine/go.mod",
@@ -63,66 +76,38 @@
       {
         "ecosystem": "gomod",
         "target": "go.mod",
-        "name": "github.com/go-jose/go-jose/v4",
-        "installed": "v4.1.4",
-        "to": "v4.1.6",
-        "level": "patch",
-        "reasons": [
-          "CVE-2026-116585",
-          "CVE-2026-116586",
-          "CVE-2026-116587"
-        ],
-        "direct": true,
-        "dir": "."
-      },
-      {
-        "ecosystem": "gomod",
-        "target": "go.mod",
-        "name": "github.com/klauspost/compress",
-        "installed": "v1.18.0",
-        "to": "v1.18.7",
-        "level": "patch",
-        "reasons": [
-          "CVE-2026-63209"
-        ],
-        "direct": false,
-        "dir": "."
-      },
-      {
-        "ecosystem": "gomod",
-        "target": "go.mod",
-        "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace",
-        "installed": "v1.44.0",
-        "to": "v1.45.0",
-        "level": "minor",
-        "reasons": [
-          "CVE-2026-81870"
-        ],
-        "direct": false,
-        "dir": "."
-      },
-      {
-        "ecosystem": "gomod",
-        "target": "go.mod",
-        "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc",
-        "installed": "v1.44.0",
-        "to": "v1.45.0",
-        "level": "minor",
-        "reasons": [
-          "CVE-2026-81870"
-        ],
-        "direct": true,
-        "dir": "."
-      },
-      {
-        "ecosystem": "gomod",
-        "target": "go.mod",
         "name": "go.opentelemetry.io/otel/sdk",
-        "installed": "v1.44.0",
-        "to": "v1.45.0",
+        "installed": "v1.46.0",
+        "to": "v1.47.0",
         "level": "minor",
         "reasons": [
-          "CVE-2026-81870"
+          "CVE-2026-128085"
+        ],
+        "direct": true,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/trace",
+        "installed": "v1.46.0",
+        "to": "v1.47.0",
+        "level": "minor",
+        "reasons": [
+          "CVE-2026-128085"
+        ],
+        "direct": true,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.57.0",
+        "to": "v0.59.0",
+        "level": "minor",
+        "reasons": [
+          "GO-2026-5932"
         ],
         "direct": true,
         "dir": "."
@@ -316,17 +301,6 @@
         "why": "no fixed version"
       },
       {
-        "ecosystem": "gomod",
-        "target": "go.mod",
-        "name": "golang.org/x/crypto",
-        "installed": "v0.57.0",
-        "vuln_id": "GO-2026-5932",
-        "severity": "UNKNOWN",
-        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-        "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
-        "eligible": "2026-11-18T07:23:42+00:00"
-      },
-      {
         "ecosystem": "pnpm",
         "target": "ui/pnpm-lock.yaml",
         "name": "esbuild",
@@ -383,47 +357,20 @@
     {
       "ecosystem": "gomod",
       "target": "go.mod",
-      "name": "github.com/go-jose/go-jose/v4",
-      "old": "v4.1.4",
-      "new": "v4.1.6",
-      "note": "CVE-2026-116585, CVE-2026-116586, CVE-2026-116587",
-      "level": "patch"
-    },
-    {
-      "ecosystem": "gomod",
-      "target": "go.mod",
-      "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace",
-      "old": "v1.44.0",
-      "new": "v1.45.0",
-      "note": "CVE-2026-81870",
-      "level": "minor"
-    },
-    {
-      "ecosystem": "gomod",
-      "target": "go.mod",
-      "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc",
-      "old": "v1.44.0",
-      "new": "v1.45.0",
-      "note": "CVE-2026-81870",
-      "level": "minor"
-    },
-    {
-      "ecosystem": "gomod",
-      "target": "go.mod",
       "name": "go.opentelemetry.io/otel/sdk",
-      "old": "v1.44.0",
-      "new": "v1.45.0",
-      "note": "CVE-2026-81870",
+      "old": "v1.46.0",
+      "new": "v1.47.0",
+      "note": "CVE-2026-128085",
       "level": "minor"
     },
     {
       "ecosystem": "gomod",
       "target": "go.mod",
-      "name": "github.com/klauspost/compress",
-      "old": "v1.18.0",
-      "new": "v1.18.7",
-      "note": "CVE-2026-63209",
-      "level": "patch"
+      "name": "go.opentelemetry.io/otel/trace",
+      "old": "v1.46.0",
+      "new": "v1.47.0",
+      "note": "CVE-2026-128085",
+      "level": "minor"
     },
     {
       "ecosystem": "gomod",
@@ -432,6 +379,24 @@
       "old": "v0.59.0",
       "new": "v0.62.0",
       "note": "CVE-2026-78659, CVE-2026-78660, CVE-2026-78661, CVE-2026-78663, CVE-2026-78669, CVE-2026-97032, CVE-2026-97045",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/crypto",
+      "old": "v0.57.0",
+      "new": "v0.59.0",
+      "note": "GO-2026-5932",
+      "level": "minor"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "gitops-engine/go.mod",
+      "name": "go.opentelemetry.io/otel/trace",
+      "old": "v1.41.0",
+      "new": "v1.47.0",
+      "note": "CVE-2026-128085",
       "level": "minor"
     },
     {
@@ -546,9 +511,9 @@
       "ecosystem": "dockerfile",
       "target": "Dockerfile",
       "name": "docker.io/library/golang",
-      "old": "golang:1.26.10@sha256:5c3f3f28a273c9b61698b2d34f18375929790ab1f1d3835d032d21e2b31eae0c",
-      "new": "golang:1.26.11@sha256:957952ae74dc010608717144399a59a2c6e82ea03d63be1c7ff6577c5a135f93",
-      "note": "1.26.10 -> 1.26.11",
+      "old": "golang:1.26.11@sha256:7af425da11f4fc1a9308eb704369e3f6d1c44e35bac0f874a59ade3f20fdc07e",
+      "new": "golang:1.26.11@sha256:6e59e17a20f13c102e49d82dffab66d41cffe6c266b225d82794328aea859ab5",
+      "note": "base image refresh",
       "level": "patch"
     },
     {
@@ -556,7 +521,7 @@
       "target": "Dockerfile",
       "name": "ARG BASE_IMAGE",
       "old": "ubuntu:26.04@sha256:f3d28607ddd78734bb7f71f117f3c6706c666b8b76cbff7c9ff6e5718d46ff64",
-      "new": "ubuntu:26.04@sha256:065aa8626841f16057b78b027b464cd59c4fac36c204c72dcbf48d66f5fa8a96",
+      "new": "ubuntu:26.04@sha256:d66b366dac61b575bee2aef07e9c26e8070096fbe84a3d4d3eb0da069b5d76db",
       "note": "base image refresh",
       "level": "patch"
     },
@@ -564,9 +529,9 @@
       "ecosystem": "dockerfile",
       "target": "Dockerfile",
       "name": "docker.io/library/golang",
-      "old": "golang:1.26.10@sha256:5c3f3f28a273c9b61698b2d34f18375929790ab1f1d3835d032d21e2b31eae0c",
-      "new": "golang:1.26.11@sha256:957952ae74dc010608717144399a59a2c6e82ea03d63be1c7ff6577c5a135f93",
-      "note": "1.26.10 -> 1.26.11",
+      "old": "golang:1.26.11@sha256:7af425da11f4fc1a9308eb704369e3f6d1c44e35bac0f874a59ade3f20fdc07e",
+      "new": "golang:1.26.11@sha256:6e59e17a20f13c102e49d82dffab66d41cffe6c266b225d82794328aea859ab5",
+      "note": "base image refresh",
       "level": "patch"
     }
   ],
@@ -626,17 +591,6 @@
       "severity": "MEDIUM",
       "fixed": null,
       "why": "no fixed version"
-    },
-    {
-      "ecosystem": "gomod",
-      "target": "go.mod",
-      "name": "golang.org/x/crypto",
-      "installed": "v0.58.0",
-      "vuln_id": "GO-2026-5932",
-      "severity": "UNKNOWN",
-      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-      "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
-      "eligible": "2026-11-18T07:23:42+00:00"
     },
     {
       "ecosystem": "pnpm",
@@ -728,14 +682,11 @@
     "argocd": [
       "CVE-2026-56851|golang.org/x/text|usr/local/bin/kustomize",
       "CVE-2026-56852|golang.org/x/text|usr/local/bin/kustomize",
-      "CVE-2026-97054|stdlib|usr/bin/pebble",
-      "GO-2026-5932|golang.org/x/crypto|usr/local/bin/argocd",
-      "GO-2026-5932|golang.org/x/crypto|usr/local/bin/git-lfs",
-      "GO-2026-5932|golang.org/x/crypto|usr/local/bin/helm"
+      "CVE-2026-97054|stdlib|usr/bin/pebble"
     ]
   },
   "upstream": {
     "released": "v3.5.7",
-    "level": "same"
+    "level": "patch"
   }
 }
