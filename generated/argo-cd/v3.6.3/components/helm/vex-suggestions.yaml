@@ -1,0 +1,10 @@
+# Draft VEX statements from govulncheck reachability. Review each one, then copy the ones you
+# accept into vex/helm.yaml. Nothing here is applied automatically.
+statements:
+- vulnerability: CVE-2026-128085
+  status: not_affected
+  justification: vulnerable_code_not_in_execute_path
+  impact: 'govulncheck (v1.9.0): go.opentelemetry.io/otel/sdk/log is imported but
+    the vulnerable function is never called'
+  packages:
+  - go.opentelemetry.io/otel/sdk/log
