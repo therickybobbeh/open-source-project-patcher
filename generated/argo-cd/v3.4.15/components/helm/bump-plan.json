@@ -1,0 +1,1230 @@
+{
+  "recipe": "helm",
+  "line": "helm-3.19.4",
+  "tag": "v3.19.4",
+  "commit": "7cfb6e486dac026202556836bb910c37d847793e",
+  "status": "success",
+  "requires": {
+    "go": "1.25.0"
+  },
+  "plan": {
+    "bumps": [
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/containerd/containerd",
+        "installed": "v1.7.29",
+        "to": "v1.7.36",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-46680",
+          "CVE-2026-47262",
+          "CVE-2026-53488",
+          "CVE-2026-53493",
+          "CVE-2026-53495",
+          "CVE-2026-95838"
+        ],
+        "direct": true,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/klauspost/compress",
+        "installed": "v1.18.0",
+        "to": "v1.18.7",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-63209"
+        ],
+        "direct": false,
+        "dir": "."
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/moby/spdystream",
+        "installed": "v0.5.0",
+        "to": "v0.5.1",
+        "level": "patch",
+        "reasons": [
+          "CVE-2026-35469"
+        ],
+        "direct": false,
+        "dir": "."
+      }
+    ],
+    "unresolved": [
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/distribution/distribution/v3",
+        "installed": "v3.0.0",
+        "vuln_id": "CVE-2026-33540",
+        "severity": "HIGH",
+        "fixed": "3.1.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/distribution/distribution/v3",
+        "installed": "v3.0.0",
+        "vuln_id": "CVE-2026-35172",
+        "severity": "HIGH",
+        "fixed": "3.1.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/distribution/distribution/v3",
+        "installed": "v3.0.0",
+        "vuln_id": "CVE-2026-41888",
+        "severity": "MEDIUM",
+        "fixed": "3.1.1",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "github.com/distribution/distribution/v3",
+        "installed": "v3.0.0",
+        "vuln_id": "CVE-2026-85747",
+        "severity": "MEDIUM",
+        "fixed": "3.1.2",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc",
+        "installed": "v0.8.0",
+        "vuln_id": "CVE-2026-81871",
+        "severity": "MEDIUM",
+        "fixed": "0.21.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp",
+        "installed": "v0.8.0",
+        "vuln_id": "CVE-2026-39882",
+        "severity": "MEDIUM",
+        "fixed": "0.19.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp",
+        "installed": "v1.32.0",
+        "vuln_id": "CVE-2026-39882",
+        "severity": "MEDIUM",
+        "fixed": "1.43.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace",
+        "installed": "v1.34.0",
+        "vuln_id": "CVE-2026-81870",
+        "severity": "LOW",
+        "fixed": "1.45.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc",
+        "installed": "v1.34.0",
+        "vuln_id": "CVE-2026-81870",
+        "severity": "LOW",
+        "fixed": "1.45.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp",
+        "installed": "v1.32.0",
+        "vuln_id": "CVE-2026-39882",
+        "severity": "MEDIUM",
+        "fixed": "1.43.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp",
+        "installed": "v1.32.0",
+        "vuln_id": "CVE-2026-81870",
+        "severity": "LOW",
+        "fixed": "1.45.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/sdk",
+        "installed": "v1.34.0",
+        "vuln_id": "CVE-2026-24051",
+        "severity": "HIGH",
+        "fixed": "1.40.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/sdk",
+        "installed": "v1.34.0",
+        "vuln_id": "CVE-2026-39883",
+        "severity": "HIGH",
+        "fixed": "1.43.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/sdk",
+        "installed": "v1.34.0",
+        "vuln_id": "CVE-2026-128085",
+        "severity": "MEDIUM",
+        "fixed": "1.47.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/sdk",
+        "installed": "v1.34.0",
+        "vuln_id": "CVE-2026-81870",
+        "severity": "LOW",
+        "fixed": "1.45.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/sdk/log",
+        "installed": "v0.8.0",
+        "vuln_id": "CVE-2026-81872",
+        "severity": "MEDIUM",
+        "fixed": "0.21.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "go.opentelemetry.io/otel/trace",
+        "installed": "v1.35.0",
+        "vuln_id": "CVE-2026-128085",
+        "severity": "MEDIUM",
+        "fixed": "1.47.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.45.0",
+        "vuln_id": "CVE-2026-39828",
+        "severity": "HIGH",
+        "fixed": "0.52.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.45.0",
+        "vuln_id": "CVE-2026-39829",
+        "severity": "HIGH",
+        "fixed": "0.52.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.45.0",
+        "vuln_id": "CVE-2026-39830",
+        "severity": "HIGH",
+        "fixed": "0.52.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.45.0",
+        "vuln_id": "CVE-2026-39831",
+        "severity": "HIGH",
+        "fixed": "0.52.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.45.0",
+        "vuln_id": "CVE-2026-39832",
+        "severity": "HIGH",
+        "fixed": "0.52.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.45.0",
+        "vuln_id": "CVE-2026-39835",
+        "severity": "HIGH",
+        "fixed": "0.52.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.45.0",
+        "vuln_id": "CVE-2026-42508",
+        "severity": "HIGH",
+        "fixed": "0.52.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.45.0",
+        "vuln_id": "CVE-2026-46595",
+        "severity": "HIGH",
+        "fixed": "0.52.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.45.0",
+        "vuln_id": "CVE-2026-46597",
+        "severity": "HIGH",
+        "fixed": "0.52.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.45.0",
+        "vuln_id": "CVE-2026-56854",
+        "severity": "HIGH",
+        "fixed": "0.55.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.45.0",
+        "vuln_id": "CVE-2026-39827",
+        "severity": "MEDIUM",
+        "fixed": "0.52.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.45.0",
+        "vuln_id": "CVE-2026-39833",
+        "severity": "MEDIUM",
+        "fixed": "0.52.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.45.0",
+        "vuln_id": "CVE-2026-39834",
+        "severity": "MEDIUM",
+        "fixed": "0.52.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.45.0",
+        "vuln_id": "CVE-2026-46598",
+        "severity": "MEDIUM",
+        "fixed": "0.52.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.45.0",
+        "vuln_id": "CVE-2026-56855",
+        "severity": "MEDIUM",
+        "fixed": "0.56.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.45.0",
+        "vuln_id": "CVE-2026-78662",
+        "severity": "MEDIUM",
+        "fixed": "0.56.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/crypto",
+        "installed": "v0.45.0",
+        "vuln_id": "GO-2026-5932",
+        "severity": "UNKNOWN",
+        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/mod",
+        "installed": "v0.29.0",
+        "vuln_id": "CVE-2026-56864",
+        "severity": "HIGH",
+        "fixed": "0.40.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/mod",
+        "installed": "v0.29.0",
+        "vuln_id": "CVE-2026-56865",
+        "severity": "HIGH",
+        "fixed": "0.40.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.47.0",
+        "vuln_id": "CVE-2026-25681",
+        "severity": "HIGH",
+        "fixed": "0.55.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.47.0",
+        "vuln_id": "CVE-2026-27136",
+        "severity": "HIGH",
+        "fixed": "0.55.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.47.0",
+        "vuln_id": "CVE-2026-33814",
+        "severity": "HIGH",
+        "fixed": "0.53.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.47.0",
+        "vuln_id": "CVE-2026-39821",
+        "severity": "HIGH",
+        "fixed": "0.57.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.47.0",
+        "vuln_id": "CVE-2026-46600",
+        "severity": "HIGH",
+        "fixed": "0.56.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.47.0",
+        "vuln_id": "CVE-2026-78661",
+        "severity": "HIGH",
+        "fixed": "0.62.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.47.0",
+        "vuln_id": "CVE-2026-78669",
+        "severity": "HIGH",
+        "fixed": "0.60.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.47.0",
+        "vuln_id": "CVE-2026-25680",
+        "severity": "MEDIUM",
+        "fixed": "0.55.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.47.0",
+        "vuln_id": "CVE-2026-42502",
+        "severity": "MEDIUM",
+        "fixed": "0.55.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.47.0",
+        "vuln_id": "CVE-2026-42506",
+        "severity": "MEDIUM",
+        "fixed": "0.55.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.47.0",
+        "vuln_id": "CVE-2026-78659",
+        "severity": "MEDIUM",
+        "fixed": "0.60.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.47.0",
+        "vuln_id": "CVE-2026-78660",
+        "severity": "MEDIUM",
+        "fixed": "0.60.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.47.0",
+        "vuln_id": "CVE-2026-78663",
+        "severity": "MEDIUM",
+        "fixed": "0.60.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.47.0",
+        "vuln_id": "CVE-2026-97032",
+        "severity": "MEDIUM",
+        "fixed": "0.60.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/net",
+        "installed": "v0.47.0",
+        "vuln_id": "CVE-2026-97045",
+        "severity": "MEDIUM",
+        "fixed": "0.62.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/sys",
+        "installed": "v0.38.0",
+        "vuln_id": "CVE-2026-39824",
+        "severity": "UNKNOWN",
+        "fixed": "0.44.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/text",
+        "installed": "v0.31.0",
+        "vuln_id": "CVE-2026-56851",
+        "severity": "HIGH",
+        "fixed": "0.41.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "golang.org/x/text",
+        "installed": "v0.31.0",
+        "vuln_id": "CVE-2026-56852",
+        "severity": "HIGH",
+        "fixed": "0.39.0",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "google.golang.org/grpc",
+        "installed": "v1.72.1",
+        "vuln_id": "CVE-2026-33186",
+        "severity": "CRITICAL",
+        "fixed": "1.79.3",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "google.golang.org/grpc",
+        "installed": "v1.72.1",
+        "vuln_id": "CVE-2026-84304",
+        "severity": "HIGH",
+        "fixed": "1.83.1",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "google.golang.org/grpc",
+        "installed": "v1.72.1",
+        "vuln_id": "CVE-2026-84445",
+        "severity": "HIGH",
+        "fixed": "1.82.2, 1.83.2, 1.84.0-dev.0.20260825144003-d5a41119e0e3, 1.85.0-dev.0.20260825072537-93e31b48545e",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "google.golang.org/grpc",
+        "installed": "v1.72.1",
+        "vuln_id": "GHSA-hrxh-6v49-42gf",
+        "severity": "HIGH",
+        "fixed": "1.82.1",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "google.golang.org/grpc",
+        "installed": "v1.72.1",
+        "vuln_id": "CVE-2026-84303",
+        "severity": "MEDIUM",
+        "fixed": "1.83.1",
+        "why": "needs-human: fix requires a bump beyond the `patch` policy"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "oras.land/oras-go/v2",
+        "installed": "v2.6.0",
+        "vuln_id": "CVE-2026-50151",
+        "severity": "HIGH",
+        "fixed": "2.6.1",
+        "why": "held: helm 3's registry login fails with oras-go 2.6.1+ (TestRegistryLogin); helm 4 is not held"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "oras.land/oras-go/v2",
+        "installed": "v2.6.0",
+        "vuln_id": "CVE-2026-50163",
+        "severity": "HIGH",
+        "fixed": "2.6.2",
+        "why": "held: helm 3's registry login fails with oras-go 2.6.1+ (TestRegistryLogin); helm 4 is not held"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "oras.land/oras-go/v2",
+        "installed": "v2.6.0",
+        "vuln_id": "CVE-2026-85731",
+        "severity": "HIGH",
+        "fixed": "2.6.2",
+        "why": "held: helm 3's registry login fails with oras-go 2.6.1+ (TestRegistryLogin); helm 4 is not held"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "oras.land/oras-go/v2",
+        "installed": "v2.6.0",
+        "vuln_id": "CVE-2026-50162",
+        "severity": "MEDIUM",
+        "fixed": "2.6.1",
+        "why": "held: helm 3's registry login fails with oras-go 2.6.1+ (TestRegistryLogin); helm 4 is not held"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "oras.land/oras-go/v2",
+        "installed": "v2.6.0",
+        "vuln_id": "CVE-2026-85732",
+        "severity": "MEDIUM",
+        "fixed": "2.6.2",
+        "why": "held: helm 3's registry login fails with oras-go 2.6.1+ (TestRegistryLogin); helm 4 is not held"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "oras.land/oras-go/v2",
+        "installed": "v2.6.0",
+        "vuln_id": "GHSA-vh4v-2xq2-g5cg",
+        "severity": "MEDIUM",
+        "fixed": "2.6.1",
+        "why": "held: helm 3's registry login fails with oras-go 2.6.1+ (TestRegistryLogin); helm 4 is not held"
+      },
+      {
+        "ecosystem": "gomod",
+        "target": "go.mod",
+        "name": "oras.land/oras-go/v2",
+        "installed": "v2.6.0",
+        "vuln_id": "CVE-2026-48978",
+        "severity": "LOW",
+        "fixed": "2.6.1",
+        "why": "held: helm 3's registry login fails with oras-go 2.6.1+ (TestRegistryLogin); helm 4 is not held"
+      }
+    ],
+    "toolchain": {}
+  },
+  "changes": [
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/klauspost/compress",
+      "old": "v1.18.0",
+      "new": "v1.18.7",
+      "note": "CVE-2026-63209",
+      "level": "patch"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/containerd/containerd",
+      "old": "v1.7.29",
+      "new": "v1.7.36",
+      "note": "CVE-2026-46680, CVE-2026-47262, CVE-2026-53488, CVE-2026-53493, CVE-2026-53495, CVE-2026-95838",
+      "level": "patch"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/moby/spdystream",
+      "old": "v0.5.0",
+      "new": "v0.5.1",
+      "note": "CVE-2026-35469",
+      "level": "patch"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go",
+      "old": "1.24.0",
+      "new": "1.25.0",
+      "note": "required by a bumped dependency",
+      "level": "minor"
+    }
+  ],
+  "failures": [],
+  "unresolved": [
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/distribution/distribution/v3",
+      "installed": "v3.0.0",
+      "vuln_id": "CVE-2026-33540",
+      "severity": "HIGH",
+      "fixed": "3.1.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/distribution/distribution/v3",
+      "installed": "v3.0.0",
+      "vuln_id": "CVE-2026-35172",
+      "severity": "HIGH",
+      "fixed": "3.1.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/distribution/distribution/v3",
+      "installed": "v3.0.0",
+      "vuln_id": "CVE-2026-41888",
+      "severity": "MEDIUM",
+      "fixed": "3.1.1",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "github.com/distribution/distribution/v3",
+      "installed": "v3.0.0",
+      "vuln_id": "CVE-2026-85747",
+      "severity": "MEDIUM",
+      "fixed": "3.1.2",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc",
+      "installed": "v0.8.0",
+      "vuln_id": "CVE-2026-81871",
+      "severity": "MEDIUM",
+      "fixed": "0.21.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp",
+      "installed": "v0.8.0",
+      "vuln_id": "CVE-2026-39882",
+      "severity": "MEDIUM",
+      "fixed": "0.19.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp",
+      "installed": "v1.32.0",
+      "vuln_id": "CVE-2026-39882",
+      "severity": "MEDIUM",
+      "fixed": "1.43.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace",
+      "installed": "v1.34.0",
+      "vuln_id": "CVE-2026-81870",
+      "severity": "LOW",
+      "fixed": "1.45.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc",
+      "installed": "v1.34.0",
+      "vuln_id": "CVE-2026-81870",
+      "severity": "LOW",
+      "fixed": "1.45.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp",
+      "installed": "v1.32.0",
+      "vuln_id": "CVE-2026-39882",
+      "severity": "MEDIUM",
+      "fixed": "1.43.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp",
+      "installed": "v1.32.0",
+      "vuln_id": "CVE-2026-81870",
+      "severity": "LOW",
+      "fixed": "1.45.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/sdk",
+      "installed": "v1.34.0",
+      "vuln_id": "CVE-2026-24051",
+      "severity": "HIGH",
+      "fixed": "1.40.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/sdk",
+      "installed": "v1.34.0",
+      "vuln_id": "CVE-2026-39883",
+      "severity": "HIGH",
+      "fixed": "1.43.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/sdk",
+      "installed": "v1.34.0",
+      "vuln_id": "CVE-2026-128085",
+      "severity": "MEDIUM",
+      "fixed": "1.47.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/sdk",
+      "installed": "v1.34.0",
+      "vuln_id": "CVE-2026-81870",
+      "severity": "LOW",
+      "fixed": "1.45.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/sdk/log",
+      "installed": "v0.8.0",
+      "vuln_id": "CVE-2026-81872",
+      "severity": "MEDIUM",
+      "fixed": "0.21.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "go.opentelemetry.io/otel/trace",
+      "installed": "v1.35.0",
+      "vuln_id": "CVE-2026-128085",
+      "severity": "MEDIUM",
+      "fixed": "1.47.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.52.0",
+      "vuln_id": "CVE-2026-56854",
+      "severity": "HIGH",
+      "fixed": "0.55.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.52.0",
+      "vuln_id": "CVE-2026-56855",
+      "severity": "MEDIUM",
+      "fixed": "0.56.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.52.0",
+      "vuln_id": "CVE-2026-78662",
+      "severity": "MEDIUM",
+      "fixed": "0.56.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/crypto",
+      "installed": "v0.52.0",
+      "vuln_id": "GO-2026-5932",
+      "severity": "UNKNOWN",
+      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/mod",
+      "installed": "v0.35.0",
+      "vuln_id": "CVE-2026-56864",
+      "severity": "HIGH",
+      "fixed": "0.40.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/mod",
+      "installed": "v0.35.0",
+      "vuln_id": "CVE-2026-56865",
+      "severity": "HIGH",
+      "fixed": "0.40.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.55.0",
+      "vuln_id": "CVE-2026-39821",
+      "severity": "HIGH",
+      "fixed": "0.57.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.55.0",
+      "vuln_id": "CVE-2026-46600",
+      "severity": "HIGH",
+      "fixed": "0.56.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.55.0",
+      "vuln_id": "CVE-2026-78661",
+      "severity": "HIGH",
+      "fixed": "0.62.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.55.0",
+      "vuln_id": "CVE-2026-78669",
+      "severity": "HIGH",
+      "fixed": "0.60.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.55.0",
+      "vuln_id": "CVE-2026-78659",
+      "severity": "MEDIUM",
+      "fixed": "0.60.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.55.0",
+      "vuln_id": "CVE-2026-78660",
+      "severity": "MEDIUM",
+      "fixed": "0.60.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.55.0",
+      "vuln_id": "CVE-2026-78663",
+      "severity": "MEDIUM",
+      "fixed": "0.60.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.55.0",
+      "vuln_id": "CVE-2026-97032",
+      "severity": "MEDIUM",
+      "fixed": "0.60.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/net",
+      "installed": "v0.55.0",
+      "vuln_id": "CVE-2026-97045",
+      "severity": "MEDIUM",
+      "fixed": "0.62.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/text",
+      "installed": "v0.37.0",
+      "vuln_id": "CVE-2026-56851",
+      "severity": "HIGH",
+      "fixed": "0.41.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "golang.org/x/text",
+      "installed": "v0.37.0",
+      "vuln_id": "CVE-2026-56852",
+      "severity": "HIGH",
+      "fixed": "0.39.0",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "google.golang.org/grpc",
+      "installed": "v1.72.1",
+      "vuln_id": "CVE-2026-33186",
+      "severity": "CRITICAL",
+      "fixed": "1.79.3",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "google.golang.org/grpc",
+      "installed": "v1.72.1",
+      "vuln_id": "CVE-2026-84304",
+      "severity": "HIGH",
+      "fixed": "1.83.1",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "google.golang.org/grpc",
+      "installed": "v1.72.1",
+      "vuln_id": "CVE-2026-84445",
+      "severity": "HIGH",
+      "fixed": "1.82.2, 1.83.2, 1.84.0-dev.0.20260825144003-d5a41119e0e3, 1.85.0-dev.0.20260825072537-93e31b48545e",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "google.golang.org/grpc",
+      "installed": "v1.72.1",
+      "vuln_id": "GHSA-hrxh-6v49-42gf",
+      "severity": "HIGH",
+      "fixed": "1.82.1",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "google.golang.org/grpc",
+      "installed": "v1.72.1",
+      "vuln_id": "CVE-2026-84303",
+      "severity": "MEDIUM",
+      "fixed": "1.83.1",
+      "why": "needs-human: fix requires a bump beyond the `patch` policy"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "oras.land/oras-go/v2",
+      "installed": "v2.6.0",
+      "vuln_id": "CVE-2026-50151",
+      "severity": "HIGH",
+      "fixed": "2.6.1",
+      "why": "held: helm 3's registry login fails with oras-go 2.6.1+ (TestRegistryLogin); helm 4 is not held"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "oras.land/oras-go/v2",
+      "installed": "v2.6.0",
+      "vuln_id": "CVE-2026-50163",
+      "severity": "HIGH",
+      "fixed": "2.6.2",
+      "why": "held: helm 3's registry login fails with oras-go 2.6.1+ (TestRegistryLogin); helm 4 is not held"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "oras.land/oras-go/v2",
+      "installed": "v2.6.0",
+      "vuln_id": "CVE-2026-85731",
+      "severity": "HIGH",
+      "fixed": "2.6.2",
+      "why": "held: helm 3's registry login fails with oras-go 2.6.1+ (TestRegistryLogin); helm 4 is not held"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "oras.land/oras-go/v2",
+      "installed": "v2.6.0",
+      "vuln_id": "CVE-2026-50162",
+      "severity": "MEDIUM",
+      "fixed": "2.6.1",
+      "why": "held: helm 3's registry login fails with oras-go 2.6.1+ (TestRegistryLogin); helm 4 is not held"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "oras.land/oras-go/v2",
+      "installed": "v2.6.0",
+      "vuln_id": "CVE-2026-85732",
+      "severity": "MEDIUM",
+      "fixed": "2.6.2",
+      "why": "held: helm 3's registry login fails with oras-go 2.6.1+ (TestRegistryLogin); helm 4 is not held"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "oras.land/oras-go/v2",
+      "installed": "v2.6.0",
+      "vuln_id": "GHSA-vh4v-2xq2-g5cg",
+      "severity": "MEDIUM",
+      "fixed": "2.6.1",
+      "why": "held: helm 3's registry login fails with oras-go 2.6.1+ (TestRegistryLogin); helm 4 is not held"
+    },
+    {
+      "ecosystem": "gomod",
+      "target": "go.mod",
+      "name": "oras.land/oras-go/v2",
+      "installed": "v2.6.0",
+      "vuln_id": "CVE-2026-48978",
+      "severity": "LOW",
+      "fixed": "2.6.1",
+      "why": "held: helm 3's registry login fails with oras-go 2.6.1+ (TestRegistryLogin); helm 4 is not held"
+    }
+  ],
+  "skips": [],
+  "tests": {
+    "configured": true,
+    "ran": true,
+    "passed": true
+  },
+  "gate": {},
+  "leftovers": {}
+}
