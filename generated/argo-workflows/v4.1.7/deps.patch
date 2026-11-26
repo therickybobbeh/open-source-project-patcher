@@ -1,0 +1,85 @@
+diff --git a/Dockerfile b/Dockerfile
+index 3cefd9e..3a6ed29 100644
+--- a/Dockerfile
++++ b/Dockerfile
+@@ -3,7 +3,7 @@ ARG GIT_COMMIT=unknown
+ ARG GIT_TAG=unknown
+ ARG GIT_TREE_STATE=unknown
+ 
+-FROM golang:1.26.10-alpine3.23 AS builder
++FROM golang:1.26.11-alpine3.23@sha256:23f198931d4bd83b4f5a613bd75656257ae8bf832dcbc2db80e1050b5219ca2a AS builder
+ 
+ # libc-dev to build openapi-gen
+ RUN apk update && apk add --no-cache \
+@@ -36,7 +36,7 @@ RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache
+ 
+ ####################################################################################################
+ 
+-FROM node:20-alpine AS argo-ui
++FROM node:24-alpine@sha256:116b800c3754b440ee0aa3ed2f20f5bf3d99a554bfd9adeea09ea8017f6e85f5 AS argo-ui
+ 
+ RUN apk update && apk add --no-cache git
+ 
+@@ -90,7 +90,7 @@ RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache
+ 
+ ####################################################################################################
+ 
+-FROM gcr.io/distroless/static-debian13:latest@sha256:034df5c1737e8241f6ed6423a12e720ee0f6d6f088609ee172f98f6f2166ef5d AS argoexec-base
++FROM gcr.io/distroless/static-debian13:latest@sha256:4c2cd1dee442c9a99924a378c7c126fac8fef14771579ef567c3f2bdd7a5122a AS argoexec-base
+ 
+ COPY --from=argoexec-build /etc/mime.types /etc/mime.types
+ COPY hack/ssh_known_hosts /etc/ssh/
+@@ -115,7 +115,7 @@ ENTRYPOINT [ "argoexec" ]
+ 
+ ####################################################################################################
+ 
+-FROM gcr.io/distroless/static-debian13:latest@sha256:034df5c1737e8241f6ed6423a12e720ee0f6d6f088609ee172f98f6f2166ef5d AS workflow-controller
++FROM gcr.io/distroless/static-debian13:latest@sha256:4c2cd1dee442c9a99924a378c7c126fac8fef14771579ef567c3f2bdd7a5122a AS workflow-controller
+ 
+ USER 8737
+ 
+@@ -127,7 +127,7 @@ ENTRYPOINT [ "workflow-controller" ]
+ 
+ ####################################################################################################
+ 
+-FROM gcr.io/distroless/static-debian13:latest@sha256:034df5c1737e8241f6ed6423a12e720ee0f6d6f088609ee172f98f6f2166ef5d AS argocli
++FROM gcr.io/distroless/static-debian13:latest@sha256:4c2cd1dee442c9a99924a378c7c126fac8fef14771579ef567c3f2bdd7a5122a AS argocli
+ 
+ USER 8737
+ 
+@@ -141,7 +141,7 @@ ENTRYPOINT [ "argo" ]
+ 
+ ####################################################################################################
+ 
+-FROM registry.k8s.io/kubectl:v1.36.3@sha256:6e4fce3c83651edb91b74bc67701c5cd263dd8aa3cd4254b1798d6425a5ab789 AS argo-workflows-crdinstaller
++FROM registry.k8s.io/kubectl:v1.36.7@sha256:3f2cf571aa96e47b5df0c4770aef92322e9c6542ca8c3c412a5cb6c108a24ecc AS argo-workflows-crdinstaller
+ 
+ USER 8737
+ 
+@@ -159,7 +159,7 @@ CMD [ "apply", "--server-side", "--force-conflicts", "-v=6", "-f", "/crds/full/"
+ # the build context, so each binary is built exactly once. On change Tilt
+ # rebuilds these (trivial COPY) and recreates the pod.
+ 
+-FROM alpine:3.24 AS workflow-controller-dev
++FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS workflow-controller-dev
+ RUN apk add --no-cache ca-certificates
+ COPY hack/ssh_known_hosts /etc/ssh/
+ COPY hack/nsswitch.conf /etc/
+@@ -172,7 +172,7 @@ ENTRYPOINT [ "workflow-controller" ]
+ 
+ ####################################################################################################
+ 
+-FROM alpine:3.24 AS argocli-dev
++FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS argocli-dev
+ RUN apk add --no-cache ca-certificates
+ WORKDIR /home/argo
+ COPY hack/ssh_known_hosts /etc/ssh/
+@@ -185,7 +185,7 @@ ENTRYPOINT [ "argo" ]
+ 
+ ####################################################################################################
+ 
+-FROM alpine:3.24 AS argoexec-dev
++FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS argoexec-dev
+ RUN apk add --no-cache ca-certificates mailcap
+ COPY hack/ssh_known_hosts /etc/ssh/
+ COPY hack/nsswitch.conf /etc/

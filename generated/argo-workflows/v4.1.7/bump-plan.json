@@ -1,41 +1,12 @@
 {
   "recipe": "argo-workflows",
   "line": "v4.1",
-  "tag": "v4.1.6",
-  "commit": "43021573c5a35cbafae009043c132dfcef43a112",
+  "tag": "v4.1.7",
+  "commit": "21748f1a8b8df09c8f8b1d8d3c8d701d93991f29",
   "status": "success",
   "requires": {},
   "plan": {
     "bumps": [
-      {
-        "ecosystem": "gomod",
-        "target": "go.mod",
-        "name": "github.com/go-jose/go-jose/v4",
-        "installed": "v4.1.4",
-        "to": "v4.1.6",
-        "level": "patch",
-        "reasons": [
-          "CVE-2026-116585",
-          "CVE-2026-116586",
-          "CVE-2026-116587"
-        ],
-        "direct": true,
-        "dir": "."
-      },
-      {
-        "ecosystem": "gomod",
-        "target": "go.mod",
-        "name": "golang.org/x/net",
-        "installed": "v0.60.0",
-        "to": "v0.62.0",
-        "level": "minor",
-        "reasons": [
-          "CVE-2026-78661",
-          "CVE-2026-97045"
-        ],
-        "direct": false,
-        "dir": "."
-      },
       {
         "ecosystem": "yarn",
         "target": "ui/yarn.lock",
@@ -61,33 +32,9 @@
         ],
         "direct": false,
         "dir": "ui"
-      },
-      {
-        "ecosystem": "yarn",
-        "target": "ui/yarn.lock",
-        "name": "qs",
-        "installed": "6.16.0",
-        "to": "6.16.1",
-        "level": "patch",
-        "reasons": [
-          "CVE-2026-110816"
-        ],
-        "direct": false,
-        "dir": "ui"
       }
     ],
     "unresolved": [
-      {
-        "ecosystem": "gomod",
-        "target": "go.mod",
-        "name": "golang.org/x/crypto",
-        "installed": "v0.57.0",
-        "vuln_id": "GO-2026-5932",
-        "severity": "UNKNOWN",
-        "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-        "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
-        "eligible": "2026-11-18T07:23:42+00:00"
-      },
       {
         "ecosystem": "yarn",
         "target": "ui/yarn.lock",
@@ -103,38 +50,11 @@
   },
   "changes": [
     {
-      "ecosystem": "gomod",
-      "target": "go.mod",
-      "name": "github.com/go-jose/go-jose/v4",
-      "old": "v4.1.4",
-      "new": "v4.1.6",
-      "note": "CVE-2026-116585, CVE-2026-116586, CVE-2026-116587",
-      "level": "patch"
-    },
-    {
-      "ecosystem": "gomod",
-      "target": "go.mod",
-      "name": "golang.org/x/net",
-      "old": "v0.60.0",
-      "new": "v0.62.0",
-      "note": "CVE-2026-78661, CVE-2026-97045",
-      "level": "minor"
-    },
-    {
-      "ecosystem": "yarn",
-      "target": "ui/yarn.lock",
-      "name": "qs",
-      "old": "6.16.0",
-      "new": "6.16.1",
-      "note": "CVE-2026-110816",
-      "level": "patch"
-    },
-    {
       "ecosystem": "dockerfile",
       "target": "Dockerfile",
       "name": "golang",
       "old": "golang:1.26.10-alpine3.23",
-      "new": "golang:1.26.11-alpine3.23@sha256:db99415e2625ce0ee03eed09edf7f32ae8c58dc399f28cc602a87fe7238119e4",
+      "new": "golang:1.26.11-alpine3.23@sha256:23f198931d4bd83b4f5a613bd75656257ae8bf832dcbc2db80e1050b5219ca2a",
       "note": "1.26.10-alpine3.23 -> 1.26.11-alpine3.23",
       "level": "patch"
     },
@@ -152,7 +72,7 @@
       "target": "Dockerfile",
       "name": "gcr.io/distroless/static-debian13",
       "old": "static-debian13:latest@sha256:034df5c1737e8241f6ed6423a12e720ee0f6d6f088609ee172f98f6f2166ef5d",
-      "new": "static-debian13:latest@sha256:1a64f46364620465ef9e9a8f5413757dfdf22695e050bbfd7303eeaf17a59383",
+      "new": "static-debian13:latest@sha256:4c2cd1dee442c9a99924a378c7c126fac8fef14771579ef567c3f2bdd7a5122a",
       "note": "base image refresh",
       "level": "patch"
     },
@@ -161,7 +81,7 @@
       "target": "Dockerfile",
       "name": "gcr.io/distroless/static-debian13",
       "old": "static-debian13:latest@sha256:034df5c1737e8241f6ed6423a12e720ee0f6d6f088609ee172f98f6f2166ef5d",
-      "new": "static-debian13:latest@sha256:1a64f46364620465ef9e9a8f5413757dfdf22695e050bbfd7303eeaf17a59383",
+      "new": "static-debian13:latest@sha256:4c2cd1dee442c9a99924a378c7c126fac8fef14771579ef567c3f2bdd7a5122a",
       "note": "base image refresh",
       "level": "patch"
     },
@@ -170,7 +90,7 @@
       "target": "Dockerfile",
       "name": "gcr.io/distroless/static-debian13",
       "old": "static-debian13:latest@sha256:034df5c1737e8241f6ed6423a12e720ee0f6d6f088609ee172f98f6f2166ef5d",
-      "new": "static-debian13:latest@sha256:1a64f46364620465ef9e9a8f5413757dfdf22695e050bbfd7303eeaf17a59383",
+      "new": "static-debian13:latest@sha256:4c2cd1dee442c9a99924a378c7c126fac8fef14771579ef567c3f2bdd7a5122a",
       "note": "base image refresh",
       "level": "patch"
     },
@@ -179,8 +99,8 @@
       "target": "Dockerfile",
       "name": "registry.k8s.io/kubectl",
       "old": "kubectl:v1.36.3@sha256:6e4fce3c83651edb91b74bc67701c5cd263dd8aa3cd4254b1798d6425a5ab789",
-      "new": "kubectl:v1.36.6@sha256:0650805141538d13ccbb6bb9e0dd647bc415bc002898357970211c4d47224396",
-      "note": "v1.36.3 -> v1.36.6",
+      "new": "kubectl:v1.36.7@sha256:3f2cf571aa96e47b5df0c4770aef92322e9c6542ca8c3c412a5cb6c108a24ecc",
+      "note": "v1.36.3 -> v1.36.7",
       "level": "patch"
     },
     {
@@ -229,22 +149,6 @@
       "hint": false
     },
     {
-      "ecosystem": "yarn",
-      "target": "ui/yarn.lock",
-      "name": "diff",
-      "wanted": "5.2.2",
-      "error": "needs-human: yarn.lock has diff on majors [4, 5]; a yarn resolution would force all of them to 5.2.2",
-      "hint": false
-    },
-    {
-      "ecosystem": "yarn",
-      "target": "ui/yarn.lock",
-      "name": "path-to-regexp",
-      "wanted": "1.9.0",
-      "error": "needs-human: yarn.lock has path-to-regexp on majors [0, 1]; a yarn resolution would force all of them to 1.9.0",
-      "hint": false
-    },
-    {
       "ecosystem": "dockerfile",
       "target": "Dockerfile",
       "name": "golang",
@@ -256,23 +160,12 @@
       "ecosystem": "dockerfile",
       "target": "Dockerfile",
       "name": "registry.k8s.io/kubectl",
-      "wanted": "v1.37.2",
-      "error": "newer tag v1.37.2 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)",
+      "wanted": "v1.37.3",
+      "error": "newer tag v1.37.3 exists beyond the `patch` level for base images (set `level: minor` on this dockerfile ecosystem, or bump it in patches/)",
       "hint": true
     }
   ],
   "unresolved": [
-    {
-      "ecosystem": "gomod",
-      "target": "go.mod",
-      "name": "golang.org/x/crypto",
-      "installed": "v0.58.0",
-      "vuln_id": "GO-2026-5932",
-      "severity": "UNKNOWN",
-      "fixed": "0.58.1-0.20261009181718-2f1f834330b2",
-      "why": "cooldown: v0.59.0 released 2 day(s) ago (eligible 2026-11-18)",
-      "eligible": "2026-11-18T07:23:42+00:00"
-    },
     {
       "ecosystem": "yarn",
       "target": "ui/yarn.lock",
@@ -282,26 +175,6 @@
       "severity": "MEDIUM",
       "fixed": "11.1.1, 12.0.1, 13.0.1",
       "why": "needs-human: fix requires a bump beyond the `minor` policy"
-    },
-    {
-      "ecosystem": "yarn",
-      "target": "ui/yarn.lock",
-      "name": "diff",
-      "installed": "5.1.0",
-      "vuln_id": "CVE-2026-24001",
-      "severity": "",
-      "fixed": "5.2.2",
-      "why": "still at 5.1.0 after 3 round(s)"
-    },
-    {
-      "ecosystem": "yarn",
-      "target": "ui/yarn.lock",
-      "name": "path-to-regexp",
-      "installed": "1.8.0",
-      "vuln_id": "CVE-2024-45296",
-      "severity": "",
-      "fixed": "1.9.0",
-      "why": "still at 1.8.0 after 3 round(s)"
     }
   ],
   "skips": [
@@ -343,21 +216,13 @@
     }
   },
   "leftovers": {
-    "workflow-controller": [
-      "GO-2026-5932|golang.org/x/crypto|usr/bin/workflow-controller"
-    ],
-    "argocli": [
-      "GO-2026-5932|golang.org/x/crypto|usr/bin/argo"
-    ],
-    "argoexec": [
-      "GO-2026-5932|golang.org/x/crypto|usr/bin/argoexec"
-    ],
-    "argoexec-nonroot": [
-      "GO-2026-5932|golang.org/x/crypto|usr/bin/argoexec"
-    ]
+    "workflow-controller": [],
+    "argocli": [],
+    "argoexec": [],
+    "argoexec-nonroot": []
   },
   "upstream": {
     "released": "v4.1.6",
-    "level": "same"
+    "level": "patch"
   }
 }
