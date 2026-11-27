@@ -51,7 +51,7 @@
       "target": "docker-images/base/Dockerfile",
       "name": "registry.access.redhat.com/ubi9/ubi-minimal",
       "old": "ubi-minimal:latest",
-      "new": "ubi-minimal:latest@sha256:f26ef64172ea61f5ac5ba4be8c5c738bf8760b22b3e5148ce7b40f7308ab32db",
+      "new": "ubi-minimal:latest@sha256:08d4c70f1baf6537a0728656cf7942d561e74a35916509d205b6519861266352",
       "note": "base image refresh",
       "level": "patch"
     },
@@ -60,7 +60,7 @@
       "target": "docker-images/base/Dockerfile",
       "name": "registry.access.redhat.com/ubi9/ubi-minimal",
       "old": "ubi-minimal:latest",
-      "new": "ubi-minimal:latest@sha256:f26ef64172ea61f5ac5ba4be8c5c738bf8760b22b3e5148ce7b40f7308ab32db",
+      "new": "ubi-minimal:latest@sha256:08d4c70f1baf6537a0728656cf7942d561e74a35916509d205b6519861266352",
       "note": "base image refresh",
       "level": "patch"
     }
@@ -123,8 +123,7 @@
       "CVE-2026-91776|com.fasterxml.jackson.core:jackson-databind|opt/cruise-control/libs/jackson-databind-2.21.1.jar",
       "CVE-2026-91777|com.fasterxml.jackson.core:jackson-databind|opt/cruise-control/libs/jackson-databind-2.21.1.jar",
       "CVE-2026-93451|org.xerial.snappy:snappy-java|opt/cruise-control/libs/snappy-java-1.1.10.5.jar",
-      "GHSA-mhm7-754m-9p8w|com.fasterxml.jackson.core:jackson-databind|opt/cruise-control/libs/jackson-databind-2.21.1.jar",
-      "GO-2026-5932|golang.org/x/crypto|opt/kafka-exporter/kafka_exporter"
+      "GHSA-mhm7-754m-9p8w|com.fasterxml.jackson.core:jackson-databind|opt/cruise-control/libs/jackson-databind-2.21.1.jar"
     ]
   },
   "upstream": {

@@ -7,7 +7,7 @@ Upstream: https://github.com/strimzi/strimzi-kafka-operator @ `555c3e0f07c2` (li
 | Artifact | Before | After | Fixed | New |
 |---|---|---|---|---|
 | source (`trivy fs`) | 0 / 1 / 1 / 0 | 0 / 0 / 1 / 0 | 1 | 0 |
-| image `strimzi-kafka` | 0 / 13 / 32 / 1 | 0 / 11 / 19 / 1 | 15 | 0 |
+| image `strimzi-kafka` | 0 / 22 / 44 / 1 | 0 / 11 / 19 / 1 | 37 | 0 |
 
 ### Release gate (reported only (`gate.enforce: false`))
 
@@ -18,8 +18,8 @@ Upstream: https://github.com/strimzi/strimzi-kafka-operator @ `555c3e0f07c2` (li
 | Ecosystem | File | Package | From | To | Why |
 |---|---|---|---|---|---|
 | maven | `docker-images/artifacts/kafka-thirdparty-libs/4.3.2/pom.xml` | `com.google.guava:guava` | `33.5.0-android` | `33.7.2-android` | CVE-2026-102554, override: CVE-2026-102554 is fixed in 33.7.2, published as 33.7.2-android (the flavor the add-ons use) |
-| dockerfile | `docker-images/base/Dockerfile` | `registry.access.redhat.com/ubi9/ubi-minimal` | `ubi-minimal:latest` | `ubi-minimal:latest@sha256:f26ef64172ea61f5ac5ba4be8c5c738bf8760b22b3e5148ce7b40f7308ab32db` | base image refresh |
-| dockerfile | `docker-images/base/Dockerfile` | `registry.access.redhat.com/ubi9/ubi-minimal` | `ubi-minimal:latest` | `ubi-minimal:latest@sha256:f26ef64172ea61f5ac5ba4be8c5c738bf8760b22b3e5148ce7b40f7308ab32db` | base image refresh |
+| dockerfile | `docker-images/base/Dockerfile` | `registry.access.redhat.com/ubi9/ubi-minimal` | `ubi-minimal:latest` | `ubi-minimal:latest@sha256:08d4c70f1baf6537a0728656cf7942d561e74a35916509d205b6519861266352` | base image refresh |
+| dockerfile | `docker-images/base/Dockerfile` | `registry.access.redhat.com/ubi9/ubi-minimal` | `ubi-minimal:latest` | `ubi-minimal:latest@sha256:08d4c70f1baf6537a0728656cf7942d561e74a35916509d205b6519861266352` | base image refresh |
 
 ### Still fixable after patching
 
@@ -41,7 +41,7 @@ Upstream: https://github.com/strimzi/strimzi-kafka-operator @ `555c3e0f07c2` (li
 | MEDIUM | CVE-2026-106453 | `at.yawk.lz4:lz4-java` | `1.10.2` | `1.11.2` | image `strimzi-kafka` | in bundled artifact `opt/cruise-control/libs/lz4-java-1.10.2.jar` (not built from this source) |
 | MEDIUM | CVE-2026-59949 | `at.yawk.lz4:lz4-java` | `1.10.2` | `1.11.1` | image `strimzi-kafka` | in bundled artifact `opt/cruise-control/libs/lz4-java-1.10.2.jar` (not built from this source) |
 | MEDIUM | CVE-2026-19032 | `com.fasterxml.jackson.core:jackson-databind` | `2.21.1` | `2.18.10, 2.21.6, 2.22.2` | image `strimzi-kafka` | in bundled artifact `opt/cruise-control/libs/jackson-databind-2.21.1.jar` (not built from this source) |
-| MEDIUM | CVE-2026-54514 | `com.fasterxml.jackson.core:jackson-databind` | `2.21.1` | `2.18.8, 2.21.4, 3.1.4` | image `strimzi-kafka` | in bundled artifact `opt/cruise-control/libs/jackson-databind-2.21.1.jar` (not built from this source) |
+| MEDIUM | CVE-2026-54514 | `com.fasterxml.jackson.core:jackson-databind` | `2.21.1` | `2.18.8, 2.21.4` | image `strimzi-kafka` | in bundled artifact `opt/cruise-control/libs/jackson-databind-2.21.1.jar` (not built from this source) |
 | MEDIUM | CVE-2026-54515 | `com.fasterxml.jackson.core:jackson-databind` | `2.21.1` | `3.1.4, 2.18.9, 2.21.5, 2.22.1` | image `strimzi-kafka` | in bundled artifact `opt/cruise-control/libs/jackson-databind-2.21.1.jar` (not built from this source) |
 | MEDIUM | CVE-2026-54516 | `com.fasterxml.jackson.core:jackson-databind` | `2.21.1` | `2.21.4, 3.1.4` | image `strimzi-kafka` | in bundled artifact `opt/cruise-control/libs/jackson-databind-2.21.1.jar` (not built from this source) |
 | MEDIUM | CVE-2026-54517 | `com.fasterxml.jackson.core:jackson-databind` | `2.21.1` | `2.21.4, 3.1.4` | image `strimzi-kafka` | in bundled artifact `opt/cruise-control/libs/jackson-databind-2.21.1.jar` (not built from this source) |
@@ -57,7 +57,6 @@ Upstream: https://github.com/strimzi/strimzi-kafka-operator @ `555c3e0f07c2` (li
 | MEDIUM | CVE-2026-59171 | `org.json:json` | `20231013` | `20260719` | image `strimzi-kafka` | in bundled artifact `opt/cruise-control/libs/json-20231013.jar` (not built from this source) |
 | MEDIUM | CVE-2026-116590 | `org.xerial.snappy:snappy-java` | `1.1.10.5` | `1.1.10.9` | image `strimzi-kafka` | in bundled artifact `opt/cruise-control/libs/snappy-java-1.1.10.5.jar` (not built from this source) |
 | LOW | CVE-2026-106449 | `at.yawk.lz4:lz4-java` | `1.10.2` | `1.11.4` | image `strimzi-kafka` | in bundled artifact `opt/cruise-control/libs/lz4-java-1.10.2.jar` (not built from this source) |
-| UNKNOWN | GO-2026-5932 | `golang.org/x/crypto` | `v0.58.0` | `0.58.1-0.20261009181718-2f1f834330b2` | image `strimzi-kafka` | component `kafka-exporter` (rebuilt from source): untagged: the fix (0.58.1-0.20261009181718-2f1f834330b2) is a commit, not a release; the first tagged release  |
 
 ### Upstream tests
 
@@ -73,7 +72,7 @@ Not run.
 
 | Image | Component | Path | Version | Status | Bumps | Tests | Notes |
 |---|---|---|---|---|---|---|---|
-| strimzi-kafka | kafka-exporter | `/opt/kafka-exporter/kafka_exporter` | 1.11.0 | success | 1 | passed | version from Go build info |
+| strimzi-kafka | kafka-exporter | `/opt/kafka-exporter/kafka_exporter` | 1.11.0 | success | 2 | passed | version from Go build info |
 
 ### Notes
 
